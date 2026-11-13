@@ -23,7 +23,9 @@ rpm)
         dnf install -y -q "./$PKG" xorg-x11-server-Xvfb xwininfo
     else
         # The package is not signed; zypper refuses that without the switch.
-        zypper --non-interactive install --allow-unsigned-rpm "./$PKG" xorg-x11-server-Xvfb xwininfo
+        # findutils: the minimal image lacks it, and without it the font set-up
+        # (fonts-config) fails; every real installation has it.
+        zypper --non-interactive install --allow-unsigned-rpm "./$PKG" xorg-x11-server-Xvfb xwininfo findutils
     fi
     ;;
 *)
