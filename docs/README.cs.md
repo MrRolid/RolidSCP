@@ -3,26 +3,129 @@
 Dvoupanelový správce souborů pro lokální disky a SFTP servery, inspirovaný WinSCP a Total Commanderem.
 Napsaný v Rustu, GUI v egui. Hlavní myšlenka: **barevně odlišené záložky se session** a rychlé přepínání mezi nimi.
 
+![RolidSCP s lokálním panelem a panelem na SFTP serveru](screenshot.png)
+
+## Instalace
+
+Stáhni balíček `rolidscp_<verze>_amd64.deb` z
+[posledního vydání](https://github.com/MrRolid/RolidSCP/releases/latest) (všechny verze jsou na stránce
+[Releases](https://github.com/MrRolid/RolidSCP/releases)) a nainstaluj ho přes apt, který doplní i potřebné
+knihovny:
+
+```sh
+sudo apt install ./rolidscp_*_amd64.deb
+```
+
+- **Podporované systémy:** Linux na 64bitovém x86 (amd64) s glibc 2.39 nebo novější: Debian 13 (trixie)
+  a novější, Ubuntu 24.04 LTS a novější a distribuce z nich odvozené (např. Linux Mint 22). Balíček se
+  sestavuje a zkouší na Debianu 13, ostatní by měly fungovat, ale pravidelně se nezkoušejí. Debian 12
+  a Ubuntu 22.04 jsou na balíček příliš staré. Jiné distribuce a architektury:
+  [sestavení ze zdrojů](#sestavení-ze-zdrojů) (nezkoušené).
+- **Pracovní prostředí:** doporučené je X11. Na Waylandu program běží, ale tažení souborů mezi ním
+  a jinými aplikacemi (dovnitř ani ven) zatím nefunguje.
+- **Spuštění:** „RolidSCP“ v nabídce aplikací, nebo `rolidscp` v terminálu.
+- **Odinstalace:** `sudo apt remove rolidscp` (nastavení v `~/.config/rolidscp/` zůstane).
+
 ## Verze
 
 Do verze 1.0 se zvyšuje jen poslední číslo (0.8.1, 0.8.2, 0.8.3 …). Verze 1.0 bude první produkční
 verze; do té doby je v titulku okna a v okně O aplikaci označení „(Beta - developer version)“.
 
-## Sestavení a spuštění
+## Ochrana dat a chování při chybách
 
-```sh
-cargo run --release -p rolidscp
-```
+Co program pro ochranu souborů dělá a co nedělá. Než ho použiješ na důležitá data, přečti si to: jde
+o beta verzi.
 
-Testy: `cargo test --workspace`
+**Kopírování a přesun (F5, F6)**
+- Soubor se zapisuje jako `název.filepart` a na skutečný název se přejmenuje až celý, takže přerušené
+  kopírování obvykle nechá `.filepart`, ne useknutý soubor pod skutečným názvem. Když cíl už existuje,
+  smaže se těsně před tímto přejmenováním (SFTP verze 3 neumí přejmenovat přes existující soubor);
+  když spojení spadne přesně mezi těmito dvěma kroky, zůstane jen `.filepart`.
+- Po ztrátě spojení přenos po obnovení pokračuje od `.filepart` (na produkční server až po novém
+  potvrzení). Funguje to jen, dokud program běží: fronta se neukládá, po restartu nebo pádu zůstanou
+  soubory `.filepart` na místě a kopírování je potřeba spustit znovu (volba *Navázat* je dokončí).
+- *Navázat* věří existujícímu `.filepart` nebo kratšímu cílovému souboru, který není větší než zdroj;
+  neověřuje, že opravdu pochází ze stejného zdroje. Používej ho, jen když víš, že rozpracovaný soubor je
+  tvůj.
+- Kopírují se práva (bez setuid, setgid, sticky) a čas změny souborů; chyby při jejich nastavení se
+  ignorují. Složky dostanou práva, ale ne čas; vlastník se nekopíruje.
+- Přesun mezi různými disky nebo servery je kopie a následné smazání zdrojů. Zdroje se smažou jen po
+  úspěchu celé kopie a každý soubor jen tehdy, když zdroj i cíl mají pořád velikost z doby kopírování.
+  Obsah se **neporovnává** (žádný kontrolní součet) a změna zdroje během kopírování, která zachová
+  velikost, se nepozná. Nepřesouvej soubory, do kterých zrovna zapisuje jiný program. Když kopie selže,
+  nic se nesmaže; už zkopírované soubory v cíli zůstanou.
+- Symbolické odkazy: odkazy na složky uvnitř kopírované složky se přeskočí (žádné smyčky, nic mimo
+  strom); odkazy na soubory se následují, takže se zkopíruje soubor, na který ukazují, jako obyčejný
+  soubor. Přesun nechá odkazy na místě. Souhrn po přenosu přeskočené odkazy zatím neuvádí.
 
-Diagnostika plynulosti: `ROLIDSCP_FRAME_STATS=1 rolidscp` zapisuje do logu každé 2 s počet snímků,
-průměrný a nejdelší čas snímku.
+**Mazání (F8)**
+- Mazání je nevratné, lokálně i na serveru. Není koš ani zpět.
+- Symbolický odkaz se maže jako odkaz; do složky, na kterou ukazuje, se nevstupuje.
+- Mazání skončí u první chyby; co se smazalo předtím, zůstane smazané.
 
-Ruční test SFTP proti serveru (s odděleným `known_hosts`):
-```sh
-cargo run --release -p rolid-ssh --example smoke -- user@host[:port] /tmp/test_known_hosts /tmp/workdir [cesta_ke_klíči]
-```
+**Editace přes F4**
+- Uložení se pozná po 0,3 s klidu a nahraje se, jen když se změnil obsah; uložení během nahrávání se
+  nahraje hned po něm.
+- Před každým nahráním se soubor na serveru porovná se stavem při otevření (velikost a čas změny, ne
+  obsah). Když se změnil, vybíráš: přepsat, uložit vedle pod jiným názvem, nebo zrušit. Změna, která
+  zachová velikost ve stejné sekundě, se nepozná.
+- Nahrává se nejdřív do `název.filepart`. S rozšířením `posix-rename@openssh.com` (OpenSSH) se soubor
+  vymění jedním atomickým krokem. Bez něj se starý soubor přejmenuje stranou, nový se dá na jeho místo
+  a starý se smaže; na okamžik soubor pod svým názvem neexistuje, a když spojení spadne právě tehdy,
+  zůstane stará verze na serveru jako `název.rolidscp-old`.
+- Při ztrátě spojení nahrávání počká a po obnovení se zopakuje. Upravená kopie zůstává a ukončení
+  aplikace se nejdřív zeptá. „Upravované soubory“ a stavový řádek ukazují „nahráno v HH:MM“,
+  „Nahrávám…“ nebo chybu, takže je vidět, jestli poslední uložení dorazilo.
+- Lokální kopie jsou v `$XDG_RUNTIME_DIR/rolidscp-edit` (soukromá složka 0700). Po pádu programu se
+  změněné kopie při příštím spuštění nabídnou k nahrání. Ta složka je na většině systémů v paměti,
+  takže pád celého počítače nebo výpadek proudu nenahrané úpravy ztratí.
+- Ze souboru na serveru se zachovají jen práva (ne vlastník); symbolický odkaz na serveru se nahradí
+  obyčejným souborem.
+
+**Produkční servery** (příznak ve správci serverů)
+- Červený pruh a „⚠ PRODUKCE“ v záložce; Enter nepotvrzuje: mazání, přesun, přejmenování, práva,
+  balení a rozbalení do něj, nahrání každého uložení přes F4. Terminál se nejdřív zeptá.
+- Zatím ne tak přísně: kopírování (F5, i tažení mezi panely) na produkční server ukáže varování, ale
+  Enter ho potvrdí a výchozí volba u existujících souborů je *Přepsat*; soubory přetažené z jiné
+  aplikace jde také potvrdit Enterem (existující se ve výchozím stavu přeskočí). Vytvoření složky se
+  nijak nevyznačuje.
+- Přerušený přenos na produkční server se sám neobnoví; potvrzuješ ho znovu.
+
+**Servery a klíče**
+- Klíče serverů se ověřují proti `~/.ssh/known_hosts` (i hašované záznamy). U nového serveru se ukáže
+  typ klíče a otisk SHA256 a připojí se až po potvrzení; klíč se pak do toho souboru přidá. Změněný klíč
+  se odmítne; nový klíč přijmeš odstraněním starého řádku přes `ssh-keygen -R <server>`.
+  `/etc/ssh/ssh_known_hosts`, `@cert-authority` ani certifikáty serverů podporované nejsou.
+- Přihlášení přes ssh-agent, soubor s klíčem (formát OpenSSH; PuTTY `.ppk` načte knihovna SSH, ale naše
+  testy ho zatím nepokrývají), výchozí klíče `~/.ssh/id_ed25519`, `id_ecdsa`, `id_rsa`, heslo nebo
+  keyboard-interactive. `~/.ssh/config`, skoky přes jiný server (ProxyJump, ProxyCommand) ani import
+  relací z WinSCP nebo FileZilly zatím podporované nejsou.
+- Uložená hesla jsou v šifrovaném trezoru (`vault.bin`, Argon2id + XChaCha20-Poly1305) za hlavním heslem.
+  Zamčení trezoru (ručně nebo po nastavené době) nezavře spojení ani nezastaví přenosy; zapomene hesla
+  držená pro znovupřipojení. Znovupřipojení pak zkusí nejdřív ssh-agent a klíče, a když server chce
+  heslo, čeká s tlačítkem „Odemknout…“. Hesla k souborům s klíči se neukládají; znovupřipojení, které by
+  ho potřebovalo, to zkouší pořád znovu místo dotazu (a ssh-agent se nezkouší, když má profil zadaný
+  soubor s klíčem), proto pro zašifrované klíče používej ssh-agent bez souboru s klíčem v profilu.
+
+## Čistý SFTP a servery se shellem
+
+Vše základní potřebuje jen SFTP: procházení, kopírování, přesun, přejmenování, mazání, práva, prohlížení
+F3, editace F4, archivy na serveru (nejdřív se stáhnou) a volné místo (když server nabízí
+`statvfs@openssh.com`, jako OpenSSH). Některé funkce jsou rychlejší, když server dovolí spouštět příkazy
+přes SSH; když ne (např. `ForceCommand internal-sftp`, omezený shell nebo chybějící nástroje), přejdou
+na SFTP:
+
+| Funkce | Se shellem (příkazy) | Čistý SFTP |
+|---|---|---|
+| Hledání (Ctrl+F7) | `find`, `grep`, `xargs` na serveru | prochází složky přes SFTP a kvůli hledání v obsahu soubory stahuje (pomalejší; soubory nad 32 MB se v obsahu neprohledávají) |
+| Velikost složek | `du` | prochází složky přes SFTP |
+| Kontrolní součty | `md5sum`, `sha1sum`, `sha256sum`, `sha512sum`, `b3sum` | stáhne soubor a spočítá lokálně (CRC32 vždy tak) |
+| Hledání v prohlížeči F3 | `grep` | čte soubor přes SFTP |
+| Typ souborového systému v řádku cesty | `df -PT` nebo `stat -f` | nezobrazí se |
+| Terminál (Ctrl+P) | systémové `ssh` s přihlašovacím shellem | není k dispozici |
+
+Náhradní cesta se volí sama. Server, který příkaz přijme, ale nikdy neodpoví (neobvyklý obal čekající na
+vstup), může takovou funkci držet, dokud ji nezrušíš.
 
 ## Jazyky a překlady
 
@@ -82,7 +185,7 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
 | Alt+F9 | rozbalit označené archivy |
 | Alt+Shift+F9 | otestovat archiv |
 | F7 | nová složka |
-| F8 / Delete | smazat (s potvrzením) |
+| F8 / Delete | smazat nevratně (s potvrzením; bez koše) |
 | Ctrl+G / klik na cestu | zadat cestu (`~`, relativní i absolutní) |
 | Ctrl+← / Ctrl+→ | otevřít adresář v levém / pravém panelu |
 | Ctrl+R | obnovit (ve výsledcích hledání: hledat znovu) |
@@ -114,14 +217,14 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
 
 - **Správce serverů (Ctrl+O):** uložené profily s názvem, výchozí složkou, barvou záložky a příznakem
   *produkční server*. Produkce má červený pruh v hlavičce, varování v záložce i v dialozích a mazání
-  na ní nejde potvrdit Enterem. Heslo se volitelně ukládá do šifrovaného souboru chráněného
+  na ní nejde potvrdit Enterem (co všechno je chráněné, viz [Ochrana dat](#ochrana-dat-a-chování-při-chybách)). Heslo se volitelně ukládá do šifrovaného souboru chráněného
   **hlavním heslem** (viz níže), nikdy do konfiguračních souborů.
 - **Hlavní heslo** (Nastavení → Hlavní heslo): vytvoří se při prvním uložení hesla k serveru.
   Musí mít aspoň 10 znaků, 2 velká písmena a číslici nebo jiný znak než písmeno a nesmí být snadno
   uhodnutelné (běžná hesla, opakování, řady jako `123456`/`qwerty`, název aplikace, uživatelské jméno;
   zxcvbn skóre aspoň 3/4). Po startu se zeptá jen při prvním použití uloženého hesla; připojení bez
   uložených hesel se na nic neptá. Zamknutí ručně („Zamknout teď“, tlačítko 🔒/🔓 dole vpravo) nebo po
-  5/15/60 minutách nečinnosti. Změna hlavního hesla soubor atomicky přešifruje. **Zapomenuté hlavní
+  nastavené době od posledního použití (30 s až 1 h, výchozí 1 min, nebo nikdy). Změna hlavního hesla soubor atomicky přešifruje. **Zapomenuté hlavní
   heslo nejde obnovit** – jde jen „Smazat uložená hesla a začít znovu“ (profily zůstanou, bez hesel).
   Hesla uložená do systémové klíčenky verzemi 0.3–0.4.1 aplikace po startu nabídne přesunout; z klíčenky
   se smažou až po úspěšném zápisu a ověřeném přečtení nového souboru.
@@ -129,7 +232,8 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   Vzdálené panely se připojí, až když se jejich záložka zobrazí. Když přihlášení selže, otevře se
   správce serverů s vyplněnými údaji.
 - **Přenosy:** fronta (nejvýše 3 souběžně, další čekají), rychlost, zrušení. Soubor se zapisuje do
-  `název.filepart` a po dokončení se přejmenuje. Zachovává se čas změny a práva. Při kopírování
+  `název.filepart` a po dokončení se přejmenuje. Zachovává se čas změny a práva souborů (u složek jen
+  práva, vlastník ne; viz [Ochrana dat](#ochrana-dat-a-chování-při-chybách)). Při kopírování
   se volí, co s existujícími soubory: přepsat, přepsat jen starší, přeskočit, nebo navázat přerušený přenos.
 
 ## Přejmenování a přesun (F2, Shift+F6, F6)
@@ -156,7 +260,8 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   předvolby z Nastavení.
 - Na stejném disku nebo serveru se položky jen přejmenují (okamžitě, i velké soubory). Mezi disky nebo
   servery se zkopírují přes frontu přenosů a zdroj se smaže až po úspěšném dokončení celé kopie, a jen
-  soubory, které v cíli mají stejnou velikost (a ve zdroji se mezitím nezměnily). Při chybě nebo zrušení
+  soubory, které v cíli mají stejnou velikost (a velikost zdroje se mezitím nezměnila; obsah se
+  neporovnává). Při chybě nebo zrušení
   zdroj zůstane. Soubor přeskočený podle volby u existujících souborů zůstane ve zdroji i se složkou;
   symbolické odkazy se mezi disky nepřesouvají.
 - Produkční zdroj nebo cíl se v dialogu vyznačí a Enter pak nepotvrzuje. Z archivu jde jen kopírovat
@@ -214,13 +319,15 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   nastaví původní práva a teprve pak nahradí originál. Pokud server umí `posix-rename@openssh.com`
   (OpenSSH ano), výměna je jeden atomický krok. Jinak se originál nejdřív přejmenuje na
   `název.rolidscp-old`, nový soubor zaujme jeho místo a starý se smaže (při chybě se originál vrátí).
-  Při chybě na serveru nezůstane useknutý soubor.
+  Při chybě na serveru nezůstane useknutý soubor; bez `posix-rename` ale na okamžik soubor pod svým
+  názvem neexistuje (viz [Ochrana dat](#ochrana-dat-a-chování-při-chybách)).
 - **Po pádu aplikace:** každá běžící instance má v dočasné složce soubor se svým PID a ke každé
   rozpracované úpravě je metasoubor (server, cesta, původní velikost a čas, hash stažené verze).
   Při startu se kopie po instancích, které už neběží, bez změn tiše smažou. Kopie se změnou se nesmažou,
   aplikace se zeptá: „Po pádu zůstaly neuložené úpravy“ – Nahrát (připojí se a nahraje s kontrolou
   konfliktu) / Otevřít složku / Zahodit. Úprav jiných běžících instancí se nikdy nedotkne.
-- **Konflikt:** pokud se soubor na serveru mezitím změnil (velikost nebo čas změny), zeptá se:
+- **Konflikt:** pokud se soubor na serveru mezitím změnil (velikost nebo čas změny v celých sekundách;
+  obsah se neporovnává), zeptá se:
   Přepsat / Uložit vedle pod jiným názvem (`index (moje úprava 2026-11-07 1056).php`) / Zrušit.
 - **Produkční server:** každé nahrání se potvrzuje.
 - Stav je vidět ve stavovém řádku („Upravuje se: N souborů · nahráno v HH:MM“, „Nahrávám…“, chyba
@@ -253,7 +360,7 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
 - Potvrzení se ukáže jen u produkčního serveru, u víc než 200 souborů nebo víc než 1 GiB, a když už
   něco v cíli existuje (pak se volí Přepsat / Přepsat jen starší / Přeskočit / Navázat). Jinak se
   přenos spustí hned.
-- Předvolené je **Přeskočit existující**, takže Enter nikdy nic nepřepíše. Změna: Nastavení → Výchozí
+- Předvolené je **Přeskočit existující**, takže Enter nic nepřepíše, dokud předvolbu nezměníš. Změna: Nastavení → Výchozí
   volba při konfliktu (zvlášť pro tažení a pro F5; F5 má dál předvolené Přepsat). „Bez předvolby“ znamená,
   že se musí vybrat ručně a Enter do té doby nic neudělá. Předvolené Přepsat je zvýrazněné oranžově.
 - Nepřečtitelné soubory (práva) přenos nezastaví – jsou na konci ve shrnutí chyb (Podrobnosti ve
@@ -557,7 +664,7 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   se server ptá na něco dalšího, žádný dialog nevyskočí – jen lišta s tlačítkem **Odemknout…** /
   **Zadat údaje…**.
 - Přerušený přenos počká na spojení a pokračuje od `.filepart` (max. 5 pokusů, pak chyba
-  s tlačítkem **Zkusit znovu**). Nenahraná F4 úprava se po obnovení nahraje (s kontrolou konfliktu).
+  s tlačítkem **Zkusit znovu**). Platí to jen, dokud aplikace běží: fronta přenosů se neukládá. Nenahraná F4 úprava se po obnovení nahraje (s kontrolou konfliktu).
 - Opakuje se jen to, co už bylo potvrzené. Na **produkčním** serveru se přepis ani mazání automaticky
   neopakují – přenos s „Přepsat“ skončí chybou a „Zkusit znovu“ (F4 úprava se znovu zeptá).
 
@@ -581,6 +688,33 @@ nastavíš proměnnou `ROLIDSCP_CONFIG_DIR`.
 
 Diagnostika klíčenky (jen kvůli přesunu hesel ze starších verzí): `cargo run -p rolid-config --example keyring_probe`
 
+## Sestavení ze zdrojů
+
+Pro jiné distribuce nebo nejnovější kód. Na čistém Debianu 13 (trixie) nebo novějším:
+
+```sh
+sudo apt install build-essential curl git
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh   # aktuální stabilní Rust
+. "$HOME/.cargo/env"   # načte Rust do tohoto shellu (nové terminály už ho mají samy)
+git clone https://github.com/MrRolid/RolidSCP.git
+cd RolidSCP
+cargo build --release -p rolidscp
+./target/release/rolidscp
+```
+
+Balíček .deb sestaví `packaging/build-deb.sh` do `target/debian/` (potřebuje navíc `cargo-about`
+a `python3`, viz anglické README).
+
+Testy: `cargo test --workspace`
+
+Diagnostika plynulosti: `ROLIDSCP_FRAME_STATS=1 rolidscp` zapisuje do logu každé 2 s počet snímků,
+průměrný a nejdelší čas snímku.
+
+Ruční test SFTP proti serveru (s odděleným `known_hosts`):
+```sh
+cargo run --release -p rolid-ssh --example smoke -- user@host[:port] /tmp/test_known_hosts /tmp/workdir [cesta_ke_klíči]
+```
+
 ## Struktura
 
 ```
@@ -603,7 +737,7 @@ help/          nápověda F1 podle jazyka (Markdown)
 
 ## Bezpečnost (aktuální stav)
 
-- Striktní kontrola klíče serveru proti `~/.ssh/known_hosts`; neznámý klíč se přidá jen po potvrzení otisku, změněný klíč se odmítne.
+- Striktní kontrola klíče serveru proti `~/.ssh/known_hosts`; neznámý klíč se přidá jen po potvrzení otisku, změněný klíč se odmítne (podrobnosti a omezení v [Ochrana dat](#ochrana-dat-a-chování-při-chybách)).
 - Přihlášení: nejdřív se zjistí, které metody server nabízí, a zkoušejí se jen ty, v pořadí ssh-agent →
   klíče (`~/.ssh/id_ed25519`, `id_ecdsa`, `id_rsa` nebo zadaný; zašifrovaný výchozí klíč bez hesla se tiše přeskočí)
   → heslo → keyboard-interactive (výzvu „Password“ zodpoví zadaným heslem; jiné výzvy, třeba ověřovací kód,
@@ -623,6 +757,8 @@ help/          nápověda F1 podle jazyka (Markdown)
 - Názvy souborů ze serveru se kontrolují proti path traversal (`..`, `/`, `\`, NUL).
 - Hledání na serveru: hodnoty se nikdy nevkládají do příkazu bez apostrofů (test se skutečným `sh`), záznamy jsou oddělené NUL, takže názvy souborů s novými řádky nemohou podvrhnout výsledek.
 - Mazání ani kopírování nesleduje symlinky na adresáře (ochrana proti smyčkám a mazání mimo cíl).
+  Kopírování ale symlinky na soubory následuje a zkopíruje jejich cíl jako obyčejný soubor.
+- Mazání je nevratné (žádný koš).
 
 ## Licence
 

@@ -14,6 +14,129 @@ each holding a session**, and fast switching between them.
 Until 1.0 only the last number of the version goes up (0.8.3, 0.8.4, ...). 1.0 will be the first
 production release; until then the window title and the About dialog say "(Beta - developer version)".
 
+## Installation
+
+Download the Debian package `rolidscp_<version>_amd64.deb` from the
+[latest release](https://github.com/MrRolid/RolidSCP/releases/latest) (all versions are on the
+[Releases](https://github.com/MrRolid/RolidSCP/releases) page) and install it with apt, which also
+pulls in the needed libraries:
+
+```sh
+sudo apt install ./rolidscp_*_amd64.deb
+```
+
+- **Supported systems:** Linux on 64-bit x86 (amd64) with glibc 2.39 or newer: Debian 13 (trixie)
+  or newer, Ubuntu 24.04 LTS or newer and distributions based on them (e.g. Linux Mint 22).
+  The package is built and tested on Debian 13; the others should work but are not tested regularly.
+  Debian 12 and Ubuntu 22.04 are too old for the package. Other distributions and architectures:
+  [build from source](#building-from-source) (not tested).
+- **Desktop:** X11 is recommended. On Wayland the program runs, but drag and drop with other
+  applications (into and out of the window) does not work yet.
+- **Start:** "RolidSCP" in the application menu, or `rolidscp` in a terminal.
+- **Remove:** `sudo apt remove rolidscp` (your settings in `~/.config/rolidscp/` stay).
+
+## Data safety and error handling
+
+What the program does, and what it does not do, to protect your files. Please read this before you
+use it on data that matters: RolidSCP is beta software.
+
+**Copying and moving (F5, F6)**
+- A file is written as `name.filepart` and renamed to its real name only when it is complete, so
+  an interrupted copy normally leaves the `.filepart`, not a truncated file under the real name.
+  When the target already exists, it is deleted just before that rename (SFTP version 3 cannot
+  rename over an existing file); if the connection drops exactly between the two steps, only the
+  `.filepart` remains.
+- After a lost connection the transfer continues from the `.filepart` once the connection is back
+  (to a production server only when you confirm it again). This works only while the program runs:
+  the queue is not saved, so after a restart or a crash the `.filepart` files stay where they are
+  and you have to start the copy again (the conflict choice *Resume* continues them).
+- *Resume* trusts an existing `.filepart`, or a shorter target file, that is not larger than the
+  source; it does not check that it really comes from the same source. Use it only when you know
+  the partial file is yours.
+- The permission bits (without setuid, setgid, sticky) and the modification time of files are
+  copied; failures there are ignored. Folders get their permissions but not their times; the owner
+  is not copied.
+- A move between different disks or servers is a copy followed by deleting the sources. The sources
+  are deleted only when the whole copy succeeded, and each file only when the source and the target
+  still have the size it had when copying started. The content is **not** compared (no checksum),
+  and a change of the source during the copy that keeps its size is not detected. Do not move files
+  that another program is writing to. When the copy fails, nothing is deleted; files already copied
+  stay in the target.
+- Symbolic links: links to folders inside a copied folder are skipped (no loops, nothing from
+  outside the tree); links to files are followed, so the file they point to is copied as an ordinary
+  file. A move leaves links where they are. The result summary does not list skipped links yet.
+
+**Deleting (F8)**
+- Deleting is permanent, locally and on servers. There is no trash and no undo.
+- A symbolic link is deleted as a link; the folder it points to is not entered.
+- Deleting stops at the first error; what was deleted before stays deleted.
+
+**Editing with F4**
+- Saves are noticed after 0.3 s of quiet and uploaded only when the content changed; a save made
+  during an upload is uploaded right after it.
+- Before each upload the file on the server is compared with the state when you opened it (size and
+  modification time, not the content). If it changed, you choose: overwrite, save alongside under
+  another name, or cancel. A change that keeps the size within the same second is not detected.
+- The upload goes to `name.filepart` first. With the `posix-rename@openssh.com` extension (OpenSSH)
+  the file is replaced in one atomic step. Without it the old file is renamed aside, the new one
+  put in place and the old one deleted; for a moment the name does not exist, and if the connection
+  drops just then, the old version stays as `name.rolidscp-old` on the server.
+- When the connection is lost, the upload waits and is tried again when it is back. The edited copy
+  is kept, and quitting asks first. "Edited files" and the status bar show "uploaded at HH:MM",
+  "uploading…" or the error, so you can see whether the last save arrived.
+- Local copies live in `$XDG_RUNTIME_DIR/rolidscp-edit` (private, mode 0700). After a crash of the
+  program, changed copies are offered for upload at the next start. That folder is in memory on most
+  systems, so a crash of the whole computer or a power loss loses edits that were not uploaded.
+- Only the permission bits of the server file are kept (not the owner); a symbolic link on the
+  server is replaced by a regular file.
+
+**Production servers** (a flag in the server manager)
+- Red stripe and a "⚠ PRODUCTION" label on the tab; Enter does not confirm: delete, move, rename,
+  permissions, pack and extract into it, upload of every F4 save. The terminal asks first.
+- Not yet as strict: copying (F5, also dragging between panels) into a production server shows the
+  warning, but Enter still confirms and the default for existing files is *Overwrite*; files dropped
+  from another application can also be confirmed with Enter (existing files are skipped by default).
+  Creating a folder is not marked at all.
+- An interrupted transfer to a production server is not resumed by itself; you confirm it again.
+
+**Servers and keys**
+- Server keys are checked against `~/.ssh/known_hosts` (also hashed entries). A new server shows its
+  key type and SHA256 fingerprint and connects only after you trust it; the key is then added to
+  that file. A changed key is refused; to accept a new key, remove the old line with
+  `ssh-keygen -R <host>`. `/etc/ssh/ssh_known_hosts`, `@cert-authority` and host certificates are not
+  supported.
+- Login with ssh-agent, a key file (OpenSSH format; PuTTY `.ppk` is read by the SSH library, but not
+  yet covered by our tests), the default keys `~/.ssh/id_ed25519`,
+  `id_ecdsa`, `id_rsa`, a password or keyboard-interactive. `~/.ssh/config`, jump hosts
+  (ProxyJump, ProxyCommand) and importing sessions from WinSCP or FileZilla are not supported yet.
+- Saved passwords are in an encrypted vault (`vault.bin`, Argon2id + XChaCha20-Poly1305) behind a
+  master password. Locking the vault (by hand or after the set time) does not close connections or
+  stop transfers; it forgets the passwords kept for reconnecting. A reconnect then tries ssh-agent
+  and keys first and, if the server wants the password, waits with an "Unlock…" button. Passphrases
+  of key files are not saved; a reconnect that would need one keeps retrying instead of asking (and
+  ssh-agent is not tried when a key file is set in the profile), so for encrypted keys use ssh-agent
+  without a key file in the profile.
+
+## Pure SFTP servers and servers with a shell
+
+Everything basic needs only SFTP: browsing, copying, moving, renaming, deleting, permissions,
+F3 viewing, F4 editing, archives on a server (downloaded first) and free space (when the server offers
+`statvfs@openssh.com`, as OpenSSH does). Some functions are faster when the server also lets RolidSCP
+run commands over SSH; when it does not (e.g. `ForceCommand internal-sftp`, a restricted shell or
+missing tools), they fall back to SFTP:
+
+| Function | With a shell (commands) | Pure SFTP |
+|---|---|---|
+| Search (Ctrl+F7) | `find`, `grep`, `xargs` on the server | walks the folders over SFTP and downloads files to search their content (slower; files over 32 MB are not searched by content) |
+| Folder sizes | `du` | walks the folders over SFTP |
+| Checksums | `md5sum`, `sha1sum`, `sha256sum`, `sha512sum`, `b3sum` | downloads the file and computes locally (CRC32 always so) |
+| Search in the F3 viewer | `grep` | reads the file over SFTP |
+| File system type in the path row | `df -PT` or `stat -f` | not shown |
+| Terminal (Ctrl+P) | the system `ssh` with a login shell | not available |
+
+The fallback is chosen automatically. A server that accepts the command but never answers (an
+unusual wrapper waiting for input) can keep such a function waiting until you cancel it.
+
 ## Features
 
 **Panels and tabs**
@@ -47,7 +170,7 @@ production release; until then the window title and the About dialog say "(Beta 
   the temperature is checked every 5 minutes.
 - Folder sizes on demand (Alt+Shift+Enter for all, Alt+Space or Shift+Space for the folder under the
   cursor or the marked ones): counted like GNU `du -sb`, on a server with `du` over SSH, otherwise
-  by walking over SFTP. Sorting and the selection summary use them.
+  by walking over SFTP. Symbolic links are not followed. Sorting and the selection summary use them.
 - Ctrl+T opens a menu for the new tab (home folder, favorites, saved servers, recent places, type to
   filter); the tab menu duplicates a tab with its color, renames, recolors and closes other tabs; the
   tooltip of a tab shows the server, user, resolved address and path.
@@ -57,16 +180,20 @@ production release; until then the window title and the About dialog say "(Beta 
 
 **Servers and transfers**
 - Server manager (Ctrl+O) with saved profiles, start folder, tab color and a *production server*
-  flag (red header, warnings, delete cannot be confirmed with Enter).
-- SSH/SFTP via [russh](https://github.com/Eugeny/russh): strict `known_hosts` check, ssh-agent,
-  keys, password, keyboard-interactive.
+  flag (red stripe, warnings, Enter does not confirm dangerous operations; see
+  [Production servers](#data-safety-and-error-handling) for what is covered).
+- SSH/SFTP via [russh](https://github.com/Eugeny/russh): strict check against `~/.ssh/known_hosts`,
+  ssh-agent, keys, password, keyboard-interactive. No `~/.ssh/config` and no
+  jump hosts yet.
 - Saved passwords live in an encrypted vault (`vault.bin`, Argon2id + XChaCha20-Poly1305) protected
   by a master password, never in plain configuration files. The vault locks again a set time after
   its last use (60 s by default, with a countdown in the status bar) and then also forgets the
   passwords kept for reconnecting.
-- Transfer queue (3 at a time), speed limit, `.filepart` files renamed on completion, resume, times and
-  permissions kept; conflict choice (overwrite, only older, skip, resume) with a configurable default.
-- Automatic reconnect after a lost connection; interrupted transfers continue.
+- Transfer queue (3 at a time), speed limit, `.filepart` files renamed on completion, resume, file
+  times and permission bits kept; conflict choice (overwrite, only older, skip, resume) with a
+  configurable default.
+- Automatic reconnect after a lost connection; interrupted transfers continue from the partial file
+  while the program runs (see [Data safety](#data-safety-and-error-handling)).
 - Ctrl+P opens the system terminal in the panel's folder; on a server `ssh` into the folder with the
   same strict `known_hosts` check. A password saved in the vault is passed by a one-time
   `SSH_ASKPASS` helper over a private socket (answers only that server's password question, once;
@@ -96,14 +223,17 @@ production release; until then the window title and the About dialog say "(Beta 
   BMP) with zoom, rotation, EXIF orientation and next / previous image of the folder. The viewer never
   runs anything and loads nothing from outside.
 - F4: edit in an external editor; a remote file is uploaded back after every save (atomic replace
-  via `posix-rename@openssh.com`, conflict check, recovery after a crash).
+  when the server offers `posix-rename@openssh.com`, a check whether the file changed on the server,
+  recovery after a crash of the program; details in
+  [Data safety](#data-safety-and-error-handling)).
 - Rename right in the list (F2, Shift+F6): the name without its extension is selected; the edit
   belongs to the item, so sorting or a refresh ends it instead of renaming another item. An existing
   target is replaced only after a confirmation (never a folder), a change of letter case works on
   case-insensitive file systems, production servers ask first. Tabs and files edited with F4 inside a
   renamed folder follow it.
 - Move (F6): a rename on the same disk or server; otherwise a copy through the transfer queue, and the
-  sources are deleted only after the whole copy succeeded and the target has the same size.
+  sources are deleted only after the whole copy succeeded and the target has the same size (the
+  content is not compared).
 - Permissions dialog (rwx / octal, recursive with separate file and folder modes).
 - Copy names, paths or `sftp://` URLs to the clipboard.
 - Search (Ctrl+F7): by name (mask, substring, regex) and content; locally with the ripgrep engine,
@@ -167,7 +297,7 @@ production release; until then the window title and the About dialog say "(Beta 
 | Alt+F9 | extract |
 | Alt+Shift+F9 | test an archive |
 | F7 | new folder |
-| F8 / Delete | delete (with confirmation) |
+| F8 / Delete | delete permanently (with confirmation; no trash) |
 | Ctrl+Shift+A | permissions |
 | Ctrl+Shift+N / P / S | copy name / full path / `sftp://` URL to the clipboard |
 | Ctrl+G / click on the path | type a path |
@@ -189,30 +319,22 @@ production release; until then the window title and the About dialog say "(Beta 
 | double click on a tab / right click → Rename tab | rename the tab |
 | middle click on a tab | close the tab |
 
-## Installation
-
-Build the Debian package (see below) and install it:
-
-```sh
-sudo apt install ./target/debian/rolidscp_0.8.13_amd64.deb
-```
-
-The binary is `rolidscp` (`/usr/bin/rolidscp`), with a desktop entry "RolidSCP".
-
 ## Building from source
 
-On a clean Debian 13 (trixie) or newer:
+For other distributions or to try the newest code. On a clean Debian 13 (trixie) or newer:
 
 ```sh
 sudo apt install build-essential curl git
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh   # current stable Rust
+. "$HOME/.cargo/env"   # load Rust into this shell (new terminals do it themselves)
 git clone https://github.com/MrRolid/RolidSCP.git
 cd RolidSCP
 cargo build --release -p rolidscp
 ./target/release/rolidscp
 ```
 
-A C compiler is needed for the bundled C code (zstd, aws-lc). The binary links only to libc;
+A C compiler is needed for the bundled C code (zstd, aws-lc). The binary links only to glibc
+(libc, libm) and libgcc_s;
 X11, Wayland, Vulkan/OpenGL, xkbcommon and fontconfig are loaded at run time, so a desktop with the
 usual libraries is enough (the package lists them as dependencies).
 
@@ -224,7 +346,10 @@ The `.deb` package is built by `packaging/build-deb.sh` into `target/debian/`. I
 ```sh
 cargo install cargo-about --locked --features cli
 packaging/build-deb.sh
+sudo apt install ./target/debian/rolidscp_*_amd64.deb
 ```
+
+The binary is `rolidscp` (`/usr/bin/rolidscp`), with a desktop entry "RolidSCP".
 
 ## Translations
 
