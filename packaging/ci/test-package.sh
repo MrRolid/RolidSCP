@@ -45,6 +45,12 @@ else
     test -s /usr/share/licenses/rolidscp/LICENSE || { echo "FAIL: missing LICENSE" >&2; exit 1; }
 fi
 
+# The fonts fontconfig sees (the program needs at least one at start-up).
+if command -v fc-list >/dev/null; then
+    echo "== fonts:"
+    fc-list : family | sort -u | head -n 10
+fi
+
 # Every library the binary needs is present.
 if command -v ldd >/dev/null && ldd /usr/bin/rolidscp | grep -q 'not found'; then
     ldd /usr/bin/rolidscp >&2
