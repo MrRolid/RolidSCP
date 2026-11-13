@@ -1,0 +1,62 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.8.13"
+edition = "2021"
+license = "GPL-3.0-or-later"
+authors = ["Martin Vorel <martin@vorel.eu>"]
+repository = "https://github.com/MrRolid/RolidSCP"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+
+# Keep target/debug small: line tables are enough for backtraces, dependencies need none.
+[profile.dev]
+debug = "line-tables-only"
+[profile.dev.package."*"]
+debug = false
+
+# Key derivation is slow without optimisations; keep tests and debug builds usable.
+[profile.dev.package.argon2]
+opt-level = 3
+[profile.dev.package.blake2]
+opt-level = 3
+# Compression is very slow without optimisations (archive tests, debug builds).
+[profile.dev.package.zlib-rs]
+opt-level = 3
+[profile.dev.package.lzma-rust2]
+opt-level = 3
+[profile.dev.package.zstd-sys]
+opt-level = 3
+[profile.dev.package.aes]
+opt-level = 3
+[profile.dev.package.sha2]
+opt-level = 3
+[profile.dev.package.libbz2-rs-sys]
+opt-level = 3
+# Syntax highlighting is very slow without optimisations (viewer tests, debug builds).
+[profile.dev.package.syntect]
+opt-level = 3
+[profile.dev.package.fancy-regex]
+opt-level = 3
+[profile.dev.package.regex-automata]
+opt-level = 3
+# Decoding big images is very slow without optimisations (viewer, debug builds).
+[profile.dev.package.image]
+opt-level = 3
+[profile.dev.package.png]
+opt-level = 3
+[profile.dev.package.gif]
+opt-level = 3
+[profile.dev.package.zune-jpeg]
+opt-level = 3
+[profile.dev.package.image-webp]
+opt-level = 3
+[profile.dev.package.fdeflate]
+opt-level = 3
+[profile.dev.package.regex-syntax]
+opt-level = 3

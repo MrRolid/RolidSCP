@@ -1,0 +1,29 @@
+[package]
+name = "rolid-view"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "The F3 viewer without the UI: block reading of big files, line index, encodings, search, syntax highlighting"
+
+[dependencies]
+rolid-text = { path = "../rolid-text" }
+rolid-core = { path = "../rolid-core" }
+async-trait = "0.1.92"
+encoding_rs = "0.8.44"
+# The search engine of ripgrep (already used by the file search).
+grep-matcher = "0.1.9"
+grep-regex = "0.1.14"
+memchr = "2.8.3"
+# Syntax highlighting with pure-Rust regular expressions (fancy-regex, no Oniguruma).
+syntect = { version = "5.3.0", default-features = false, features = ["parsing", "default-syntaxes", "default-themes", "regex-fancy"] }
+# More grammars for syntect (TOML, TypeScript, Dockerfile, INI…), from bat.
+two-face = { version = "0.5.2", default-features = false, features = ["syntect-fancy"] }
+tokio = { version = "1.54.1", features = ["rt", "sync", "time", "macros"] }
+tracing = "0.1"
+
+[dev-dependencies]
+rolid-local = { path = "../rolid-local" }
+tempfile = "3.27.0"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros", "sync", "time"] }

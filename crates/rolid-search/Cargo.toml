@@ -1,0 +1,24 @@
+[package]
+name = "rolid-search"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+rolid-text = { path = "../rolid-text" }
+globset = "0.4.21"
+grep-matcher = "0.1.9"
+grep-regex = "0.1.14"
+grep-searcher = "0.1.17"
+ignore = "0.4.34"
+regex = "1.13.1"
+rolid-core = { path = "../rolid-core" }
+rolid-ssh = { path = "../rolid-ssh" }
+serde = { version = "1.0.229", features = ["derive"] }
+tokio = { version = "1.54.1", features = ["rt", "time", "io-util"] }
+
+[dev-dependencies]
+rolid-local = { path = "../rolid-local" }
+tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread"] }

@@ -1,0 +1,314 @@
+# RolidSCP
+
+A dual-panel file manager for local disks and SFTP servers, inspired by WinSCP and Total Commander.
+Written in Rust with an [egui](https://github.com/emilk/egui) GUI. The main idea: **color-coded tabs,
+each holding a session**, and fast switching between them.
+
+![RolidSCP with a local panel and a panel on an SFTP server](docs/screenshot.png)
+
+> **Status:** beta (developer version), Linux only for now. The user interface is in English, Czech,
+> German, French, Polish, Spanish, Norwegian (Bokmål) and Danish; the language follows the system and
+> can be changed in Settings (see [Translations](#translations)).
+> A detailed Czech manual is in [docs/README.cs.md](docs/README.cs.md).
+
+Until 1.0 only the last number of the version goes up (0.8.3, 0.8.4, ...). 1.0 will be the first
+production release; until then the window title and the About dialog say "(Beta - developer version)".
+
+## Features
+
+**Panels and tabs**
+- Two panels, each with its own tabs (like Total Commander). A tab is one location, a local folder or
+  a server, with its own color and name; the panel frame takes the color of its active tab.
+  A server can be on either side, and you can copy between two servers.
+- Detailed, brief (multi-column) and thumbnail views per tab, folder history (back / forward),
+  quick filter by typing (prefix, substring, fuzzy).
+- Icons and name colors by file type (configurable, contrast at least 4.5:1 on every tab color),
+  optional extension column, dates with seconds, folders in [brackets].
+- Columns separated by thin lines; drag a line to resize the column, double click to fit its content.
+  The widths are kept per panel; names that do not fit end with "…" and show whole in a tooltip.
+- Listings refresh by themselves: local folders are watched (inotify) and show changes from other
+  programs at once; server folders (and network disks) refresh when you come back to them if older
+  than 5 s and every 30 s while the window is active (View → Automatic refresh). Only what changed
+  changes – the cursor, marks, scroll position, sort and computed folder sizes stay.
+- A bar above each panel (like WinSCP): a drop-down with the folders on the path from the root and,
+  for a local panel, the disks of this computer (Alt+↓), and the buttons Back, Forward, Up, Root
+  (Ctrl+\\), Home (Ctrl+H), Refresh and Favorites. It can be hidden in the View menu.
+- Free disk space in the path row (a thin bar and "Free: X of Y", locally and over SFTP
+  `statvfs@openssh.com`) with the file system type (ext4, btrfs, nfs4, fuse.sshfs…; on a server from
+  `df -PT`); in a narrow panel the text gets shorter. Selection summary
+  ("Selected: 3 of 95 files, 12.4 MB of 850 MB").
+- A right click on the empty space of a panel: new file, new folder, refresh, add the folder to the
+  favorites, terminal here, disk properties (free space and SMART).
+- Disk health (SMART) of the local disks behind the folder, also through LVM, LUKS and RAID: a badge
+  in the path row (a heart-rate icon: grey unknown, green OK, orange or red with the most serious
+  reason, e.g. "Wear 87 %") and a detail dialog
+  in plain language with advice and all the attributes. Read from UDisks2 without administrator
+  rights (or `smartctl` when it runs without them), in the background, at most once a day per disk;
+  the temperature is checked every 5 minutes.
+- Folder sizes on demand (Alt+Shift+Enter for all, Alt+Space or Shift+Space for the folder under the
+  cursor or the marked ones): counted like GNU `du -sb`, on a server with `du` over SSH, otherwise
+  by walking over SFTP. Sorting and the selection summary use them.
+- Ctrl+T opens a menu for the new tab (home folder, favorites, saved servers, recent places, type to
+  filter); the tab menu duplicates a tab with its color, renames, recolors and closes other tabs; the
+  tooltip of a tab shows the server, user, resolved address and path.
+- Favorite folders (Ctrl+D) locally and on servers, under the ★ button of the bar, with names and order;
+  the new tab menu always shows them and can add the current folder, rename and remove them.
+- Workspace (tabs, colors, paths, favorites, recent places) is saved continuously and restored on start.
+
+**Servers and transfers**
+- Server manager (Ctrl+O) with saved profiles, start folder, tab color and a *production server*
+  flag (red header, warnings, delete cannot be confirmed with Enter).
+- SSH/SFTP via [russh](https://github.com/Eugeny/russh): strict `known_hosts` check, ssh-agent,
+  keys, password, keyboard-interactive.
+- Saved passwords live in an encrypted vault (`vault.bin`, Argon2id + XChaCha20-Poly1305) protected
+  by a master password, never in plain configuration files. The vault locks again a set time after
+  its last use (60 s by default, with a countdown in the status bar) and then also forgets the
+  passwords kept for reconnecting.
+- Transfer queue (3 at a time), speed limit, `.filepart` files renamed on completion, resume, times and
+  permissions kept; conflict choice (overwrite, only older, skip, resume) with a configurable default.
+- Automatic reconnect after a lost connection; interrupted transfers continue.
+- Ctrl+P opens the system terminal in the panel's folder; on a server `ssh` into the folder with the
+  same strict `known_hosts` check. A password saved in the vault is passed by a one-time
+  `SSH_ASKPASS` helper over a private socket (answers only that server's password question, once;
+  never on the command line, in the environment, a file or the log); production servers ask first.
+- Drag and drop from the system file manager (X11; on Wayland not yet supported by winit).
+- Drag files inside the app: to the other panel, onto a folder, `..` or a tab (hold to switch to it);
+  Shift moves, Esc cancels; the copy or move dialog always asks first. The target of copying and
+  moving is an editable path with the recent targets and a Browse button (local and remote).
+- Drag files out of the window to other applications (X11): local files as `text/uri-list` (Shift
+  moves); files from a server or an archive are downloaded first, into the target's folder through
+  the transfer queue when the target supports XDS (direct save), otherwise into a private temporary
+  folder that is deleted when no longer used and at exit. Targets wait only so long for the data
+  (GTK about 30 s), so large downloads may not get through the temporary-folder way.
+
+**Files**
+- Shift+F4 creates a new file and opens it in the external editor; on a server the file is created
+  only by the first save, so closing the editor without saving leaves nothing behind.
+- Open with the default application, "Open with..." (applications from `.desktop` files and
+  `mimeapps.list`, or a custom command). Programs and scripts are never started without asking;
+  files from a server are never executed.
+- F3: built-in viewer in a window of its own (several at once). Files of any size open at once and
+  are read in blocks: a file on a server is never downloaded whole, a file in an archive is viewed
+  through a temporary copy. Text with line numbers, wrapping, encodings (UTF-8, UTF-16, Windows-1250,
+  ISO-8859-2, CP852, Windows-1252) and syntax highlighting of 200+ languages; hex mode; follow the end
+  of a growing log (also remote); search with the ripgrep engine in the background (text, case, whole
+  words, regex), on a server with `grep` over SSH when possible; images (JPEG, PNG, animated GIF, WebP,
+  BMP) with zoom, rotation, EXIF orientation and next / previous image of the folder. The viewer never
+  runs anything and loads nothing from outside.
+- F4: edit in an external editor; a remote file is uploaded back after every save (atomic replace
+  via `posix-rename@openssh.com`, conflict check, recovery after a crash).
+- Rename right in the list (F2, Shift+F6): the name without its extension is selected; the edit
+  belongs to the item, so sorting or a refresh ends it instead of renaming another item. An existing
+  target is replaced only after a confirmation (never a folder), a change of letter case works on
+  case-insensitive file systems, production servers ask first. Tabs and files edited with F4 inside a
+  renamed folder follow it.
+- Move (F6): a rename on the same disk or server; otherwise a copy through the transfer queue, and the
+  sources are deleted only after the whole copy succeeded and the target has the same size.
+- Permissions dialog (rwx / octal, recursive with separate file and folder modes).
+- Copy names, paths or `sftp://` URLs to the clipboard.
+- Search (Ctrl+F7): by name (mask, substring, regex) and content; locally with the ripgrep engine,
+  on a server with `find` / `grep` over SSH (falls back to walking over SFTP).
+- Checksums: MD5, SHA-1, SHA-256, SHA-512, BLAKE3, CRC32; locally, on a server with coreutils
+  `*sum` / `b3sum` over SSH, or by download; copy to the clipboard or save as a file that
+  `sha256sum -c` accepts (CRC32 as SFV).
+
+**Archives** (zip, 7z, tar, tar.gz, tar.zst)
+- Pack (Alt+F5) with levels Store / Fast / Normal / Maximum and AES-256 passwords for zip and 7z;
+  multi-threaded compression for zip, 7z and tar.zst; already compressed files are stored as they are
+  in zip; ZIP64 for big archives.
+- Extract (Alt+F9) with protection against zip-slip and zip bombs, a code page choice with preview for old zip
+  names, test (Alt+Shift+F9).
+- Enter on an archive opens it as a read-only folder (also archives on a server, downloaded to a
+  temporary folder); F5 copies files out.
+- Progress with speed and time left for transfers, packing, extracting and tests.
+
+**Look**
+- Built-in Noto Sans font (normal weight made for screens), hinted and drawn on whole pixels.
+  In Settings you can pick a system font through fontconfig, the text size (whole points 10–20,
+  default 14), hinting strength and text contrast. The default strong hinting puts the vertical
+  stems of the letters on whole pixels. Every text size is rounded
+  to whole pixels, also at 125 % or 150 % display scale, which comes from the system.
+- One dialog look everywhere: a colored title bar with the action icon (drag to move), framed groups,
+  aligned labels, longer help in ⓘ tooltips, equal buttons at the bottom right (the default first and
+  highlighted, Cancel last); Enter, Esc and Tab work the same in every dialog.
+- Toolbar with icons ([Phosphor Icons](https://phosphoricons.com)), function key bar at the bottom,
+  every function also in the menus.
+
+## Keyboard
+
+| Key | Action |
+|---|---|
+| F1 | help (with the list of keyboard shortcuts) |
+| Ctrl+Q | quit |
+| ↑ ↓ PgUp PgDn Home End | move in the panel |
+| ← → | by column in the brief view, by tile in thumbnails |
+| Ctrl+F1 / Ctrl+F2 / Ctrl+Shift+F1 | brief / detailed view / thumbnails (per tab) |
+| Alt+← / Alt+→ | back / forward in the folder history of the tab |
+| Enter / double click | open: folder; archive as a read-only folder; file with the default application (asks for programs and scripts) |
+| Shift+Enter | Open with... |
+| Backspace | one level up (or delete a filter character) |
+| Tab | switch between the left and right panel |
+| typing | quick filter, Esc clears it |
+| Insert / Space / Ctrl+click | mark an item (Space only marks) |
+| Ctrl+A | mark all / none |
+| Num+ / Alt+= | mark a group by mask (`*.jpg;*.png`) |
+| Alt+− | unmark a group by mask |
+| Alt+I | invert the selection |
+| Alt+Shift+Enter | size of all folders in the panel |
+| Alt+Space / Shift+Space | size of the folder under the cursor or of the marked folders (Shift+Space where the desktop takes Alt+Space, e.g. Cinnamon) |
+| right click | context menu |
+| F3 | view the file (text, hex, image) |
+| F4 | edit in an external editor |
+| Shift+F4 | new file in the external editor (on a server it is created by the first save) |
+| F2 / Shift+F6 | rename right in the list (Enter confirms, Esc or a click elsewhere cancels) |
+| F5 | copy to the other panel |
+| F6 | move to the other panel (the target and a new name can be edited) |
+| Alt+F5 | pack |
+| Alt+F9 | extract |
+| Alt+Shift+F9 | test an archive |
+| F7 | new folder |
+| F8 / Delete | delete (with confirmation) |
+| Ctrl+Shift+A | permissions |
+| Ctrl+Shift+N / P / S | copy name / full path / `sftp://` URL to the clipboard |
+| Ctrl+G / click on the path | type a path |
+| Ctrl+← / Ctrl+→ | open the folder in the left / right panel |
+| Ctrl+R | refresh (in search results: search again) |
+| Ctrl+F7 / Ctrl+F / Alt+F7 | search files |
+| Ctrl+O | server manager |
+| Ctrl+L | switch the active panel to the local disk |
+| Ctrl+T | new tab: home folder, favorites, servers, recent places |
+| Ctrl+W | close tab |
+| Ctrl+D | add the folder to the favorites / remove it |
+| Alt+↓ | folders on the path and disks (the drop-down of the bar) |
+| Ctrl+\\ / Ctrl+H | root folder / home folder |
+| Ctrl+Tab / Ctrl+Shift+Tab | switch tabs by last use |
+| Ctrl+PgUp / Ctrl+PgDn | previous / next tab |
+| Ctrl+1 ... Ctrl+9 | go to tab (9 = last) |
+| Ctrl+K | find a tab or a saved server |
+| Ctrl+P | terminal in the current folder (on a server: ssh into it) |
+| double click on a tab / right click → Rename tab | rename the tab |
+| middle click on a tab | close the tab |
+
+## Installation
+
+Build the Debian package (see below) and install it:
+
+```sh
+sudo apt install ./target/debian/rolidscp_0.8.13_amd64.deb
+```
+
+The binary is `rolidscp` (`/usr/bin/rolidscp`), with a desktop entry "RolidSCP".
+
+## Building from source
+
+On a clean Debian 13 (trixie) or newer:
+
+```sh
+sudo apt install build-essential curl git
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh   # current stable Rust
+git clone https://github.com/MrRolid/RolidSCP.git
+cd RolidSCP
+cargo build --release -p rolidscp
+./target/release/rolidscp
+```
+
+A C compiler is needed for the bundled C code (zstd, aws-lc). The binary links only to libc;
+X11, Wayland, Vulkan/OpenGL, xkbcommon and fontconfig are loaded at run time, so a desktop with the
+usual libraries is enough (the package lists them as dependencies).
+
+Tests: `cargo test --workspace`
+
+The `.deb` package is built by `packaging/build-deb.sh` into `target/debian/`. It also needs
+`cargo-about` (license notices of all bundled libraries, refreshed on every build) and `python3`:
+
+```sh
+cargo install cargo-about --locked --features cli
+packaging/build-deb.sh
+```
+
+## Translations
+
+The texts are English in the code (gettext style: `tr!("Copy")`, plurals with `trn!`). Every other
+language is a gettext file `po/<language>.po`, built into the program. Number, size and date formats
+follow the language (Settings can switch dates to ISO). Missing translations show the English text.
+
+| Language | File | State |
+|---|---|---|
+| English | (in the code) | source |
+| Czech | `po/cs.po` | complete, by the author |
+| German, French, Polish, Spanish, Norwegian Bokmål, Danish | `po/de.po` … `po/da.po` | **machine translation**, not yet reviewed by native speakers |
+
+The F1 help is in `help/<language>.md` (Markdown, built in; English when a language has none). The
+"What's new" notes in About are English, with a Czech version.
+
+**Fixing or adding a language**
+- Open `po/<language>.po` in [Poedit](https://poedit.net), Lokalize, GTranslator or any text editor,
+  or use an online tool such as [Weblate](https://weblate.org); keep the `{placeholders}` as they are.
+- Try it without building: copy the file to `~/.config/rolidscp/lang/<language>.po`. A file there
+  wins over the built-in translation (only the messages it translates) and can add a new language
+  (e.g. `it.po`), which then appears in Settings → Language. A broken file is ignored with a warning
+  in the log.
+- For a new language in the repository, copy `po/rolidscp.pot` to `po/<language>.po`, set
+  `Language` and `Plural-Forms` in its header, translate, and send a pull request.
+- After changing texts in the code, `scripts/update-po.sh` (needs only cargo) extracts them into
+  `po/rolidscp.pot`, merges it into every `.po` (new messages come in untranslated, removed ones are
+  dropped) and checks placeholders. `cargo run -p rolid-po-tool -- stats` shows how complete each
+  language is. A test fails when the code contains text for the user outside the translation.
+
+Machine translations can be wrong or clumsy. Corrections from native speakers are very welcome.
+
+## Configuration and logs
+
+- `~/.config/rolidscp/`: `settings.toml`, `profiles.toml`, `workspace.toml`, `search_history.toml`
+  and `vault.bin` (encrypted passwords), all with permissions 0600. `ROLIDSCP_CONFIG_DIR` overrides
+  the folder.
+- Your own translations: `~/.config/rolidscp/lang/<language>.po`.
+- Log: `~/.local/state/rolidscp/rolidscp.log` (Help menu, open log). It never contains passwords.
+  Log messages are always English.
+  `ROLIDSCP_LOG_DIR` overrides the folder.
+- Temporary files: archives in `~/.cache/rolidscp/archive`, files edited with F4 in
+  `$XDG_RUNTIME_DIR/rolidscp-edit` (folders 0700).
+
+## Project layout
+
+```
+crates/
+  rolid-core     VFS trait, recursive copy, filter, colors
+  rolid-local    local file system
+  rolid-ssh      SSH (russh) + SFTP (russh-sftp): known_hosts, agent, keys, password
+  rolid-config   server profiles, workspace, settings, encrypted vault
+  rolid-edit     F4 editing: temporary files, save watching, conflicts, safe upload
+  rolid-search   search: local (ignore + grep-searcher), on a server (find/grep), over SFTP
+  rolid-archive  archives: pack, list, extract with safety checks, test
+  rolid-disk     mounts, file system type, physical disks behind a folder, SMART (UDisks2, smartctl)
+  rolid-text     messages for the user as English templates (no translation inside)
+  rolid-i18n     translation: built-in .po catalogs, plurals, number and date formats
+  rolid-po-tool  developer tool: extract texts into po/rolidscp.pot, merge, check
+  rolid-ui       the egui application (binary `rolidscp`)
+po/              translations (gettext .po) and the template rolidscp.pot
+help/            F1 help pages per language (Markdown)
+scripts/         update-po.sh
+packaging/       build-deb.sh, desktop entry, icon, cargo-about configuration
+docs/            Czech manual, screenshot
+```
+
+## Security
+
+Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md), not in a public issue.
+
+## License
+
+Copyright © 2026 Martin Vorel <martin@vorel.eu>.
+
+RolidSCP is free software under the **GNU General Public License, version 3 or later**
+(GPL-3.0-or-later), see [LICENSE](LICENSE).
+
+Bundled assets:
+- Noto Sans 2.004 font, © 2015 Google LLC, SIL Open Font License 1.1
+  (`crates/rolid-ui/assets/fonts/OFL.txt`).
+- Hack 3.003 monospace font, © 2018 Source Foundry Authors, © 2003 Bitstream, Inc., MIT and
+  Bitstream Vera license (`crates/rolid-ui/assets/fonts/Hack-LICENSE.txt`).
+- Phosphor Icons 2.1, © 2023 Phosphor Icons, MIT (`crates/rolid-ui/assets/phosphor/LICENSE`).
+
+The license notices of all Rust libraries built into the binary are in
+`/usr/share/doc/rolidscp/copyright` of the Debian package.

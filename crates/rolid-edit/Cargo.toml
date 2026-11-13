@@ -1,0 +1,24 @@
+[package]
+name = "rolid-edit"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+rolid-text = { path = "../rolid-text" }
+dirs = "7.0.0"
+getrandom = "0.4.3"
+notify = "8.2.1"
+rolid-core = { path = "../rolid-core" }
+serde = { version = "1.0.229", features = ["derive"] }
+sha2 = "0.11.1"
+toml = "1.1.8"
+tokio = { version = "1.54.1", features = ["io-util", "fs"] }
+
+[dev-dependencies]
+async-trait = "0.1.92"
+rolid-local = { path = "../rolid-local" }
+tempfile = "3.27.0"
+tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread", "time"] }

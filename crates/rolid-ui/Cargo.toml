@@ -1,0 +1,62 @@
+[package]
+name = "rolidscp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+async-trait = "0.1.92"
+chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
+# Without egui's "default_fonts": they would bundle the Ubuntu Light font we never
+# use; the monospace Hack font is in assets/fonts instead.
+eframe = { version = "0.37.0", default-features = false, features = [
+    "accesskit", "clipboard", "links", "system_fonts", "wayland",
+    "web_screen_reader", "wgpu", "x11",
+] }
+# What eframe's default "winit/default" brought in: window decorations on Wayland
+# (wayland-csd-adwaita) and the other winit defaults. The same version eframe uses.
+winit = "0.30.13"
+egui_extras = "0.37.0"
+# Font file check (the parser egui uses; already in the build through epaint).
+skrifa = { version = "0.44.0", default-features = false, features = ["std"] }
+rolid-config = { path = "../rolid-config" }
+rolid-core = { path = "../rolid-core" }
+rolid-i18n = { path = "../rolid-i18n" }
+rolid-local = { path = "../rolid-local" }
+rolid-disk = { path = "../rolid-disk" }
+rolid-search = { path = "../rolid-search" }
+rolid-view = { path = "../rolid-view" }
+serde = { version = "1", features = ["derive"] }
+rolid-ssh = { path = "../rolid-ssh" }
+raw-window-handle = "0.6.2"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "io-util", "macros", "sync", "time"] }
+zeroize = "1.9.1"
+qrcode = { version = "0.14.1", default-features = false }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "registry"] }
+secrecy = "0.10.3"
+rolid-edit = { path = "../rolid-edit" }
+rolid-archive = { path = "../rolid-archive" }
+dirs = "7.0.0"
+md5 = "0.8.1"
+sha1 = "0.11.0"
+sha2 = "0.11.1"
+crc32fast = "1.5.4"
+blake3 = { version = "1", features = ["pure"] }
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "gif", "webp", "bmp"] }
+
+# Ctrl+P terminal: the SSH_ASKPASS helper (socket peer check, terminal echo,
+# one-time token). Both already in the build (rolid-local, rolid-config).
+getrandom = "0.4.3"
+
+[target.'cfg(unix)'.dependencies]
+rustix = { version = "1.1.6", features = ["net", "process", "termios"] }
+
+[target.'cfg(all(unix, not(target_os = "macos")))'.dependencies]
+# The version winit uses (no second copy); pure-Rust connection, no unsafe code.
+x11rb = { version = "0.13.2", default-features = false }
+
+[dev-dependencies]
+tempfile = "3.27.0"

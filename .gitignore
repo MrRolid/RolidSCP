@@ -1,0 +1,28 @@
+# Build
+/target/
+/dist/
+**/*.rs.bk
+
+# Claude Code (agent worktrees, build folders)
+/.claude/
+
+# Private working notes, not published
+/internal/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.#*
+\#*#
+.DS_Store
+
+# Backups and bundles (never in the repository)
+*.bundle
+*.bak
+*.bak-*
+*.orig
+*.rej
+*.backup

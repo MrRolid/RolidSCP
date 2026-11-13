@@ -1,0 +1,24 @@
+[package]
+name = "rolid-archive"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+rolid-text = { path = "../rolid-text" }
+zip = { version = "9.4.2", default-features = false, features = ["aes-crypto", "deflate-flate2-zlib-rs", "deflate64", "bzip2", "lzma", "xz"] }
+sevenz-rust2 = { version = "0.25.0", default-features = false, features = ["aes256", "compress", "util"] }
+tar = { version = "0.4.46", default-features = false }
+flate2 = { version = "1.1.10", default-features = false, features = ["zlib-rs"] }
+zstd = { version = "0.14", default-features = false, features = ["zstdmt"] }
+oem_cp = "2.1.2"
+encoding_rs = "0.8.44"
+secrecy = "0.10.3"
+thiserror = "2.0.21"
+getrandom = "0.4"
+chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
+
+[dev-dependencies]
+tempfile = "3.27.0"

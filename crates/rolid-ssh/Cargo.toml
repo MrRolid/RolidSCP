@@ -1,0 +1,27 @@
+[package]
+name = "rolid-ssh"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+rolid-text = { path = "../rolid-text" }
+async-trait = "0.1.92"
+rolid-core = { path = "../rolid-core" }
+russh = "0.65.1"
+russh-sftp = "3.0.1"
+thiserror = "2.0.21"
+tracing = "0.1"
+zeroize = "1.9.1"
+tokio = { version = "1.54.1", features = ["fs", "io-util", "rt", "net", "sync", "time", "macros"] }
+
+[dev-dependencies]
+rolid-local = { path = "../rolid-local" }
+rolid-edit = { path = "../rolid-edit" }
+rolid-search = { path = "../rolid-search" }
+tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread", "time", "net", "io-util", "test-util"] }
+async-trait = "0.1.92"
+russh = "0.65.1"
+zeroize = "1.9.1"
