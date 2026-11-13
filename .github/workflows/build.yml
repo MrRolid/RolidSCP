@@ -136,7 +136,8 @@ jobs:
       - name: Package details
         run: |
           dpkg-deb --info dist/*.deb
-          rpm -qp --requires --license dist/*.rpm
+          rpm -qp --info dist/*.rpm
+          rpm -qp --requires dist/*.rpm
           readelf -d target/release/rolidscp | grep NEEDED
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
