@@ -1,0 +1,213 @@
+# Build, test and package RolidSCP; on a version tag also publish a GitHub release.
+#
+# Every push to main: build, all tests, clippy, the .deb, .rpm and AppImage,
+# each package installed or started in a clean system, packages kept as
+# artifacts of the run.
+# A pushed tag v<version>: the same, then a release with the packages and
+# SHA256SUMS. The tag must match the version in Cargo.toml and the release
+# text is docs/releases/<version>.md (see docs/releases/README.md).
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+# Read only; only the release job gets write access to the repository contents.
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  # The Rust version the project is developed and checked with.
+  RUST_TOOLCHAIN: "1.99.1"
+  CARGO_ABOUT_VERSION: "0.9.3"
+
+jobs:
+  build:
+    name: Build, test, package
+    # The oldest supported Ubuntu: the binary then runs on glibc 2.35 and newer.
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Version, pre-release label, release notes
+        id: version
+        run: |
+          VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          # Beta when the version or the label shown in the program says so.
+          LABEL=$(sed -n 's/^pub const PRERELEASE: Option<&str> = Some("\(.*\)");/\1/p' crates/rolid-ui/src/version.rs)
+          if printf '%s %s' "$VERSION" "$LABEL" | grep -qi beta; then PRE=true; else PRE=false; fi
+          echo "version=$VERSION label=$LABEL prerelease=$PRE"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRE" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            if [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME does not match version $VERSION in Cargo.toml"
+              exit 1
+            fi
+            if [ ! -s "docs/releases/$VERSION.md" ]; then
+              echo "::error::Release notes docs/releases/$VERSION.md are missing"
+              exit 1
+            fi
+          fi
+
+      - name: System packages
+        run: |
+          sudo apt-get update -q
+          # rpm and squashfs-tools for the packages, openssh-server for the SFTP tests.
+          sudo apt-get install -y -q --no-install-recommends rpm squashfs-tools fakeroot openssh-server
+
+      - name: Rust toolchain
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component clippy
+          rustup default "$RUST_TOOLCHAIN"
+          rustc --version
+
+      - name: Cargo cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ~/.cargo/bin/cargo-about
+          key: cargo-${{ runner.os }}-${{ env.RUST_TOOLCHAIN }}-about${{ env.CARGO_ABOUT_VERSION }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-${{ env.RUST_TOOLCHAIN }}-about${{ env.CARGO_ABOUT_VERSION }}-
+
+      - name: cargo-about
+        run: |
+          if ! cargo-about --version 2>/dev/null | grep -qx "cargo-about $CARGO_ABOUT_VERSION"; then
+            cargo install cargo-about --locked --version "$CARGO_ABOUT_VERSION" --features cli --force
+          fi
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Tests
+        run: cargo test --workspace --locked
+
+      - name: Packages
+        run: |
+          packaging/build-deb.sh
+          packaging/build-rpm.sh
+          packaging/build-appimage.sh
+          mkdir dist
+          cp target/debian/rolidscp_*.deb target/rpm/rolidscp-*.rpm target/appimage/RolidSCP-*.AppImage dist/
+          cd dist
+          sha256sum -- * > SHA256SUMS
+          cat SHA256SUMS
+          ls -l
+
+      - name: Package details
+        run: |
+          dpkg-deb --info dist/*.deb
+          rpm -qp --requires --license dist/*.rpm
+          readelf -d target/release/rolidscp | grep NEEDED
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rolidscp-${{ steps.version.outputs.version }}-packages
+          path: dist/
+          if-no-files-found: error
+
+  test-packages:
+    name: Install ${{ matrix.kind }} on ${{ matrix.image }}
+    needs: build
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { kind: deb, image: "debian:12" }
+          - { kind: deb, image: "ubuntu:22.04" }
+          - { kind: deb, image: "ubuntu:24.04" }
+          - { kind: rpm, image: "fedora:latest" }
+          - { kind: rpm, image: "opensuse/leap:latest" }
+          - { kind: rpm, image: "opensuse/tumbleweed" }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: rolidscp-${{ needs.build.outputs.version }}-packages
+          path: dist
+      - name: Install and start
+        env:
+          KIND: ${{ matrix.kind }}
+          IMAGE: ${{ matrix.image }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          PKG=$(ls dist/*."$KIND")
+          docker run --rm -v "$PWD:/w:ro" -w /w "$IMAGE" \
+            bash packaging/ci/test-package.sh "$KIND" "$PKG" "$VERSION"
+
+  test-appimage:
+    name: Start the AppImage
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: rolidscp-${{ needs.build.outputs.version }}-packages
+          path: dist
+      - name: Host libraries and test tools
+        run: |
+          sudo apt-get update -q
+          # What a desktop system has: graphics, input and font libraries, FUSE.
+          sudo apt-get install -y -q libxkbcommon-x11-0 libx11-xcb1 libxcursor1 libxi6 \
+            libwayland-client0 libwayland-egl1 libegl1 libegl-mesa0 mesa-vulkan-drivers \
+            libfontconfig1 fuse3 xvfb x11-utils
+      - name: Start
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          chmod +x dist/*.AppImage
+          bash packaging/ci/smoke-test.sh "$VERSION" "$(ls "$PWD"/dist/*.AppImage)"
+
+  release:
+    name: GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, test-packages, test-appimage]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: rolidscp-${{ needs.build.outputs.version }}-packages
+          path: dist
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.build.outputs.version }}
+          PRERELEASE: ${{ needs.build.outputs.prerelease }}
+        run: |
+          cd dist
+          sha256sum -c SHA256SUMS
+          FLAGS=()
+          if [ "$PRERELEASE" = true ]; then FLAGS+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "RolidSCP $VERSION" \
+            --notes-file "../docs/releases/$VERSION.md" \
+            "${FLAGS[@]}" \
+            -- *
