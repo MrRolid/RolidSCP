@@ -7,24 +7,62 @@ Napsaný v Rustu, GUI v egui. Hlavní myšlenka: **barevně odlišené záložky
 
 ## Instalace
 
-Stáhni balíček `rolidscp_<verze>_amd64.deb` z
-[posledního vydání](https://github.com/MrRolid/RolidSCP/releases/latest) (všechny verze jsou na stránce
-[Releases](https://github.com/MrRolid/RolidSCP/releases)) a nainstaluj ho přes apt, který doplní i potřebné
-knihovny:
+Balíčky jsou přiložené ke každému [vydání](https://github.com/MrRolid/RolidSCP/releases/latest)
+(všechny verze jsou na stránce [Releases](https://github.com/MrRolid/RolidSCP/releases)) spolu se
+souborem `SHA256SUMS` pro kontrolu staženého souboru (`sha256sum -c --ignore-missing SHA256SUMS`).
+Všechny jsou pro Linux na 64bitovém x86 (amd64 / x86_64).
+
+**Debian, Ubuntu, Linux Mint a další systémy odvozené od Debianu:** balíček `.deb`. apt doplní
+i potřebné knihovny:
 
 ```sh
 sudo apt install ./rolidscp_*_amd64.deb
 ```
 
-- **Podporované systémy:** Linux na 64bitovém x86 (amd64) s glibc 2.39 nebo novější: Debian 13 (trixie)
-  a novější, Ubuntu 24.04 LTS a novější a distribuce z nich odvozené (např. Linux Mint 22). Balíček se
-  sestavuje a zkouší na Debianu 13, ostatní by měly fungovat, ale pravidelně se nezkoušejí. Debian 12
-  a Ubuntu 22.04 jsou na balíček příliš staré. Jiné distribuce a architektury:
-  [sestavení ze zdrojů](#sestavení-ze-zdrojů) (nezkoušené).
+Odinstalace: `sudo apt remove rolidscp`.
+
+**Fedora:** balíček `.rpm`:
+
+```sh
+sudo dnf install ./rolidscp-*.x86_64.rpm
+```
+
+**openSUSE (Leap, Tumbleweed):** stejný balíček `.rpm`. Není podepsaný, zypperu je proto potřeba
+říct, že ho má přijmout:
+
+```sh
+sudo zypper install --allow-unsigned-rpm ./rolidscp-*.x86_64.rpm
+```
+
+Odinstalace: `sudo dnf remove rolidscp` nebo `sudo zypper remove rolidscp`.
+
+**Jiné distribuce:** AppImage, jeden soubor, který běží bez instalace:
+
+```sh
+chmod +x RolidSCP-*-x86_64.AppImage
+./RolidSCP-*-x86_64.AppImage
+```
+
+Obsahuje jen samotný program a používá grafické, vstupní a písmové knihovny systému (X11 nebo
+Wayland, EGL nebo Vulkan, xkbcommon, fontconfig), které má každé pracovní prostředí. Ke spuštění
+potřebuje FUSE (na většině systémů balíček `fuse3`); bez FUSE ho spusť s
+`--appimage-extract-and-run`. Do nabídky aplikací se sám nepřidá.
+
+- **Podporované systémy:** glibc 2.35 nebo novější. Každý balíček vydání se při sestavení
+  ([workflow](../.github/workflows/build.yml)) nainstaluje nebo spustí v čistém systému: `.deb` na
+  Debianu 12, Ubuntu 22.04 a Ubuntu 24.04, `.rpm` na aktuální Fedoře, openSUSE Leap a openSUSE
+  Tumbleweed, AppImage na Ubuntu 22.04. Novější verze těchto systémů a distribuce z nich odvozené
+  (např. Linux Mint 21 a 22) by měly fungovat také; jde o kontrolu spuštění na virtuálním displeji,
+  ne o úplný test. Samotný program se vyvíjí a používá na Debianu 13.
+  Verze 0.8.13 vyšla dřív než tyto balíčky: má jen `.deb` a ten potřebuje Debian 13 nebo Ubuntu
+  24.04 a novější.
 - **Pracovní prostředí:** doporučené je X11. Na Waylandu program běží, ale tažení souborů mezi ním
   a jinými aplikacemi (dovnitř ani ven) zatím nefunguje.
-- **Spuštění:** „RolidSCP“ v nabídce aplikací, nebo `rolidscp` v terminálu.
-- **Odinstalace:** `sudo apt remove rolidscp` (nastavení v `~/.config/rolidscp/` zůstane).
+- **Spuštění:** „RolidSCP“ v nabídce aplikací (`.deb`, `.rpm`), nebo `rolidscp` v terminálu.
+- Nastavení v `~/.config/rolidscp/` po odinstalaci zůstane.
+- Balíčky každé změny na `main` (nevydané, na zkoušku) jsou 90 dní k dispozici jako artefakty
+  [běhů sestavení](https://github.com/MrRolid/RolidSCP/actions/workflows/build.yml); ke stažení je
+  potřeba účet na GitHubu.
 
 ## Verze
 
@@ -690,7 +728,7 @@ Diagnostika klíčenky (jen kvůli přesunu hesel ze starších verzí): `cargo 
 
 ## Sestavení ze zdrojů
 
-Pro jiné distribuce nebo nejnovější kód. Na čistém Debianu 13 (trixie) nebo novějším:
+Pro jiné systémy nebo nejnovější kód. Na čistém Debianu 13 (trixie) nebo novějším:
 
 ```sh
 sudo apt install build-essential curl git
@@ -702,8 +740,10 @@ cargo build --release -p rolidscp
 ./target/release/rolidscp
 ```
 
-Balíček .deb sestaví `packaging/build-deb.sh` do `target/debian/` (potřebuje navíc `cargo-about`
-a `python3`, viz anglické README).
+Balíčky sestaví skripty `packaging/build-deb.sh`, `build-rpm.sh` a `build-appimage.sh` do
+`target/debian/`, `target/rpm/` a `target/appimage/` (potřebné nástroje viz anglické README).
+Vydávané balíčky sestavuje [workflow](../.github/workflows/build.yml) na Ubuntu 22.04, které při
+každém odeslání spouští i testy a clippy. Postup vydání: [docs/releases/README.md](releases/README.md).
 
 Testy: `cargo test --workspace`
 
@@ -733,6 +773,9 @@ crates/
   rolid-ui     egui aplikace (binárka `rolidscp`)
 po/            překlady (.po) a šablona rolidscp.pot
 help/          nápověda F1 podle jazyka (Markdown)
+packaging/     skripty balíčků (deb, rpm, AppImage), položka nabídky, ikona, nastavení cargo-about
+docs/          česká příručka, snímek obrazovky, texty vydání (docs/releases/)
+.github/       workflow sestavení a vydání
 ```
 
 ## Bezpečnost (aktuální stav)
@@ -764,4 +807,5 @@ help/          nápověda F1 podle jazyka (Markdown)
 
 Copyright © 2026 Martin Vorel <martin@vorel.eu>. RolidSCP je svobodný software pod licencí **GNU GPL
 verze 3 nebo novější** (GPL-3.0-or-later), text licence je v [LICENSE](../LICENSE). Licenční
-upozornění všech knihoven vestavěných v programu jsou v balíčku v `/usr/share/doc/rolidscp/copyright`.
+upozornění všech knihoven vestavěných v programu jsou v `/usr/share/doc/rolidscp/copyright` (`.deb`)
+nebo v `/usr/share/licenses/rolidscp/copyright` (`.rpm` a uvnitř AppImage).

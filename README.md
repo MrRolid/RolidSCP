@@ -16,24 +16,62 @@ production release; until then the window title and the About dialog say "(Beta 
 
 ## Installation
 
-Download the Debian package `rolidscp_<version>_amd64.deb` from the
-[latest release](https://github.com/MrRolid/RolidSCP/releases/latest) (all versions are on the
-[Releases](https://github.com/MrRolid/RolidSCP/releases) page) and install it with apt, which also
-pulls in the needed libraries:
+Packages are attached to every [release](https://github.com/MrRolid/RolidSCP/releases/latest)
+(all versions are on the [Releases](https://github.com/MrRolid/RolidSCP/releases) page), together
+with `SHA256SUMS` for checking the download (`sha256sum -c --ignore-missing SHA256SUMS`).
+All of them are for Linux on 64-bit x86 (amd64 / x86_64).
+
+**Debian, Ubuntu, Linux Mint and other Debian-based systems:** the `.deb` package. apt also
+installs the needed libraries:
 
 ```sh
 sudo apt install ./rolidscp_*_amd64.deb
 ```
 
-- **Supported systems:** Linux on 64-bit x86 (amd64) with glibc 2.39 or newer: Debian 13 (trixie)
-  or newer, Ubuntu 24.04 LTS or newer and distributions based on them (e.g. Linux Mint 22).
-  The package is built and tested on Debian 13; the others should work but are not tested regularly.
-  Debian 12 and Ubuntu 22.04 are too old for the package. Other distributions and architectures:
-  [build from source](#building-from-source) (not tested).
+Remove with `sudo apt remove rolidscp`.
+
+**Fedora:** the `.rpm` package:
+
+```sh
+sudo dnf install ./rolidscp-*.x86_64.rpm
+```
+
+**openSUSE (Leap, Tumbleweed):** the same `.rpm` package. It is not signed, so zypper needs to be
+told to accept it:
+
+```sh
+sudo zypper install --allow-unsigned-rpm ./rolidscp-*.x86_64.rpm
+```
+
+Remove with `sudo dnf remove rolidscp` or `sudo zypper remove rolidscp`.
+
+**Other distributions:** the AppImage, a single file that runs without installation:
+
+```sh
+chmod +x RolidSCP-*-x86_64.AppImage
+./RolidSCP-*-x86_64.AppImage
+```
+
+It contains only the program and uses the graphics, input and font libraries of the system
+(X11 or Wayland, EGL or Vulkan, xkbcommon, fontconfig), which every desktop has. It needs FUSE to
+run (the `fuse3` package on most systems); without FUSE start it with `--appimage-extract-and-run`.
+It does not add itself to the application menu.
+
+- **Supported systems:** glibc 2.35 or newer. Every package of the release is installed or started
+  in a clean system by the build ([workflow](.github/workflows/build.yml)): the `.deb` on Debian 12,
+  Ubuntu 22.04 and Ubuntu 24.04, the `.rpm` on the current Fedora, openSUSE Leap and openSUSE
+  Tumbleweed, the AppImage on Ubuntu 22.04. Newer versions of these systems and distributions based
+  on them (e.g. Linux Mint 21 and 22) should work as well; that is a start-up check in a virtual
+  display, not a full test. The program itself is developed and used on Debian 13.
+  Version 0.8.13 was released before these packages: it has only a `.deb`, which needs Debian 13 or
+  Ubuntu 24.04 and newer.
 - **Desktop:** X11 is recommended. On Wayland the program runs, but drag and drop with other
   applications (into and out of the window) does not work yet.
-- **Start:** "RolidSCP" in the application menu, or `rolidscp` in a terminal.
-- **Remove:** `sudo apt remove rolidscp` (your settings in `~/.config/rolidscp/` stay).
+- **Start:** "RolidSCP" in the application menu (`.deb`, `.rpm`), or `rolidscp` in a terminal.
+- Your settings in `~/.config/rolidscp/` stay when the program is removed.
+- Packages of every change on `main` (not released, for testing) are kept for 90 days as artifacts of
+  the [build runs](https://github.com/MrRolid/RolidSCP/actions/workflows/build.yml); downloading them
+  needs a GitHub account.
 
 ## Data safety and error handling
 
@@ -321,7 +359,7 @@ unusual wrapper waiting for input) can keep such a function waiting until you ca
 
 ## Building from source
 
-For other distributions or to try the newest code. On a clean Debian 13 (trixie) or newer:
+For other systems or to try the newest code. On a clean Debian 13 (trixie) or newer:
 
 ```sh
 sudo apt install build-essential curl git
@@ -340,14 +378,22 @@ usual libraries is enough (the package lists them as dependencies).
 
 Tests: `cargo test --workspace`
 
-The `.deb` package is built by `packaging/build-deb.sh` into `target/debian/`. It also needs
-`cargo-about` (license notices of all bundled libraries, refreshed on every build) and `python3`:
+The packages are built by scripts in `packaging/`. All of them need `cargo-about` (license
+notices of all bundled libraries, refreshed on every build) and `python3`; the `.rpm` also needs
+`rpmbuild` (`sudo apt install rpm`), the AppImage `mksquashfs` (`sudo apt install squashfs-tools`)
+and downloads the AppImage runtime from a fixed release, checked against its SHA-256:
 
 ```sh
 cargo install cargo-about --locked --features cli
-packaging/build-deb.sh
+packaging/build-deb.sh        # target/debian/rolidscp_<version>_amd64.deb
+packaging/build-rpm.sh        # target/rpm/rolidscp-<version>-1.x86_64.rpm
+packaging/build-appimage.sh   # target/appimage/RolidSCP-<version>-x86_64.AppImage
 sudo apt install ./target/debian/rolidscp_*_amd64.deb
 ```
+
+The packages depend on the glibc version of the build machine; the released ones are built on
+Ubuntu 22.04 by the [build workflow](.github/workflows/build.yml), which also runs the tests and
+clippy on every push. How a release is made: [docs/releases/README.md](docs/releases/README.md).
 
 The binary is `rolidscp` (`/usr/bin/rolidscp`), with a desktop entry "RolidSCP".
 
@@ -413,8 +459,9 @@ crates/
 po/              translations (gettext .po) and the template rolidscp.pot
 help/            F1 help pages per language (Markdown)
 scripts/         update-po.sh
-packaging/       build-deb.sh, desktop entry, icon, cargo-about configuration
-docs/            Czech manual, screenshot
+packaging/       package scripts (deb, rpm, AppImage), desktop entry, icon, cargo-about configuration
+docs/            Czech manual, screenshot, release notes (docs/releases/)
+.github/         build and release workflow
 ```
 
 ## Security
@@ -436,4 +483,5 @@ Bundled assets:
 - Phosphor Icons 2.1, © 2023 Phosphor Icons, MIT (`crates/rolid-ui/assets/phosphor/LICENSE`).
 
 The license notices of all Rust libraries built into the binary are in
-`/usr/share/doc/rolidscp/copyright` of the Debian package.
+`/usr/share/doc/rolidscp/copyright` (`.deb`) or `/usr/share/licenses/rolidscp/copyright`
+(`.rpm`, and inside the AppImage).
