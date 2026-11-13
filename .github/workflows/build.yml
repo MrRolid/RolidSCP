@@ -175,8 +175,13 @@ jobs:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
           PKG=$(ls dist/*."$KIND")
-          docker run --rm -v "$PWD:/w:ro" -w /w "$IMAGE" \
-            bash packaging/ci/test-package.sh "$KIND" "$PKG" "$VERSION"
+          set -o pipefail
+          if ! docker run --rm -v "$PWD:/w:ro" -w /w "$IMAGE" \
+              bash packaging/ci/test-package.sh "$KIND" "$PKG" "$VERSION" 2>&1 | tee "$RUNNER_TEMP/test.log"; then
+            # The end of the output as an annotation, shown on the run page without the full log.
+            tail -n 40 "$RUNNER_TEMP/test.log" | awk '{ gsub(/%/, "%25"); gsub(/\r/, ""); s = s (NR > 1 ? "%0A" : "") $0 } END { print "::error title=Install failed::" s }'
+            exit 1
+          fi
 
   test-appimage:
     name: Start the AppImage
