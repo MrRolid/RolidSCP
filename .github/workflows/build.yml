@@ -95,7 +95,20 @@ jobs:
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
       - name: Tests
-        run: cargo test --workspace --locked
+        run: |
+          set -o pipefail
+          if ! cargo test --workspace --locked --no-fail-fast 2>&1 | tee "$RUNNER_TEMP/test.log"; then
+            # Each failing test as an annotation, shown on the run page without the full log.
+            awk '
+              function flush() { if (b != "") print "::error title=Test failure::" b; b = "" }
+              /^---- .* stdout ----$/ { flush(); b = $0; n = 0; next }
+              /^failures:$/ || /^test result:/ { flush(); next }
+              b != "" && n < 20 { gsub(/%/, "%25"); b = b "%0A" $0; n++ }
+              END { flush() }
+            ' "$RUNNER_TEMP/test.log"
+            grep -E '^test .* FAILED$|^error: test failed' "$RUNNER_TEMP/test.log" | sed 's/^/::error title=Failed::/' || true
+            exit 1
+          fi
 
       - name: Packages
         run: |
