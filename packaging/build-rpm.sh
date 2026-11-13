@@ -55,6 +55,10 @@ Requires:       libwayland-egl.so.1()(64bit)
 Requires:       libEGL.so.1()(64bit)
 Requires:       libfontconfig.so.1()(64bit)
 Recommends:     libvulkan.so.1()(64bit)
+# At least one system font: the program draws with its built-in fonts, but the
+# system font lookup at start-up ends the program when fontconfig finds no font
+# at all (seen in a minimal openSUSE). Debian gets one through fontconfig-config.
+Requires:       font(:lang=en)
 
 %description
 Inspired by WinSCP and Total Commander. Color-coded tabs with SSH/SFTP
