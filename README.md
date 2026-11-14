@@ -14,6 +14,8 @@ each holding a session**, and fast switching between them.
 Until 1.0 only the last number of the version goes up (0.8.3, 0.8.4, ...). 1.0 will be the first
 production release; until then the window title and the About dialog say "(Beta - developer version)".
 
+What comes next – reliability first, then new features – is in the [roadmap](ROADMAP.md).
+
 ## Installation
 
 Packages are attached to every [release](https://github.com/MrRolid/RolidSCP/releases/latest)

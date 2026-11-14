@@ -5,6 +5,8 @@ Napsaný v Rustu, GUI v egui. Hlavní myšlenka: **barevně odlišené záložky
 
 ![RolidSCP s lokálním panelem a panelem na SFTP serveru](screenshot.png)
 
+Co přijde dál – nejdřív spolehlivost, potom nové funkce – popisuje [plán vývoje](../ROADMAP.md) (anglicky).
+
 ## Instalace
 
 Balíčky jsou přiložené ke každému [vydání](https://github.com/MrRolid/RolidSCP/releases/latest)
