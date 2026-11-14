@@ -18,6 +18,8 @@ mod open_rule;
 mod pane;
 mod terminal;
 mod version;
+#[cfg(test)]
+mod bench;
 
 /// Log to `rolid_config::log_path()` (and stderr). Default level: info for our
 /// crates, warnings for libraries; `RUST_LOG` overrides. Secrets are never logged.
@@ -64,11 +66,7 @@ fn main() -> eframe::Result {
     // the next connection).
     rolid_core::replace::set_journal_dir(rolid_config::state_dir().join("replace"));
     // Background runtime for all I/O; the UI thread never blocks on disk or network.
-    let rt = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .thread_name("rolid-io")
-        .build()
-        .expect("tokio runtime");
+    let rt = runtime();
     let handle = rt.handle().clone();
 
     let options = eframe::NativeOptions {
@@ -89,4 +87,63 @@ fn main() -> eframe::Result {
     );
     rt.shutdown_timeout(std::time::Duration::from_secs(1));
     res
+}
+
+/// Stack of the background threads. Copying, deleting and measuring walk
+/// folder trees recursively: a path of 4 096 bytes can be ~2 000 folders deep,
+/// which needs more than the default 2 MiB (only what is used takes memory).
+const IO_STACK: usize = 16 * 1024 * 1024;
+
+/// Background runtime for all I/O; the UI thread never blocks on disk or network.
+pub(crate) fn runtime() -> tokio::runtime::Runtime {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .thread_name("rolid-io")
+        .thread_stack_size(IO_STACK)
+        .build()
+        .expect("tokio runtime")
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::AtomicBool;
+    use std::sync::Arc;
+
+    use rolid_core::copy::{CopyJob, Progress};
+    use rolid_core::Vfs;
+
+    /// A tree as deep as a path allows (~1 800 folders) is copied, measured and
+    /// deleted on the program's runtime without running out of stack (with the
+    /// default 2 MiB the program crashed at ~1 000 levels).
+    #[test]
+    fn a_very_deep_tree_does_not_overflow_the_stack() {
+        let base = tempfile::Builder::new().prefix("r").tempdir().unwrap();
+        let src = base.path().join("s");
+        let mut deep = src.clone();
+        for _ in 0..1800 {
+            deep.push("d");
+        }
+        assert!(deep.as_os_str().len() < 4000, "{}", deep.as_os_str().len());
+        std::fs::create_dir_all(&deep).unwrap();
+        std::fs::write(deep.join("f"), "bottom").unwrap();
+        let root = base.path().to_string_lossy().into_owned();
+        let rt = super::runtime();
+        let done = rt
+            .block_on(rt.spawn(async move {
+                let fs: Arc<dyn Vfs> = Arc::new(rolid_local::LocalFs);
+                let stop = AtomicBool::new(false);
+                let totals = rolid_core::copy::measure(fs.as_ref(), &[(root.clone(), "s".into())], &stop, &|_| {}).await;
+                let cb = |_: &Progress| {};
+                let mut job = CopyJob::new(fs.as_ref(), fs.as_ref(), Arc::new(AtomicBool::new(false)), &cb);
+                fs.mkdir(&format!("{root}/t")).await.unwrap();
+                job.copy_items_retrying(&[(root.clone(), "s".into())], &format!("{root}/t"), 0, |_| async { false }).await.unwrap();
+                let copied = job.progress().files_done;
+                crate::app::remove_recursive(fs.as_ref(), &format!("{root}/t")).await.unwrap();
+                crate::app::remove_recursive(fs.as_ref(), &format!("{root}/s")).await.unwrap();
+                (totals.files, copied)
+            }))
+            .unwrap();
+        assert_eq!(done, (1, 1));
+        assert!(std::fs::read_dir(base.path()).unwrap().next().is_none());
+    }
 }

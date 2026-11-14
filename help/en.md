@@ -87,7 +87,14 @@ shortcuts is on the second page of this window.
   compared first; a difference is reported and the source stays.
 - **F2** or **Shift+F6** renames right in the list: the name without the extension is selected,
   **Enter** confirms, **Esc** cancels.
-- **F7** creates a folder, **F8** deletes (with a confirmation).
+- **F7** creates a folder, **F8** deletes (with a confirmation). Deleting runs in the transfer queue
+  with the number of deleted items; **Cancel** stops it (what is deleted by then stays deleted).
+- Pipes (FIFO), sockets, devices and symbolic links that lead nowhere (a missing target or a loop) are
+  not copied: they are skipped and listed in the report at the end, the rest of the copy goes on.
+- Unusual names are copied exactly: line breaks, a backslash, names of 255 bytes, and on this
+  computer's disks also names that are not valid UTF-8. The list shows them on one line: control
+  characters as `\n` or `\t`, each invalid byte as `\xFF`. A name that is not valid UTF-8 cannot be
+  sent to a server (SFTP takes names as text); it is reported.
 - The transfer queue runs up to three transfers at a time. The speed limit is in the copy dialog.
 - **Dragging out to other applications** (X11): drag files or folders out of the window, for example
   onto a file manager or an editor. Local files are copied, with **Shift** moved. Files from a server or

@@ -88,7 +88,16 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
   igen og sammenlignes først; en forskel meldes, og kilden bliver.
 - **F2** eller **Shift+F6** omdøber direkte i listen: navnet uden filendelse er markeret, **Enter**
   bekræfter, **Esc** annullerer.
-- **F7** opretter en mappe, **F8** sletter (med bekræftelse).
+- **F7** opretter en mappe, **F8** sletter (med bekræftelse). Sletning kører i overførselskøen med
+  antallet af slettede elementer; **Annullér** stopper den (det, der allerede er slettet, forbliver
+  slettet).
+- Pipes (FIFO), sockets, enheder og symbolske links, der ikke fører nogen steder hen (målet mangler
+  eller er en løkke), kopieres ikke: de springes over og vises i rapporten til sidst, resten af
+  kopieringen fortsætter.
+- Usædvanlige navne kopieres nøjagtigt: linjeskift, en omvendt skråstreg, navne på 255 byte og på
+  denne computers diske også navne, der ikke er gyldig UTF-8. Listen viser dem på én linje:
+  kontroltegn som `\n` eller `\t`, hver ugyldig byte som `\xFF`. Et navn, der ikke er gyldig UTF-8,
+  kan ikke sendes til en server (SFTP tager navne som tekst); det meldes.
 - Overførselskøen kører op til tre overførsler ad gangen. Hastighedsgrænsen findes i kopieringsdialogen.
 - **Træk ud til andre programmer** (X11): træk filer eller mapper ud af vinduet, for eksempel til en
   filhåndtering eller en editor. Lokale filer kopieres, med **Shift** flyttes de. Filer fra en server eller

@@ -5,6 +5,7 @@ pub mod color;
 pub mod copy;
 pub mod eta;
 pub mod filter;
+pub mod names;
 pub mod perms;
 pub mod rate;
 pub mod rename;

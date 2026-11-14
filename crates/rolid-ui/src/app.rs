@@ -127,7 +127,7 @@ enum Msg {
     /// A listing made in the background (see `refresh`).
     Refreshed {
         key: refresh::LocKey,
-        result: VfsResult<Vec<Entry>>,
+        result: VfsResult<crate::pane::Prepared>,
     },
     /// Subfolders for "Browse…".
     PickListed {
@@ -145,7 +145,9 @@ enum Msg {
         req: u64,
         path: String,
         select: Option<String>,
-        result: VfsResult<Vec<Entry>>,
+        result: VfsResult<crate::pane::Prepared>,
+        /// When the listing was asked for (the log notes slow big folders).
+        asked: Instant,
     },
     Resolved {
         at: PaneRef,
@@ -818,14 +820,17 @@ impl App {
         p.loading = true;
         let req = p.req_id;
         let fs = p.fs.clone();
+        let sort = Some((p.sort, p.sort_asc));
+        let asked = Instant::now();
         self.spawn(async move {
-            let result = fs.list(&path).await;
+            let result = prepare(fs.list(&path).await, sort).await;
             Msg::Listed {
                 at,
                 req,
                 path,
                 select,
                 result,
+                asked,
             }
         });
     }
@@ -929,180 +934,193 @@ impl App {
 
     fn handle_msgs(&mut self) {
         while let Ok(msg) = self.rx.try_recv() {
-            match msg {
-                Msg::Listed {
-                    at,
-                    req,
-                    path,
-                    select,
-                    result,
-                } => {
-                    let Some(p) = self.pane_mut(at) else { continue };
-                    if p.req_id != req {
-                        continue; // stale
-                    }
-                    match result {
-                        Ok(entries) => {
-                            p.set_listing(path.clone(), entries, select.as_deref());
-                            self.request_space(at, path);
-                            self.remember_place(at);
+            self.handle_msg(msg);
+        }
+    }
+
+    fn handle_msg(&mut self, msg: Msg) {
+        match msg {
+            Msg::Listed {
+                at,
+                req,
+                path,
+                select,
+                result,
+                asked,
+            } => {
+                let Some(p) = self.pane_mut(at) else { return };
+                if p.req_id != req {
+                    return; // stale
+                }
+                match result {
+                    Ok(listing) => {
+                        let (n, read) = (listing.entries.len(), asked.elapsed());
+                        p.set_prepared(path.clone(), listing, select.as_deref());
+                        if n >= LOGGED_FOLDER {
+                            tracing::info!(
+                                "folder listed: {n} items, read in {} ms, shown after {} ms",
+                                read.as_millis(),
+                                asked.elapsed().as_millis()
+                            );
                         }
-                        Err(e) => {
-                            p.loading = false;
-                            p.history.cancel_nav();
-                            let msg = format!("{path}: {}", rolid_i18n::t(&e.text()));
-                            if p.entries.is_empty() {
-                                p.error = Some(msg.clone());
-                            }
-                            // A lost connection is shown in the panel's strip.
-                            if !e.is_connection_lost() {
-                                self.last_error = Some(msg);
-                            }
+                        self.request_space(at, path);
+                        self.remember_place(at);
+                    }
+                    Err(e) => {
+                        p.loading = false;
+                        p.history.cancel_nav();
+                        let msg = format!("{path}: {}", rolid_i18n::t(&e.text()));
+                        if p.entries.is_empty() {
+                            p.error = Some(msg.clone());
+                        }
+                        // A lost connection is shown in the panel's strip.
+                        if !e.is_connection_lost() {
+                            self.last_error = Some(msg);
                         }
                     }
                 }
-                Msg::Resolved { at, path, select } => self.load(at, path, select),
-                Msg::DirChanged(path) => self.on_dir_changed(path),
-                Msg::Refreshed { key, result } => self.on_refreshed(key, result),
-                Msg::PickListed { req, path, result } => self.on_pick_listed(req, path, result),
-                Msg::CopyOverwrite { dest, n } => {
-                    if let Dialog::Copy { dest: d, overwrite, .. } = &mut self.dialog {
-                        if *d == dest {
-                            *overwrite = n;
-                        }
+            }
+            Msg::Resolved { at, path, select } => self.load(at, path, select),
+            Msg::DirChanged(path) => self.on_dir_changed(path),
+            Msg::Refreshed { key, result } => self.on_refreshed(key, result),
+            Msg::PickListed { req, path, result } => self.on_pick_listed(req, path, result),
+            Msg::CopyOverwrite { dest, n } => {
+                if let Dialog::Copy { dest: d, overwrite, .. } = &mut self.dialog {
+                    if *d == dest {
+                        *overwrite = n;
                     }
                 }
-                Msg::Connected { at, meta, result } => self.on_connected(at, meta, *result),
-                Msg::AuthPrompt(f) => self.auth_prompts.push(*f),
-                Msg::Vault(m) => self.on_vault_msg(*m),
-                Msg::Edit(m) => self.on_edit_msg(*m),
-                Msg::Note(n) => {
-                    if n.is_some() {
-                        self.last_error = n;
+            }
+            Msg::Connected { at, meta, result } => self.on_connected(at, meta, *result),
+            Msg::AuthPrompt(f) => self.auth_prompts.push(*f),
+            Msg::Vault(m) => self.on_vault_msg(*m),
+            Msg::Edit(m) => self.on_edit_msg(*m),
+            Msg::Note(n) => {
+                if n.is_some() {
+                    self.last_error = n;
+                }
+            }
+            Msg::DropReady(r) => self.on_drop_ready(*r),
+            Msg::DiskHealth(h) => self.on_disk_health(*h),
+            Msg::DiskTemps(t, at) => self.on_disk_temps(t, at),
+            Msg::Space { at, path, space, fstype, disks } => {
+                let mut read = None;
+                if let Some(p) = self.pane_mut(at) {
+                    if p.path == path {
+                        p.space = space;
+                        p.fstype = fstype;
+                        read = disks.as_ref().ok().cloned();
+                        p.disks = Some(disks);
                     }
                 }
-                Msg::DropReady(r) => self.on_drop_ready(*r),
-                Msg::DiskHealth(h) => self.on_disk_health(*h),
-                Msg::DiskTemps(t, at) => self.on_disk_temps(t, at),
-                Msg::Space { at, path, space, fstype, disks } => {
-                    let mut read = None;
-                    if let Some(p) = self.pane_mut(at) {
-                        if p.path == path {
-                            p.space = space;
-                            p.fstype = fstype;
-                            read = disks.as_ref().ok().cloned();
-                            p.disks = Some(disks);
-                        }
+                match read {
+                    Some(names) => {
+                        self.request_health(&names, false);
+                        self.update_pane_health();
                     }
-                    match read {
-                        Some(names) => {
-                            self.request_health(&names, false);
-                            self.update_pane_health();
-                        }
-                        None => self.update_pane_health(),
-                    }
+                    None => self.update_pane_health(),
                 }
-                Msg::PermsPlanned(m) => self.on_perms_planned(*m),
-                Msg::JobDone {
-                    id,
-                    refresh,
-                    result,
-                    failures,
-                    retry,
-                    then,
-                } => {
-                    let title = self.jobs.iter().find(|j| j.id == id).map(|j| j.title.clone()).unwrap_or_default();
-                    self.jobs.retain(|j| j.id != id);
-                    let kind = self.job_kinds.remove(&id);
-                    let canceled = result.as_ref().is_err_and(|e| e.is_canceled());
-                    if !failures.is_empty() && (retry.is_none() || canceled) {
-                        self.drop.reports.push(drop_ui::Report { id, title: title.clone(), failures });
-                    }
-                    if let Err(e) = result {
-                        match retry {
-                            Some(spec) if !e.is_canceled() => {
-                                let error = if e.is_connection_lost() && !spec.auto_retry {
-                                    tr!(
-                                        "{error}. On a production server overwriting is not repeated by itself after an outage: \
-                                         check the state and press “Try again”.",
-                                        error = e.text()
-                                    )
-                                } else {
-                                    rolid_i18n::t(&e.text())
-                                };
-                                self.failed_jobs.push(FailedJob { id, title: spec.title.clone(), error, spec });
+            }
+            Msg::PermsPlanned(m) => self.on_perms_planned(*m),
+            Msg::JobDone {
+                id,
+                refresh,
+                result,
+                failures,
+                retry,
+                then,
+            } => {
+                let title = self.jobs.iter().find(|j| j.id == id).map(|j| j.title.clone()).unwrap_or_default();
+                self.jobs.retain(|j| j.id != id);
+                let kind = self.job_kinds.remove(&id);
+                let canceled = result.as_ref().is_err_and(|e| e.is_canceled());
+                if !failures.is_empty() && (retry.is_none() || canceled) {
+                    self.drop.reports.push(drop_ui::Report { id, title: title.clone(), failures });
+                }
+                if let Err(e) = result {
+                    match retry {
+                        Some(spec) if !e.is_canceled() => {
+                            let error = if e.is_connection_lost() && !spec.auto_retry {
+                                tr!(
+                                    "{error}. On a production server overwriting is not repeated by itself after an outage: \
+                                     check the state and press “Try again”.",
+                                    error = e.text()
+                                )
+                            } else {
+                                rolid_i18n::t(&e.text())
+                            };
+                            self.failed_jobs.push(FailedJob { id, title: spec.title.clone(), error, spec });
+                        }
+                        _ if kind == Some(JobKind::Perms) => {
+                            if !e.is_canceled() {
+                                self.last_error = Some(format!("{title}: {}", rolid_i18n::t(&e.text())));
                             }
-                            _ if kind == Some(JobKind::Perms) => {
-                                if !e.is_canceled() {
-                                    self.last_error = Some(format!("{title}: {}", rolid_i18n::t(&e.text())));
-                                }
-                            }
-                            _ if kind == Some(JobKind::Move) => {
-                                self.last_error = Some(tr!("{title}: {error}. The source stayed where it was.", title = title.as_str(), error = e.text()));
-                            }
-                            _ => self.last_error = Some(tr!("Copying: {error}", error = e.text())),
                         }
-                    }
-                    let all: Vec<PaneRef> = refresh
-                        .iter()
-                        .flat_map(|r| self.same_location(*r))
-                        .collect();
-                    for r in all {
-                        self.refresh(r);
-                    }
-                    if let Some(f) = then {
-                        f(self);
+                        _ if kind == Some(JobKind::Move) => {
+                            self.last_error = Some(tr!("{title}: {error}. The source stayed where it was.", title = title.as_str(), error = e.text()));
+                        }
+                        _ => self.last_error = Some(tr!("Copying: {error}", error = e.text())),
                     }
                 }
-                Msg::Then { job, f } => {
-                    if let Some(id) = job {
-                        self.jobs.retain(|j| j.id != id);
-                    }
+                let all: Vec<PaneRef> = refresh
+                    .iter()
+                    .flat_map(|r| self.same_location(*r))
+                    .collect();
+                for r in all {
+                    self.refresh(r);
+                }
+                if let Some(f) = then {
                     f(self);
                 }
-                Msg::SearchDone { at, id, result } => self.on_search_done(at, id, result),
-                Msg::Removed {
-                    at,
-                    labels,
-                    refresh,
-                    result,
-                } => {
-                    if let Err(e) = result {
-                        self.last_error = Some(rolid_i18n::t(&e.text()));
-                    }
-                    if let Some(p) = self.pane_mut(at) {
-                        p.remove_results(&labels);
-                    }
-                    let all: Vec<PaneRef> = refresh
-                        .iter()
-                        .flat_map(|r| self.same_location(*r))
-                        .collect();
-                    for r in all {
-                        self.refresh(r);
-                    }
+            }
+            Msg::Then { job, f } => {
+                if let Some(id) = job {
+                    self.jobs.retain(|j| j.id != id);
                 }
-                Msg::OpDone {
-                    refresh,
-                    select,
-                    result,
-                } => {
-                    if let Err(e) = result {
-                        self.last_error = Some(rolid_i18n::t(&e.text()));
-                    }
-                    let mut all: Vec<PaneRef> = refresh
-                        .iter()
-                        .flat_map(|r| self.same_location(*r))
-                        .collect();
-                    all.dedup();
-                    for r in all {
-                        let sel = select
-                            .as_ref()
-                            .filter(|(s, _)| *s == r)
-                            .map(|(_, n)| n.clone());
-                        if let Some(p) = self.pane(r) {
-                            let path = p.path.clone();
-                            self.load(r, path, sel);
-                        }
+                f(self);
+            }
+            Msg::SearchDone { at, id, result } => self.on_search_done(at, id, result),
+            Msg::Removed {
+                at,
+                labels,
+                refresh,
+                result,
+            } => {
+                if let Err(e) = result {
+                    self.last_error = Some(rolid_i18n::t(&e.text()));
+                }
+                if let Some(p) = self.pane_mut(at) {
+                    p.remove_results(&labels);
+                }
+                let all: Vec<PaneRef> = refresh
+                    .iter()
+                    .flat_map(|r| self.same_location(*r))
+                    .collect();
+                for r in all {
+                    self.refresh(r);
+                }
+            }
+            Msg::OpDone {
+                refresh,
+                select,
+                result,
+            } => {
+                if let Err(e) = result {
+                    self.last_error = Some(rolid_i18n::t(&e.text()));
+                }
+                let mut all: Vec<PaneRef> = refresh
+                    .iter()
+                    .flat_map(|r| self.same_location(*r))
+                    .collect();
+                all.dedup();
+                for r in all {
+                    let sel = select
+                        .as_ref()
+                        .filter(|(s, _)| *s == r)
+                        .map(|(_, n)| n.clone());
+                    if let Some(p) = self.pane(r) {
+                        let path = p.path.clone();
+                        self.load(r, path, sel);
                     }
                 }
             }
@@ -1593,29 +1611,56 @@ impl App {
         if let Some(p) = self.pane_mut(at) {
             p.marked.clear();
         }
+        // A job with a count and Cancel: a folder with a million files takes a while.
+        let id = self.id();
+        let cancel = Arc::new(AtomicBool::new(false));
+        let note = Arc::new(Mutex::new(None));
+        let what = match items.as_slice() {
+            [one] => one.label.clone(),
+            many => trn!("{n} item", "{n} items", many.len()),
+        };
+        self.jobs.push(Job {
+            id,
+            title: tr!("Deleting: {what}", what = what.as_str()),
+            progress: Arc::new(Mutex::new(Progress { started: Some(Instant::now()), ..Default::default() })),
+            total_bytes: 0,
+            cancel: cancel.clone(),
+            note: note.clone(),
+            count: None,
+            totals: Arc::default(),
+        });
+        let ctx = self.ctx.clone();
         self.spawn(async move {
+            let count = std::sync::atomic::AtomicU64::new(0);
+            let shown = Mutex::new(Instant::now());
+            let removed = || {
+                let n = count.fetch_add(1, Ordering::Relaxed) + 1;
+                let mut last = shown.lock().unwrap();
+                if last.elapsed() >= Duration::from_millis(100) {
+                    *last = Instant::now();
+                    *note.lock().unwrap() = Some(trn!("{n} item deleted", "{n} items deleted", n as usize));
+                    ctx.request_repaint();
+                }
+            };
             let mut result = Ok(());
             let mut done = Vec::new();
             for t in &items {
-                if let Err(e) = remove_recursive(fs.as_ref(), &fs.join(&t.dir, &t.name)).await {
+                if let Err(e) = remove_tree(fs.as_ref(), &fs.join(&t.dir, &t.name), &cancel, &removed).await {
                     result = Err(e);
                     break;
                 }
                 done.push(t.label.clone());
             }
-            if in_search {
-                return Msg::Removed {
-                    at,
-                    labels: done,
-                    refresh: dirs,
-                    result,
-                };
+            // Canceled: what is deleted is deleted; the panel shows the rest.
+            if result.as_ref().is_err_and(|e| e.is_canceled()) {
+                result = Ok(());
             }
-            Msg::OpDone {
-                refresh: vec![at],
-                select: None,
-                result,
-            }
+            let msg = if in_search {
+                Msg::Removed { at, labels: done, refresh: dirs, result }
+            } else {
+                Msg::OpDone { refresh: vec![at], select: None, result }
+            };
+            Msg::Then { job: Some(id), f: Box::new(move |a: &mut App| a.handle_msg(msg)) }
         });
     }
 
@@ -2868,22 +2913,85 @@ fn conflict_choice(ui: &mut egui::Ui, conflict: &mut Option<Conflict>) {
 /// Warning color (overwrite) – readable on light and dark backgrounds.
 const WARN_ORANGE: Color32 = Color32::from_rgb(200, 90, 0);
 
-fn remove_recursive<'a>(
+/// Folders with at least this many items get a line in the log when listed
+/// (load tests: scripts/bench/gui-frames.sh).
+const LOGGED_FOLDER: usize = 10_000;
+
+/// Sort and fingerprint a listing on a blocking thread (not the UI thread).
+pub(crate) async fn prepare(
+    listed: VfsResult<Vec<Entry>>,
+    sort: Option<(crate::pane::SortKey, bool)>,
+) -> VfsResult<crate::pane::Prepared> {
+    let entries = listed?;
+    tokio::task::spawn_blocking(move || crate::pane::Prepared::new(entries, sort)).await.map_err(rolid_core::VfsError::raw)
+}
+
+/// Delete `path` – a folder with everything in it. Links are deleted, never
+/// followed.
+#[cfg(test)]
+pub(crate) async fn remove_recursive(fs: &dyn Vfs, path: &str) -> VfsResult<()> {
+    remove_tree(fs, path, &AtomicBool::new(false), &|| {}).await
+}
+
+/// [`remove_recursive`] that stops when `cancel` is set and calls `removed`
+/// after each deleted item.
+pub(crate) async fn remove_tree(fs: &dyn Vfs, path: &str, cancel: &AtomicBool, removed: &(dyn Fn() + Send + Sync)) -> VfsResult<()> {
+    let e = fs.stat(path).await?;
+    remove_entry(fs, path, e.kind, cancel, removed).await
+}
+
+/// Files deleted at the same time (each is a round trip to a server).
+const REMOVE_AT_ONCE: usize = 16;
+/// Files deleted in one call on the local disk (Cancel still takes effect
+/// within a few ms).
+const REMOVE_LOCAL_AT_ONCE: usize = 512;
+
+fn remove_entry<'a>(
     fs: &'a dyn Vfs,
     path: &'a str,
+    kind: rolid_core::EntryKind,
+    cancel: &'a AtomicBool,
+    removed: &'a (dyn Fn() + Send + Sync),
 ) -> std::pin::Pin<Box<dyn std::future::Future<Output = VfsResult<()>> + Send + 'a>> {
     Box::pin(async move {
-        let e = fs.stat(path).await?;
-        // Never recurse through a symlink: delete the link itself.
-        if e.kind == rolid_core::EntryKind::Dir {
-            for child in fs.list(path).await? {
-                validate_name(&child.name)?;
-                remove_recursive(fs, &fs.join(path, &child.name)).await?;
-            }
-            fs.remove_dir(path).await
-        } else {
-            fs.remove_file(path).await
+        if cancel.load(Ordering::Relaxed) {
+            return Err(rolid_core::VfsError::canceled());
         }
+        // Never recurse through a symlink: the listing says what each item is
+        // itself (a link is deleted as a link).
+        if kind == rolid_core::EntryKind::Dir {
+            let (dirs, files): (Vec<Entry>, Vec<Entry>) = fs.list(path).await?.into_iter().partition(|c| c.kind == rolid_core::EntryKind::Dir);
+            for c in dirs.iter().chain(&files) {
+                validate_name(&c.name)?;
+            }
+            // The local disk deletes many files in one call, a server several
+            // at the same time.
+            let local = fs.is_local_disk();
+            for chunk in files.chunks(if local { REMOVE_LOCAL_AT_ONCE } else { REMOVE_AT_ONCE }) {
+                if cancel.load(Ordering::Relaxed) {
+                    return Err(rolid_core::VfsError::canceled());
+                }
+                let results = if local {
+                    let names: Vec<String> = chunk.iter().map(|c| c.name.clone()).collect();
+                    fs.remove_files(path, &names).await
+                } else {
+                    let paths: Vec<String> = chunk.iter().map(|c| fs.join(path, &c.name)).collect();
+                    futures_util::future::join_all(paths.iter().map(|p| fs.remove_file(p))).await
+                };
+                for r in results {
+                    r?;
+                    removed();
+                }
+            }
+            for d in &dirs {
+                remove_entry(fs, &fs.join(path, &d.name), d.kind, cancel, removed).await?;
+            }
+            fs.remove_dir(path).await?;
+        } else {
+            fs.remove_file(path).await?;
+        }
+        removed();
+        Ok(())
     })
 }
 
@@ -3074,5 +3182,66 @@ mod preset_tests {
         // Moves to a server compare checksums before deleting the source.
         assert!(rename_ui::verify_by_default(true));
         assert!(!rename_ui::verify_by_default(false));
+    }
+}
+
+#[cfg(test)]
+mod delete_tests {
+    use super::*;
+
+    /// Deleting a folder: everything in it goes (several files at once), every
+    /// item is counted, a link to a folder elsewhere is deleted as a link and
+    /// what it points to stays.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn a_tree_is_deleted_with_a_count_and_links_are_not_followed() {
+        let base = tempfile::tempdir().unwrap();
+        let keep = base.path().join("keep");
+        std::fs::create_dir_all(&keep).unwrap();
+        std::fs::write(keep.join("precious"), "x").unwrap();
+        let t = base.path().join("t");
+        std::fs::create_dir_all(t.join("sub/deeper")).unwrap();
+        for i in 0..100 {
+            std::fs::write(t.join(format!("f{i}")), "x").unwrap();
+        }
+        std::fs::write(t.join("sub/deeper/g"), "x").unwrap();
+        std::os::unix::fs::symlink(&keep, t.join("sub/link-to-keep")).unwrap();
+        let fs = rolid_local::LocalFs;
+        let n = std::sync::atomic::AtomicUsize::new(0);
+        let no = AtomicBool::new(false);
+        remove_tree(&fs, &t.to_string_lossy(), &no, &|| {
+            n.fetch_add(1, Ordering::Relaxed);
+        })
+        .await
+        .unwrap();
+        assert!(!t.exists());
+        assert!(keep.join("precious").exists());
+        // 100 files + g + the link + deeper + sub + t
+        assert_eq!(n.load(Ordering::Relaxed), 105);
+    }
+
+    /// Cancel stops the deletion soon; what is left stays.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn deleting_stops_when_canceled() {
+        let base = tempfile::tempdir().unwrap();
+        let t = base.path().join("t");
+        for d in 0..20 {
+            std::fs::create_dir_all(t.join(format!("d{d}"))).unwrap();
+            for i in 0..50 {
+                std::fs::write(t.join(format!("d{d}/f{i}")), "x").unwrap();
+            }
+        }
+        let fs = rolid_local::LocalFs;
+        let cancel = AtomicBool::new(false);
+        let n = std::sync::atomic::AtomicUsize::new(0);
+        let r = remove_tree(&fs, &t.to_string_lossy(), &cancel, &|| {
+            if n.fetch_add(1, Ordering::Relaxed) == 99 {
+                cancel.store(true, Ordering::Relaxed);
+            }
+        })
+        .await;
+        assert!(r.is_err_and(|e| e.is_canceled()));
+        let deleted = n.load(Ordering::Relaxed);
+        assert!((100..=100 + REMOVE_AT_ONCE + 1).contains(&deleted), "{deleted}");
+        assert!(t.exists(), "the rest stays");
     }
 }

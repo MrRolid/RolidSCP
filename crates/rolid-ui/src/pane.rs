@@ -52,8 +52,22 @@ pub struct Pane {
     pub entries: Vec<Entry>,
     pub view: Vec<Row>,
     pub cursor: usize,
-    pub marked: HashSet<String>,
+    pub marked: Marks,
     pub filter: String,
+    /// The filter `view` was made with while `entries` did not change since:
+    /// a longer filter only needs to look at those rows.
+    narrow: Option<String>,
+    /// [`fingerprint`] of `entries` as listed (a refresh with the same one changes nothing).
+    listed_print: Option<u64>,
+    /// Counted up whenever `entries` or the computed folder sizes change.
+    entries_gen: u64,
+    sizes_gen: u64,
+    /// The footer text of a big folder and what it was made from.
+    footer: Option<((u64, u64, u64), String)>,
+    /// Sums of all entries (for entries and sizes generation) and of the
+    /// marked ones (for entries, marks and sizes generation).
+    all_sums: Option<((u64, u64), Sums)>,
+    marks_sums: Option<((u64, u64, u64), Sums)>,
     pub sort: SortKey,
     pub sort_asc: bool,
     pub loading: bool,
@@ -295,8 +309,15 @@ impl Pane {
             entries: Vec::new(),
             view: Vec::new(),
             cursor: 0,
-            marked: HashSet::new(),
+            marked: Marks::default(),
             filter: String::new(),
+            narrow: None,
+            listed_print: None,
+            entries_gen: 0,
+            sizes_gen: 0,
+            footer: None,
+            all_sums: None,
+            marks_sums: None,
             sort: SortKey::Name,
             sort_asc: true,
             loading: false,
@@ -402,6 +423,8 @@ impl Pane {
             summary: None,
         });
         self.entries.clear();
+        self.entries_changed();
+        self.listed_print = None;
         self.marked.clear();
         self.filter.clear();
         self.error = None;
@@ -451,6 +474,8 @@ impl Pane {
         if let Some(sv) = self.search.take() {
             sv.cancel.store(true, Ordering::Relaxed);
             self.entries.clear();
+            self.entries_changed();
+            self.listed_print = None;
             self.marked.clear();
             self.filter.clear();
             self.cursor = 0;
@@ -509,6 +534,8 @@ impl Pane {
             self.marked.remove(n);
         }
         self.entries.retain(|e| !names.contains(&e.name));
+        self.entries_changed();
+        self.listed_print = None;
         self.rebuild_view();
     }
 
@@ -547,7 +574,14 @@ impl Pane {
     }
 
     /// Install a fresh listing. `select` = name to put the cursor on.
+    #[cfg(test)]
     pub fn set_listing(&mut self, path: String, entries: Vec<Entry>, select: Option<&str>) {
+        self.set_prepared(path, Prepared::new(entries, None), select);
+    }
+
+    /// [`Pane::set_listing`] with a listing prepared in the background.
+    pub fn set_prepared(&mut self, path: String, listing: Prepared, select: Option<&str>) {
+        let Prepared { entries, sorted, print } = listing;
         let was_search = self.search.is_some();
         self.exit_search();
         let same_dir = path == self.path && !was_search;
@@ -565,14 +599,13 @@ impl Pane {
             }
         }
         self.path = path;
-        self.entries = entries;
+        drop_later(std::mem::replace(&mut self.entries, entries));
+        self.listed_print = Some(print);
         self.loading = false;
         self.error = None;
         self.loaded_at = Some(Instant::now());
-        let names: HashSet<&str> = self.entries.iter().map(|e| e.name.as_str()).collect();
-        self.marked.retain(|m| names.contains(m.as_str()));
-        self.dir_sizes.retain(|m, _| names.contains(m.as_str()));
-        self.sort_entries();
+        self.forget_missing();
+        self.sort_unless(sorted);
         self.rebuild_view();
         let want = select.map(str::to_owned).or(keep);
         self.cursor = 0;
@@ -600,32 +633,129 @@ impl Pane {
     /// cursor stays on its item (on the next one when the item is gone), the
     /// marks, filter, scroll position, sort and computed folder sizes stay.
     /// Returns whether anything changed.
+    #[cfg(test)]
     pub fn update_listing(&mut self, entries: Vec<Entry>) -> bool {
+        self.update_prepared(Prepared::new(entries, None))
+    }
+
+    /// [`Pane::update_listing`] with a listing prepared in the background.
+    pub fn update_prepared(&mut self, listing: Prepared) -> bool {
         self.loaded_at = Some(Instant::now());
         if self.search.is_some() || self.archive.is_some() {
             return false;
         }
-        let old: HashMap<&str, &Entry> = self.entries.iter().map(|e| (e.name.as_str(), e)).collect();
-        let same = old.len() == entries.len() && entries.iter().all(|e| old.get(e.name.as_str()).is_some_and(|o| same_entry(o, e)));
-        if same {
+        let Prepared { entries, sorted, print } = listing;
+        if self.listed_print == Some(print) && self.entries.len() == entries.len() {
+            drop_later(entries);
             return false;
         }
         let keep = self.current_name();
         let old_cursor = self.cursor;
         let scroll = self.scroll_to_cursor;
-        self.entries = entries;
+        drop_later(std::mem::replace(&mut self.entries, entries));
+        self.listed_print = Some(print);
         self.error = None;
-        let names: HashSet<&str> = self.entries.iter().map(|e| e.name.as_str()).collect();
-        self.marked.retain(|m| names.contains(m.as_str()));
-        self.dir_sizes.retain(|m, _| names.contains(m.as_str()));
-        self.dir_pending.retain(|m| names.contains(m.as_str()));
-        self.sort_entries();
+        self.forget_missing();
+        self.sort_unless(sorted);
         self.rebuild_view();
-        let at = keep.and_then(|n| self.view.iter().position(|r| matches!(r, Row::Entry(i) if self.entries[*i].name == n)));
+        let at = keep.and_then(|n| self.find_row(&n, old_cursor));
         self.cursor = at.unwrap_or(old_cursor).min(self.view.len().saturating_sub(1));
         // The view does not move to the cursor (it may have been scrolled away on purpose).
         self.scroll_to_cursor = scroll;
         true
+    }
+
+    fn entries_changed(&mut self) {
+        self.narrow = None;
+        self.entries_gen += 1;
+    }
+
+    /// The footer: counts and sizes of all and of the marked items. In a big
+    /// folder it is made again only when something it counts changed (a
+    /// million names every frame made each frame take ~400 ms).
+    pub(crate) fn footer_text(&mut self) -> String {
+        if self.entries.len() < 20_000 {
+            return selection_summary(&self.entries, &self.marked, &self.dir_sizes);
+        }
+        let key = (self.entries_gen, self.marked.generation(), self.sizes_gen);
+        if let Some((k, text)) = &self.footer {
+            if *k == key {
+                return text.clone();
+            }
+        }
+        // After marking one item or all of them only the change is counted
+        // (looking up a million marked names took ~0.8 s for each change).
+        let text = match (self.all_sums, self.mark_sums()) {
+            (Some((k, all)), Some(m)) if k == (self.entries_gen, self.sizes_gen) => summary_text(&all, &m),
+            _ => {
+                let (all, m) = sums(&self.entries, &self.marked, &self.dir_sizes);
+                self.all_sums = Some(((self.entries_gen, self.sizes_gen), all));
+                self.marks_sums = Some(((self.entries_gen, self.marked.generation(), self.sizes_gen), m));
+                summary_text(&all, &m)
+            }
+        };
+        self.footer = Some((key, text.clone()));
+        text
+    }
+
+    /// The sums of the marked items, if they are known for the current marks
+    /// and listing.
+    fn mark_sums(&self) -> Option<Sums> {
+        if self.marked.is_empty() {
+            return Some(Sums::default());
+        }
+        match self.marks_sums {
+            Some((k, m)) if k == (self.entries_gen, self.marked.generation(), self.sizes_gen) => Some(m),
+            _ => None,
+        }
+    }
+
+    /// Change the marks with `f`, which tells which entries it marked and
+    /// unmarked; the sums of the marked items follow when they were known
+    /// (and no folder sizes are computed: those are counted in only by a
+    /// full count).
+    fn change_marks(&mut self, f: impl FnOnce(&mut Self, &mut dyn FnMut(usize, bool))) {
+        let base = self.mark_sums().filter(|_| self.dir_sizes.is_empty());
+        let mut changes: Vec<(usize, bool)> = Vec::new();
+        f(self, &mut |i, marked| changes.push((i, marked)));
+        if let Some(mut m) = base {
+            for (i, marked) in changes {
+                let e = &self.entries[i];
+                if marked {
+                    m.add(e);
+                } else {
+                    m.sub(e);
+                }
+            }
+            self.marks_sums = Some(((self.entries_gen, self.marked.generation(), self.sizes_gen), m));
+        }
+    }
+
+    /// Every entry is marked (known from the sums, without looking up names).
+    fn all_marked_known(&self) -> bool {
+        self.mark_sums().is_some_and(|m| m.count() == self.entries.len() && !self.entries.is_empty())
+    }
+
+    /// Marks and folder sizes of items that are gone are dropped.
+    fn forget_missing(&mut self) {
+        if self.marked.is_empty() && self.dir_sizes.is_empty() && self.dir_pending.is_empty() {
+            return;
+        }
+        let names: HashSet<&str> = self.entries.iter().map(|e| e.name.as_str()).collect();
+        self.marked.retain(|m| names.contains(m.as_str()));
+        self.dir_sizes.retain(|m, _| names.contains(m.as_str()));
+        self.dir_pending.retain(|m| names.contains(m.as_str()));
+        self.sizes_gen += 1;
+    }
+
+    /// Sort `entries`, unless they already come sorted the panel's way.
+    fn sort_unless(&mut self, sorted: Option<(SortKey, bool)>) {
+        let by_size_with_sizes = self.sort == SortKey::Size && !self.dir_sizes.is_empty();
+        if sorted == Some((self.sort, self.sort_asc)) && !by_size_with_sizes {
+            self.entries_changed();
+        } else {
+            self.sort_entries();
+        }
     }
 
     /// Forget the computed folder sizes and stop a computation (Ctrl+R, leaving the folder).
@@ -633,6 +763,7 @@ impl Pane {
         self.size_cancel.store(true, Ordering::Relaxed);
         self.size_cancel = Arc::new(AtomicBool::new(false));
         self.dir_sizes.clear();
+        self.sizes_gen += 1;
         self.dir_pending.clear();
     }
 
@@ -641,6 +772,7 @@ impl Pane {
         self.dir_pending.remove(name);
         let Some(size) = size else { return };
         self.dir_sizes.insert(name.to_string(), size);
+        self.sizes_gen += 1;
         if self.sort == SortKey::Size && self.search.is_none() {
             let keep = self.current_name();
             let first = self.cursor;
@@ -663,40 +795,17 @@ impl Pane {
     }
 
     fn sort_entries(&mut self) {
-        let (key, asc) = (self.sort, self.sort_asc);
-        let sizes: HashMap<String, u64> = if key == SortKey::Size {
+        let sizes: HashMap<String, u64> = if self.sort == SortKey::Size {
             self.entries.iter().filter(|e| e.is_dir_like()).map(|e| (e.name.clone(), self.sort_size(e))).collect()
         } else {
             HashMap::new()
         };
-        let size_of = |e: &Entry| if e.is_dir_like() { sizes.get(&e.name).copied().unwrap_or(0) } else { e.size };
-        // Text keys computed once (not in every comparison: 3 000 names would
-        // build ~70 000 strings and make a refresh frame take ~20 ms).
-        let text_key = |e: &Entry| match key {
-            SortKey::Name => natural_lower(&e.name),
-            SortKey::Ext => ext_of(&e.name).to_lowercase(),
-            SortKey::Size | SortKey::Modified => String::new(),
-        };
-        let mut items: Vec<(String, Entry)> = std::mem::take(&mut self.entries).into_iter().map(|e| (text_key(&e), e)).collect();
-        items.sort_by(|(ka, a), (kb, b)| {
-            // Directories always first, like in Total Commander.
-            let ord = b.is_dir_like().cmp(&a.is_dir_like());
-            if ord.is_ne() {
-                return ord;
-            }
-            let o = match key {
-                SortKey::Name | SortKey::Ext => ka.cmp(kb),
-                SortKey::Size => size_of(a).cmp(&size_of(b)),
-                SortKey::Modified => a.modified.cmp(&b.modified),
-            }
-            .then_with(|| a.name.cmp(&b.name));
-            if asc {
-                o
-            } else {
-                o.reverse()
-            }
-        });
-        self.entries = items.into_iter().map(|(_, e)| e).collect();
+        let (all, marks) = (self.all_sums.filter(|(k, _)| *k == (self.entries_gen, self.sizes_gen)), self.mark_sums());
+        self.entries = sorted(std::mem::take(&mut self.entries), self.sort, self.sort_asc, &sizes);
+        self.entries_changed();
+        // Sorting changes the order, not the sums.
+        self.all_sums = all.map(|(_, a)| ((self.entries_gen, self.sizes_gen), a));
+        self.marks_sums = marks.map(|m| ((self.entries_gen, self.marked.generation(), self.sizes_gen), m));
     }
 
     pub fn set_sort(&mut self, key: SortKey) {
@@ -718,42 +827,70 @@ impl Pane {
         // Rows move: an edit in the list ends (it never jumps to another item).
         self.rename = None;
         let keep = self.current_name();
-        self.view.clear();
+        let prev_view = std::mem::take(&mut self.view);
         if self.filter.is_empty() {
+            // The old rows' memory is used again (a million rows).
+            let mut view = prev_view;
+            view.clear();
+            view.reserve(self.entries.len() + 1);
             if self.has_parent() {
-                self.view.push(Row::Up);
+                view.push(Row::Up);
             }
-            self.view.extend((0..self.entries.len()).map(Row::Entry));
+            view.extend((0..self.entries.len()).map(Row::Entry));
+            self.view = view;
         } else {
-            let mut scored: Vec<(i32, usize)> = self
-                .entries
-                .iter()
-                .enumerate()
-                .filter_map(|(i, e)| filter::score(&e.name, &self.filter).map(|s| (s, i)))
-                .collect();
-            // Stable: keep directory-first sort order among equal scores.
-            scored.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+            // A longer filter matches only rows the shorter one matched.
+            let narrowed = self.narrow.as_deref().is_some_and(|prev| self.filter.starts_with(prev));
+            let candidates: Vec<usize> = if narrowed {
+                prev_view.iter().filter_map(|r| if let Row::Entry(i) = r { Some(*i) } else { None }).collect()
+            } else {
+                (0..self.entries.len()).collect()
+            };
+            let (entries, query) = (&self.entries, self.filter.as_str());
+            let scored = par_filter_map(&candidates, &|i| filter::score(&entries[i].name, query).map(|s| (s, i)));
+            // Keep directory-first sort order among equal scores (indices are unique).
+            let scored = par_sort_by(scored, &|a: &(i32, usize), b: &(i32, usize)| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
             self.view
                 .extend(scored.into_iter().map(|(_, i)| Row::Entry(i)));
         }
+        self.narrow = (!self.filter.is_empty()).then(|| self.filter.clone());
+        let near = self.cursor;
         self.cursor = 0;
-        if let Some(k) = keep {
-            self.select_name(&k);
-        }
         if !self.filter.is_empty() {
             // While filtering, the best match is selected.
-            self.cursor = 0;
+        } else if let Some(k) = keep {
+            if let Some(pos) = self.find_row(&k, near) {
+                self.cursor = pos;
+            }
         }
         self.clamp_cursor();
         self.scroll_to_cursor = true;
     }
 
+    /// The row of entry `name`, looked for from row `near` outwards (after a
+    /// refresh or sort the item is mostly close to where it was: a million
+    /// names compared from the top took ~100 ms).
+    fn find_row(&self, name: &str, near: usize) -> Option<usize> {
+        let is = |r: usize| matches!(self.view[r], Row::Entry(i) if self.entries[i].name == name);
+        let len = self.view.len();
+        let near = near.min(len.checked_sub(1)?);
+        for d in 0..len {
+            let (lo, hi) = (near.checked_sub(d), near + d);
+            if lo.is_none() && hi >= len {
+                break;
+            }
+            if lo.is_some_and(is) {
+                return lo;
+            }
+            if d > 0 && hi < len && is(hi) {
+                return Some(hi);
+            }
+        }
+        None
+    }
+
     pub fn select_name(&mut self, name: &str) {
-        if let Some(pos) = self
-            .view
-            .iter()
-            .position(|r| matches!(r, Row::Entry(i) if self.entries[*i].name == name))
-        {
+        if let Some(pos) = self.find_row(name, self.cursor) {
             self.cursor = pos;
             self.scroll_to_cursor = true;
         }
@@ -777,14 +914,14 @@ impl Pane {
     /// Names to operate on: marked entries, or the entry under the cursor.
     pub fn targets(&self) -> Vec<String> {
         if !self.marked.is_empty() {
-            let mut v: Vec<String> = self
+            let all = self.all_marked_known();
+            let v: Vec<String> = self
                 .entries
                 .iter()
-                .filter(|e| self.marked.contains(&e.name))
+                .filter(|e| all || self.marked.contains(&e.name))
                 .map(|e| e.name.clone())
                 .collect();
-            v.sort();
-            v
+            par_sort_by(v, &|a: &String, b: &String| a.cmp(b))
         } else {
             self.current_name().into_iter().collect()
         }
@@ -838,31 +975,42 @@ impl Pane {
     /// (`*.jpg;*.png`). Folders only when `dirs`. Returns how many changed.
     pub fn mark_group(&mut self, masks: &str, mark: bool, dirs: bool) -> usize {
         let mut n = 0;
-        for r in &self.view {
-            let Row::Entry(i) = r else { continue };
-            let e = &self.entries[*i];
-            if (e.is_dir_like() && !dirs) || !marks::matches(masks, &e.name) {
-                continue;
+        self.change_marks(|p, changed| {
+            let Pane { view, entries, marked, .. } = p;
+            for r in view.iter() {
+                let Row::Entry(i) = r else { continue };
+                let e = &entries[*i];
+                if (e.is_dir_like() && !dirs) || !marks::matches(masks, &e.name) {
+                    continue;
+                }
+                let done = if mark { marked.insert(e.name.clone()) } else { marked.remove(&e.name) };
+                if done {
+                    changed(*i, mark);
+                    n += 1;
+                }
             }
-            let changed = if mark { self.marked.insert(e.name.clone()) } else { self.marked.remove(&e.name) };
-            n += changed as usize;
-        }
+        });
         n
     }
 
     /// Invert the marks of the shown files; folders too with `dirs` (otherwise
     /// left alone, as in TC).
     pub fn invert_selection(&mut self, dirs: bool) {
-        for r in &self.view {
-            let Row::Entry(i) = r else { continue };
-            let e = &self.entries[*i];
-            if e.is_dir_like() && !dirs {
-                continue;
+        self.change_marks(|p, changed| {
+            let Pane { view, entries, marked, .. } = p;
+            for r in view.iter() {
+                let Row::Entry(i) = r else { continue };
+                let e = &entries[*i];
+                if e.is_dir_like() && !dirs {
+                    continue;
+                }
+                let now = !marked.remove(&e.name);
+                if now {
+                    marked.insert(e.name.clone());
+                }
+                changed(*i, now);
             }
-            if !self.marked.remove(&e.name) {
-                self.marked.insert(e.name.clone());
-            }
-        }
+        });
     }
 
     /// Change the listing style; the cursor stays on the same item.
@@ -891,32 +1039,51 @@ impl Pane {
     }
 
     pub fn toggle_mark_current(&mut self) {
-        if let Some(name) = self.current_name() {
-            if !self.marked.remove(&name) {
-                self.marked.insert(name);
-            }
+        if let Some(Row::Entry(i)) = self.current_row() {
+            self.toggle_mark(i);
         }
         self.move_cursor(1);
     }
 
+    /// Mark or unmark entry `i` (Insert, Space, Ctrl+click).
+    pub fn toggle_mark(&mut self, i: usize) {
+        self.change_marks(|p, changed| {
+            let name = &p.entries[i].name;
+            let marked = !p.marked.remove(name);
+            if marked {
+                p.marked.insert(name.clone());
+            }
+            changed(i, marked);
+        });
+    }
+
     pub fn mark_all(&mut self) {
-        let all_marked = self
-            .view
-            .iter()
-            .filter_map(|r| match r {
-                Row::Entry(i) => Some(&self.entries[*i].name),
-                Row::Up => None,
-            })
-            .all(|n| self.marked.contains(n));
+        let all_marked = if self.filter.is_empty() && self.all_marked_known() {
+            true
+        } else {
+            self.view
+                .iter()
+                .filter_map(|r| match r {
+                    Row::Entry(i) => Some(&self.entries[*i].name),
+                    Row::Up => None,
+                })
+                .all(|n| self.marked.contains(n))
+        };
         if all_marked {
             self.marked.clear();
-        } else {
-            for r in &self.view {
+            return;
+        }
+        self.change_marks(|p, changed| {
+            p.marked.reserve(p.view.len());
+            let Pane { view, entries, marked, .. } = p;
+            for r in view.iter() {
                 if let Row::Entry(i) = r {
-                    self.marked.insert(self.entries[*i].name.clone());
+                    if marked.insert(entries[*i].name.clone()) {
+                        changed(*i, true);
+                    }
                 }
             }
-        }
+        });
     }
 
     /// "/" (root), ".." (up), "~" (home) and "*" (favorite and recent folders) at the
@@ -1273,7 +1440,7 @@ impl Pane {
             egui::pos2(full.right(), list_rect.bottom() + footer_h),
         );
         ui.allocate_rect(frect, Sense::hover());
-        let mut footer = selection_summary(&self.entries, &self.marked, &self.dir_sizes);
+        let mut footer = self.footer_text();
         if !self.dir_pending.is_empty() {
             footer += &format!("  |  {}", trn!("computing the size of {n} folder…", "computing the size of {n} folders…", self.dir_pending.len()));
         }
@@ -1313,10 +1480,6 @@ impl Pane {
 }
 
 /// The same entry as listed before (nothing to repaint).
-fn same_entry(a: &Entry, b: &Entry) -> bool {
-    a.name == b.name && a.kind == b.kind && a.link_to_dir == b.link_to_dir && a.size == b.size && a.modified == b.modified && a.mode == b.mode
-}
-
 /// Extension of a file name without the dot ("" for none or ".bashrc").
 pub fn ext_of(name: &str) -> &str {
     match name.rsplit_once('.') {
@@ -1358,34 +1521,74 @@ pub fn fs_label(fs: &dyn rolid_core::vfs::Vfs) -> String {
 /// (folders are counted separately when some are selected); without a
 /// selection the total count and size.
 pub fn selection_summary(entries: &[Entry], marked: &HashSet<String>, dir_sizes: &HashMap<String, crate::dirsize::DirSize>) -> String {
-    let (mut files, mut dirs, mut size) = (0usize, 0usize, 0u64);
-    let (mut mf, mut md, mut msize) = (0usize, 0usize, 0u64);
-    // Computed folder sizes counted in (`≥` when one is incomplete).
-    let (mut sized, mut msized, mut ge, mut mge) = (false, false, false, false);
-    for e in entries {
-        let m = marked.contains(&e.name);
+    let (all, m) = sums(entries, marked, dir_sizes);
+    summary_text(&all, &m)
+}
+
+/// Counts and sizes of items for the footer.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Sums {
+    files: usize,
+    dirs: usize,
+    bytes: u64,
+    /// Computed folder sizes are counted in; `ge`: one of them is incomplete.
+    sized: bool,
+    ge: bool,
+}
+
+impl Sums {
+    /// One more item (without computed folder sizes).
+    fn add(&mut self, e: &Entry) {
         if e.is_dir_like() {
-            dirs += 1;
-            md += m as usize;
-            if let Some(d) = dir_sizes.get(&e.name) {
-                size += d.bytes;
-                sized = true;
-                ge |= d.unreadable > 0;
-                if m {
-                    msize += d.bytes;
-                    msized = true;
-                    mge |= d.unreadable > 0;
-                }
-            }
+            self.dirs += 1;
         } else {
-            files += 1;
-            size += e.size;
-            if m {
-                mf += 1;
-                msize += e.size;
+            self.files += 1;
+            self.bytes += e.size;
+        }
+    }
+
+    /// One item less (without computed folder sizes).
+    fn sub(&mut self, e: &Entry) {
+        if e.is_dir_like() {
+            self.dirs -= 1;
+        } else {
+            self.files -= 1;
+            self.bytes -= e.size;
+        }
+    }
+
+    fn count(&self) -> usize {
+        self.files + self.dirs
+    }
+}
+
+/// [`Sums`] of all items and of the marked ones.
+fn sums(entries: &[Entry], marked: &HashSet<String>, dir_sizes: &HashMap<String, crate::dirsize::DirSize>) -> (Sums, Sums) {
+    let (mut all, mut m) = (Sums::default(), Sums::default());
+    let any_marked = !marked.is_empty();
+    for e in entries {
+        let marked = any_marked && marked.contains(&e.name);
+        all.add(e);
+        if marked {
+            m.add(e);
+        }
+        if e.is_dir_like() {
+            if let Some(d) = dir_sizes.get(&e.name) {
+                for s in [Some(&mut all), marked.then_some(&mut m)].into_iter().flatten() {
+                    s.bytes += d.bytes;
+                    s.sized = true;
+                    s.ge |= d.unreadable > 0;
+                }
             }
         }
     }
+    (all, m)
+}
+
+/// The footer text from [`sums`].
+fn summary_text(all: &Sums, m: &Sums) -> String {
+    let Sums { files, dirs, bytes: size, sized, ge } = *all;
+    let Sums { files: mf, dirs: md, bytes: msize, sized: msized, ge: mge } = *m;
     let size_of = |n: u64, ge: bool| if ge { format!("≥ {}", human_size(n)) } else { human_size(n) };
     // "1 of 3 files", "1 of 1 folder" (the noun goes with the total).
     let of_files = || txtn!("{sel} of {n} file", "{sel} of {n} files", files, sel = mf);
@@ -1424,14 +1627,241 @@ pub fn text_on(bg: Color32) -> Color32 {
     Color32::from_rgb(c.0, c.1, c.2)
 }
 
+/// The marked names of a panel. Every change through `&mut` counts a
+/// generation up, so that what is computed from the marks can be kept.
+#[derive(Default, Debug)]
+pub struct Marks {
+    set: HashSet<String>,
+    generation: u64,
+}
+
+impl Marks {
+    pub fn generation(&self) -> u64 {
+        self.generation
+    }
+}
+
+impl std::ops::Deref for Marks {
+    type Target = HashSet<String>;
+    fn deref(&self) -> &HashSet<String> {
+        &self.set
+    }
+}
+
+impl std::ops::DerefMut for Marks {
+    fn deref_mut(&mut self) -> &mut HashSet<String> {
+        self.generation += 1;
+        &mut self.set
+    }
+}
+
+/// A listing made ready for a panel off the UI thread (sorting a million
+/// names takes seconds): the entries, how they are sorted, their fingerprint.
+pub struct Prepared {
+    pub entries: Vec<Entry>,
+    /// Sorted by this key and direction (`None` = as listed).
+    pub sorted: Option<(SortKey, bool)>,
+    pub print: u64,
+}
+
+impl Prepared {
+    /// Fingerprint `entries` and sort them by `sort` (folders by size count 0:
+    /// a panel with computed folder sizes sorts again).
+    pub fn new(entries: Vec<Entry>, sort: Option<(SortKey, bool)>) -> Self {
+        let print = fingerprint(&entries);
+        let entries = match sort {
+            Some((key, asc)) => sorted(entries, key, asc, &HashMap::new()),
+            None => entries,
+        };
+        Prepared { entries, sorted: sort, print }
+    }
+}
+
+/// The same for the same entries in any order; differs when a name, kind,
+/// size, time or permissions differ.
+pub fn fingerprint(entries: &[Entry]) -> u64 {
+    use std::hash::{Hash, Hasher};
+    entries.iter().fold(entries.len() as u64, |acc, e| {
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        (&e.name, e.kind, e.link_to_dir, e.size, e.modified, e.mode).hash(&mut h);
+        acc.wrapping_add(h.finish())
+    })
+}
+
+/// Free a big listing on another thread (a million names take tens of ms).
+fn drop_later(entries: Vec<Entry>) {
+    if entries.len() > 50_000 {
+        std::thread::spawn(move || drop(entries));
+    }
+}
+
+/// `entries` sorted the panel's way: folders first, then by `key`; `sizes` =
+/// computed folder sizes (by name) for sorting by size.
+fn sorted(entries: Vec<Entry>, key: SortKey, asc: bool, sizes: &HashMap<String, u64>) -> Vec<Entry> {
+    let size_of = |e: &Entry| if e.is_dir_like() { sizes.get(&e.name).copied().unwrap_or(0) } else { e.size };
+    // Text keys computed once (not in every comparison: 3 000 names would
+    // build ~70 000 strings and make a refresh frame take ~20 ms).
+    // Runs of digits are padded to the longest run of this listing (not to
+    // 20 digits: shorter keys sort a million names faster, in the same order).
+    let width = if key == SortKey::Name { entries.iter().map(|e| longest_number(&e.name)).max().unwrap_or(0).max(1) } else { 0 };
+    let text_key = |e: &Entry| match key {
+        SortKey::Name => natural_key(&e.name, width),
+        SortKey::Ext => ext_of(&e.name).to_lowercase(),
+        SortKey::Size | SortKey::Modified => String::new(),
+    };
+    par_sort_by_key(entries, &text_key, &|(ka, a): &(String, Entry), (kb, b): &(String, Entry)| {
+        // Directories always first, like in Total Commander.
+        let ord = b.is_dir_like().cmp(&a.is_dir_like());
+        if ord.is_ne() {
+            return ord;
+        }
+        let o = match key {
+            SortKey::Name | SortKey::Ext => ka.cmp(kb),
+            SortKey::Size => size_of(a).cmp(&size_of(b)),
+            SortKey::Modified => a.modified.cmp(&b.modified),
+        }
+        .then_with(|| a.name.cmp(&b.name));
+        if asc {
+            o
+        } else {
+            o.reverse()
+        }
+    })
+}
+
+/// Threads for sorting and filtering a big listing (a million names take
+/// seconds on one).
+fn threads_for(len: usize) -> usize {
+    if len < 50_000 {
+        return 1;
+    }
+    std::thread::available_parallelism().map_or(1, |n| n.get()).min(8)
+}
+
+/// `v` sorted by `cmp` (stable), on several threads when it is big.
+fn par_sort_by<T: Send>(v: Vec<T>, cmp: &(impl Fn(&T, &T) -> std::cmp::Ordering + Sync)) -> Vec<T> {
+    let parts = split(v, threads_for);
+    let parts: Vec<Vec<T>> = std::thread::scope(|s| {
+        let hs: Vec<_> = parts
+            .into_iter()
+            .map(|mut p| {
+                s.spawn(move || {
+                    p.sort_by(cmp);
+                    p
+                })
+            })
+            .collect();
+        hs.into_iter().map(|h| h.join().expect("sort thread")).collect()
+    });
+    merge_all(parts, cmp)
+}
+
+/// `v` sorted by `cmp` on (key, item), the keys made once for each item (on
+/// several threads when it is big).
+fn par_sort_by_key<T: Send, K: Send>(
+    v: Vec<T>,
+    key: &(impl Fn(&T) -> K + Sync),
+    cmp: &(impl Fn(&(K, T), &(K, T)) -> std::cmp::Ordering + Sync),
+) -> Vec<T> {
+    let parts = split(v, threads_for);
+    let parts: Vec<Vec<(K, T)>> = std::thread::scope(|s| {
+        let hs: Vec<_> = parts
+            .into_iter()
+            .map(|p| {
+                s.spawn(move || {
+                    let mut p: Vec<(K, T)> = p.into_iter().map(|e| (key(&e), e)).collect();
+                    p.sort_by(cmp);
+                    p
+                })
+            })
+            .collect();
+        hs.into_iter().map(|h| h.join().expect("sort thread")).collect()
+    });
+    merge_all(parts, cmp).into_iter().map(|(_, e)| e).collect()
+}
+
+/// `v` cut into as many parts as `threads` says, in order.
+fn split<T>(mut v: Vec<T>, threads: impl Fn(usize) -> usize) -> Vec<Vec<T>> {
+    let n = threads(v.len());
+    let size = v.len().div_ceil(n.max(1)).max(1);
+    let mut parts = Vec::with_capacity(n);
+    while v.len() > size {
+        parts.push(v.split_off(v.len() - size));
+    }
+    parts.push(v);
+    parts.reverse();
+    parts
+}
+
+/// Sorted parts merged into one, pairs at the same time (stable: of equal
+/// items the one from the earlier part comes first).
+fn merge_all<T: Send>(mut parts: Vec<Vec<T>>, cmp: &(impl Fn(&T, &T) -> std::cmp::Ordering + Sync)) -> Vec<T> {
+    while parts.len() > 1 {
+        parts = std::thread::scope(|s| {
+            let mut it = parts.into_iter();
+            let mut hs = Vec::new();
+            while let Some(a) = it.next() {
+                match it.next() {
+                    Some(b) => hs.push(s.spawn(move || merge(a, b, cmp))),
+                    None => hs.push(s.spawn(move || a)),
+                }
+            }
+            hs.into_iter().map(|h| h.join().expect("merge thread")).collect()
+        });
+    }
+    parts.pop().unwrap_or_default()
+}
+
+fn merge<T>(a: Vec<T>, b: Vec<T>, cmp: &impl Fn(&T, &T) -> std::cmp::Ordering) -> Vec<T> {
+    let mut out = Vec::with_capacity(a.len() + b.len());
+    let (mut a, mut b) = (a.into_iter().peekable(), b.into_iter().peekable());
+    while let (Some(x), Some(y)) = (a.peek(), b.peek()) {
+        let next = if cmp(y, x) == std::cmp::Ordering::Less { b.next() } else { a.next() };
+        out.extend(next);
+    }
+    out.extend(a);
+    out.extend(b);
+    out
+}
+
+/// `f` of each item of `items` that gives something, in order (on several
+/// threads when there are many).
+fn par_filter_map<R: Send>(items: &[usize], f: &(impl Fn(usize) -> Option<R> + Sync)) -> Vec<R> {
+    let n = threads_for(items.len());
+    if n == 1 {
+        return items.iter().filter_map(|&i| f(i)).collect();
+    }
+    std::thread::scope(|s| {
+        let hs: Vec<_> = items.chunks(items.len().div_ceil(n)).map(|c| s.spawn(move || c.iter().filter_map(|&i| f(i)).collect::<Vec<R>>())).collect();
+        hs.into_iter().flat_map(|h| h.join().expect("filter thread")).collect()
+    })
+}
+
 /// Lowercased name with digit runs zero-padded, for natural sort (file2 < file10).
+#[cfg(test)]
 fn natural_lower(s: &str) -> String {
+    natural_key(s, 20)
+}
+
+/// Digits of the longest run of digits in `s`, without leading zeros.
+fn longest_number(s: &str) -> usize {
+    s.as_bytes()
+        .split(|b| !b.is_ascii_digit())
+        .map(|run| run.iter().skip_while(|&&b| b == b'0').count())
+        .max()
+        .unwrap_or(0)
+}
+
+/// [`natural_lower`] with digit runs padded to `width` digits (at least the
+/// longest run of every name compared: keys of the same width sort the same
+/// way as with 20).
+fn natural_key(s: &str, width: usize) -> String {
     let mut out = String::with_capacity(s.len() + 8);
     let mut digits = String::new();
     let flush = |digits: &mut String, out: &mut String| {
         if !digits.is_empty() {
             let trimmed = digits.trim_start_matches('0');
-            for _ in trimmed.len()..20 {
+            for _ in trimmed.len()..width {
                 out.push('0');
             }
             out.push_str(trimmed);
@@ -1443,7 +1873,11 @@ fn natural_lower(s: &str) -> String {
             digits.push(c);
         } else {
             flush(&mut digits, &mut out);
-            out.extend(c.to_lowercase());
+            if c.is_ascii() {
+                out.push(c.to_ascii_lowercase());
+            } else {
+                out.extend(c.to_lowercase());
+            }
         }
     }
     flush(&mut digits, &mut out);
@@ -1692,6 +2126,248 @@ mod tests {
         assert_eq!(p.current_name().as_deref(), Some("a.txt"));
     }
 
+    /// A listing sorted in the background is taken as it is (sorting a million
+    /// names on the UI thread froze the window for seconds); it is the same
+    /// order the panel makes itself, for every column and direction.
+    #[test]
+    fn a_listing_sorted_in_the_background_is_used_as_it_is() {
+        let mut list: Vec<Entry> = ["b10.txt", "B2.txt", "a.zip", "dir", "z", "c.TXT"]
+            .iter()
+            .enumerate()
+            .map(|(i, n)| Entry { size: (i as u64 * 7) % 5, modified: Some(SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(i as u64 * 3 % 4)), ..ent(n, *n == "dir") })
+            .collect();
+        list.reverse();
+        for key in [SortKey::Name, SortKey::Size, SortKey::Modified, SortKey::Ext] {
+            for asc in [true, false] {
+                let mut own = Pane::new(Arc::new(rolid_local::LocalFs), "/a".into());
+                own.sort = key;
+                own.sort_asc = asc;
+                let mut bg = Pane::new(Arc::new(rolid_local::LocalFs), "/a".into());
+                bg.sort = key;
+                bg.sort_asc = asc;
+                own.set_listing("/a".into(), list.clone(), None);
+                bg.set_prepared("/a".into(), Prepared::new(list.clone(), Some((key, asc))), None);
+                let names = |p: &Pane| p.entries.iter().map(|e| e.name.clone()).collect::<Vec<_>>();
+                assert_eq!(names(&own), names(&bg), "{key:?} {asc}");
+            }
+        }
+        // Claimed sorted: not sorted again on the UI thread.
+        let mut p = Pane::new(Arc::new(rolid_local::LocalFs), "/a".into());
+        let claimed = Prepared { entries: vec![ent("z", false), ent("a", false)], sorted: Some((SortKey::Name, true)), print: 1 };
+        p.set_prepared("/a".into(), claimed, None);
+        assert_eq!(p.entries[0].name, "z");
+        // The same fingerprint again: nothing changes; another one: the new listing.
+        assert!(!p.update_prepared(Prepared { entries: vec![ent("z", false), ent("a", false)], sorted: Some((SortKey::Name, true)), print: 1 }));
+        assert!(p.update_prepared(Prepared::new(vec![ent("q", false)], Some((SortKey::Name, true)))));
+        assert_eq!(p.entries[0].name, "q");
+    }
+
+    /// Names in a mixed order (a simple deterministic generator).
+    fn shuffled(n: usize) -> Vec<Entry> {
+        let mut x: u64 = 12345;
+        (0..n)
+            .map(|i| {
+                x = x.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+                let mut e = ent(&format!("F{}x{}.{}", x >> 44, i, ["txt", "JPG", "rs"][(x >> 20) as usize % 3]), x.is_multiple_of(17));
+                e.size = (x >> 30) % 1000;
+                e.modified = Some(std::time::UNIX_EPOCH + std::time::Duration::from_secs((x >> 33) % 5000));
+                e
+            })
+            .collect()
+    }
+
+    /// A big listing is sorted and filtered on several threads; the result is
+    /// the same as on one (roadmap 0.8.15: a million names took 4 s to sort).
+    #[test]
+    fn sorting_and_filtering_on_threads_give_the_same_order() {
+        let mut list = shuffled(120_000);
+        for n in ["a-1", "a01", "a1b", "a 1", "a10", "a9", "a0", "a", "a00012x3", "a12x03", "b2.10", "b2.9", "Ä1", "ä01"] {
+            list.push(ent(n, false));
+        }
+        for key in [SortKey::Name, SortKey::Ext, SortKey::Size, SortKey::Modified] {
+            for asc in [true, false] {
+                let got = sorted(list.clone(), key, asc, &HashMap::new());
+                // The same comparison on one thread.
+                let mut want = list.clone();
+                let text = |e: &Entry| match key {
+                    SortKey::Name => natural_lower(&e.name),
+                    SortKey::Ext => ext_of(&e.name).to_lowercase(),
+                    _ => String::new(),
+                };
+                want.sort_by(|a, b| {
+                    let ord = b.is_dir_like().cmp(&a.is_dir_like());
+                    if ord.is_ne() {
+                        return ord;
+                    }
+                    let o = match key {
+                        SortKey::Name | SortKey::Ext => text(a).cmp(&text(b)),
+                        // Folders without a computed size count 0.
+                        SortKey::Size => (!a.is_dir_like() as u64 * a.size).cmp(&(!b.is_dir_like() as u64 * b.size)),
+                        SortKey::Modified => a.modified.cmp(&b.modified),
+                    }
+                    .then_with(|| a.name.cmp(&b.name));
+                    if asc { o } else { o.reverse() }
+                });
+                let names = |v: &[Entry]| v.iter().map(|e| e.name.clone()).collect::<Vec<_>>();
+                assert_eq!(names(&got), names(&want), "{key:?} {asc}");
+            }
+        }
+        // Stable: equal items keep their order.
+        let pairs: Vec<(u32, usize)> = (0..200_000).map(|i| ((i * 7919 % 1000) as u32, i)).collect();
+        let got = par_sort_by(pairs.clone(), &|a: &(u32, usize), b: &(u32, usize)| a.0.cmp(&b.0));
+        let mut want = pairs;
+        want.sort_by_key(|p| p.0);
+        assert_eq!(got, want);
+        assert!(par_sort_by(Vec::<u8>::new(), &|a: &u8, b: &u8| a.cmp(b)).is_empty());
+        // Filtering keeps the order of the candidates.
+        let idx: Vec<usize> = (0..150_000).collect();
+        let f = |i: usize| i.is_multiple_of(3).then_some(i * 2);
+        assert_eq!(par_filter_map(&idx, &f), idx.iter().filter_map(|&i| f(i)).collect::<Vec<_>>());
+    }
+
+    /// The item under the cursor is found again after a refresh, wherever it
+    /// moved, looking from where it was.
+    #[test]
+    fn the_cursor_item_is_found_near_where_it_was() {
+        let mut p = Pane::new(Arc::new(rolid_local::LocalFs), "/a".into());
+        let list: Vec<Entry> = (0..1000).map(|i| ent(&format!("f{i:04}"), false)).collect();
+        p.set_listing("/a".into(), list, None);
+        for (name, near) in [("f0000", 999), ("f0999", 0), ("f0500", 500), ("f0501", 499), ("f0499", 501)] {
+            let row = p.find_row(name, near).unwrap();
+            assert!(matches!(p.view[row], Row::Entry(i) if p.entries[i].name == name), "{name}");
+        }
+        assert_eq!(p.find_row("missing", 3), None);
+        assert_eq!(p.find_row("f0001", 5000).map(|r| p.view[r]), p.view.iter().position(|r| matches!(r, Row::Entry(i) if p.entries[*i].name == "f0001")).map(|r| p.view[r]));
+        p.cursor = 10;
+        let mut fewer = p.entries.clone();
+        fewer.remove(0);
+        let name = p.current_name().unwrap();
+        p.update_listing(fewer);
+        assert_eq!(p.current_name().unwrap(), name);
+    }
+
+    /// Marking all items of a big folder, one more, inverting, by a mask:
+    /// the footer counts only the change (looking up a million marked names
+    /// took 0.8 s for every change) and always says the same as a full count.
+    #[test]
+    fn the_footer_counts_only_what_marking_changed() {
+        let mut p = Pane::new(Arc::new(rolid_local::LocalFs), "/a".into());
+        p.set_listing("/a".into(), shuffled(30_000), None);
+        let fresh = |p: &Pane| selection_summary(&p.entries, &p.marked, &p.dir_sizes);
+        assert_eq!(p.footer_text(), fresh(&p));
+        type Step = Box<dyn Fn(&mut Pane)>;
+        let steps: Vec<(&str, Step)> = vec![
+            ("all", Box::new(|p: &mut Pane| p.mark_all())),
+            ("one less", Box::new(|p: &mut Pane| p.toggle_mark_current())),
+            ("one more", Box::new(|p: &mut Pane| p.toggle_mark_current())),
+            ("invert", Box::new(|p: &mut Pane| p.invert_selection(false))),
+            ("invert with folders", Box::new(|p: &mut Pane| p.invert_selection(true))),
+            ("mask", Box::new(|p: &mut Pane| {
+                p.mark_group("*.rs", true, false);
+            })),
+            ("unmask", Box::new(|p: &mut Pane| {
+                p.mark_group("F1*", false, true);
+            })),
+            ("sort", Box::new(|p: &mut Pane| p.set_sort(SortKey::Size))),
+            ("click", Box::new(|p: &mut Pane| p.toggle_mark(7))),
+        ];
+        for (what, step) in steps {
+            step(&mut p);
+            assert!(p.mark_sums().is_some(), "{what}: counted again from all names");
+            assert_eq!(p.footer_text(), fresh(&p), "{what}");
+        }
+        // Everything marked: known without looking up a name.
+        p.marked.clear();
+        p.mark_all();
+        assert!(p.all_marked_known());
+        let mut names: Vec<String> = p.entries.iter().map(|e| e.name.clone()).collect();
+        names.sort();
+        assert_eq!(p.targets(), names);
+        p.mark_all();
+        assert!(p.marked.is_empty(), "the second Ctrl+A unmarks");
+        // A change of the marks from elsewhere is counted in full.
+        p.marked.insert(p.entries[3].name.clone());
+        assert!(p.mark_sums().is_none());
+        assert_eq!(p.footer_text(), fresh(&p));
+    }
+
+    /// The footer of a big folder is kept between frames, but follows every
+    /// change of the marks, the listing and the folder sizes.
+    #[test]
+    fn the_footer_of_a_big_folder_follows_every_change() {
+        let mut list: Vec<Entry> = (0..25_000).map(|i| ent(&format!("f{i:05}"), false)).collect();
+        list[0].size = 1_000;
+        list.push(ent("dir", true));
+        let mut p = Pane::new(Arc::new(rolid_local::LocalFs), "/a".into());
+        p.set_listing("/a".into(), list, None);
+        let fresh = |p: &Pane| selection_summary(&p.entries, &p.marked, &p.dir_sizes);
+        let first = p.footer_text();
+        assert_eq!(first, fresh(&p));
+        p.marked.insert("f00001".into());
+        let one = p.footer_text();
+        assert_ne!(one, first);
+        assert_eq!(one, fresh(&p));
+        // The same number of marks, another (bigger) file.
+        p.marked.remove("f00001");
+        p.marked.insert("f00000".into());
+        assert_eq!(p.footer_text(), fresh(&p));
+        assert_ne!(p.footer_text(), one);
+        p.set_dir_size("dir", Some(crate::dirsize::DirSize { bytes: 5_000_000, unreadable: 0 }));
+        assert_eq!(p.footer_text(), fresh(&p));
+        let mut more = p.entries.clone();
+        more.push(ent("new", false));
+        p.update_listing(more);
+        assert_eq!(p.footer_text(), fresh(&p));
+    }
+
+    #[test]
+    fn the_fingerprint_sees_every_change_but_not_the_order() {
+        let a = vec![ent("x", false), ent("y", true)];
+        let b = vec![ent("y", true), ent("x", false)];
+        assert_eq!(fingerprint(&a), fingerprint(&b));
+        let mut c = a.clone();
+        c[0].size += 1;
+        assert_ne!(fingerprint(&a), fingerprint(&c));
+        let mut d = a.clone();
+        d[1].mode = Some(0o700);
+        assert_ne!(fingerprint(&a), fingerprint(&d));
+        assert_ne!(fingerprint(&a), fingerprint(&a[..1]));
+    }
+
+    /// Typing more letters narrows the rows already found; the result is the
+    /// same as filtering from scratch, also after the folder changed.
+    #[test]
+    fn a_longer_filter_narrows_the_same_way() {
+        let names: Vec<String> = (0..500).map(|i| format!("f{i:04}")).chain(["F12.txt".into(), "x1y2".into()]).collect();
+        let mut p = Pane::new(Arc::new(rolid_local::LocalFs), "/a".into());
+        p.set_listing("/a".into(), names.iter().map(|n| ent(n, false)).collect(), None);
+        let shown = |p: &Pane| -> Vec<String> {
+            p.view.iter().filter_map(|r| if let Row::Entry(i) = r { Some(p.entries[*i].name.clone()) } else { None }).collect()
+        };
+        let fresh = |p: &Pane, q: &str| {
+            let mut f = Pane::new(Arc::new(rolid_local::LocalFs), "/a".into());
+            f.set_listing("/a".into(), p.entries.clone(), None);
+            f.filter = q.into();
+            f.rebuild_view();
+            shown(&f)
+        };
+        for q in ["f", "f1", "f12", "f12.", "f1", "f"] {
+            p.filter = q.into();
+            p.rebuild_view();
+            assert_eq!(shown(&p), fresh(&p, q), "{q}");
+        }
+        p.filter = "f12".into();
+        p.rebuild_view();
+        // A new matching file arrives (background refresh): it must show.
+        let mut more = p.entries.clone();
+        more.push(ent("f1200-new", false));
+        p.update_listing(more);
+        p.filter = "f120".into();
+        p.rebuild_view();
+        assert!(shown(&p).contains(&"f1200-new".to_string()));
+        assert_eq!(shown(&p), fresh(&p, "f120"));
+    }
+
     #[test]
     fn group_marks_and_invert() {
         let mut p = pane_with(&[("photos", true), ("A.JPG", false), ("b.png", false), ("c.txt", false)]);
@@ -1716,6 +2392,20 @@ mod tests {
         assert!(!p.marked.contains("photo.jpg"));
         assert_eq!(p.mark_group("*.jpg", true, true), 1);
         assert!(p.marked.contains("photo.jpg"));
+    }
+
+    /// Odd names are painted on one readable line (roadmap 0.8.15), and the
+    /// pane keeps the real name for everything else.
+    #[test]
+    fn odd_names_are_painted_readably() {
+        use super::views::shown_name;
+        let odd = rolid_core::names::from_bytes(b"bad\xff\nname.txt").into_owned();
+        let f = ent(&odd, false);
+        assert_eq!(shown_name(&f, false, false), "bad\\xFF\\nname.txt");
+        assert_eq!(shown_name(&f, true, false), "bad\\xFF\\nname");
+        assert_eq!(shown_name(&ent("tab\there", true), false, true), "[tab\\there]");
+        let p = pane_with(&[(odd.as_str(), false)]);
+        assert_eq!(p.entries[0].name, odd);
     }
 
     #[test]

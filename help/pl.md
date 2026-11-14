@@ -90,7 +90,15 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
   najpierw ponownie odczytywane i porównywane; różnica jest zgłaszana, a źródło zostaje.
 - **F2** lub **Shift+F6** zmienia nazwę bezpośrednio na liście: nazwa bez rozszerzenia jest
   zaznaczona, **Enter** potwierdza, **Esc** anuluje.
-- **F7** tworzy folder, **F8** usuwa (z potwierdzeniem).
+- **F7** tworzy folder, **F8** usuwa (z potwierdzeniem). Usuwanie działa w kolejce transferów
+  z liczbą usuniętych elementów; **Anuluj** je zatrzymuje (to, co już usunięto, pozostaje usunięte).
+- Potoki (FIFO), gniazda, urządzenia i dowiązania symboliczne, które nigdzie nie prowadzą (brak celu
+  lub pętla), nie są kopiowane: są pomijane i wymienione w raporcie na końcu, reszta kopii trwa dalej.
+- Nietypowe nazwy są kopiowane dokładnie: znaki nowego wiersza, ukośnik wsteczny, nazwy o długości
+  255 bajtów, a na dyskach tego komputera także nazwy, które nie są poprawnym UTF-8. Lista pokazuje
+  je w jednym wierszu: znaki sterujące jako `\n` lub `\t`, każdy niepoprawny bajt jako `\xFF`.
+  Nazwy, która nie jest poprawnym UTF-8, nie można wysłać na serwer (SFTP przyjmuje nazwy jako
+  tekst); program to zgłasza.
 - Kolejka transferów wykonuje do trzech transferów naraz. Limit prędkości jest w oknie kopiowania.
 - **Przeciąganie do innych aplikacji** (X11): przeciągnij pliki lub foldery poza okno, np. do menedżera
   plików albo edytora. Pliki lokalne są kopiowane, z **Shift** przenoszone. Pliki z serwera lub archiwum

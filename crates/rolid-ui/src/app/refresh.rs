@@ -17,7 +17,9 @@ use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 use eframe::egui;
-use rolid_core::{Entry, VfsResult};
+use rolid_core::VfsResult;
+
+use crate::pane::Prepared;
 use rolid_edit::watch::DirWatcher;
 
 use super::{App, Dialog, Msg, PaneRef};
@@ -232,23 +234,24 @@ impl App {
             return;
         }
         let (fs, path) = (p.fs.clone(), p.path.clone());
+        let sort = Some((p.sort, p.sort_asc));
         let Some(key) = self.loc_key(at) else { return };
         if !self.auto.in_flight.insert(key.clone()) {
             return;
         }
         tracing::debug!("background refresh");
         self.spawn(async move {
-            let result = fs.list(&path).await;
+            let result = super::prepare(fs.list(&path).await, sort).await;
             Msg::Refreshed { key, result }
         });
     }
 
     /// A background listing arrived.
-    pub(super) fn on_refreshed(&mut self, key: LocKey, result: VfsResult<Vec<Entry>>) {
+    pub(super) fn on_refreshed(&mut self, key: LocKey, result: VfsResult<Prepared>) {
         self.auto.in_flight.remove(&key);
         let panes: Vec<PaneRef> = self.all_panes().filter(|(r, p)| !p.loading && self.loc_key(*r).as_ref() == Some(&key)).map(|(r, _)| r).collect();
-        let entries = match result {
-            Ok(e) => e,
+        let listing = match result {
+            Ok(l) => l,
             Err(e) => {
                 // Not an error for the user: the next refresh tries again after
                 // the interval (a lost connection is shown in the panel's strip).
@@ -264,9 +267,17 @@ impl App {
         if self.refresh_blocked(&self.ctx.clone()) {
             return; // started meanwhile: the listing stays old and is refreshed later
         }
-        for at in panes {
-            if let Some(p) = self.pane_mut(at) {
-                if p.update_listing(entries.clone()) {
+        // Usually one panel: it takes the listing itself (no copy of a big one).
+        let mut listing = Some(listing);
+        let last = panes.len().saturating_sub(1);
+        for (i, at) in panes.into_iter().enumerate() {
+            let l = if i == last {
+                listing.take()
+            } else {
+                listing.as_ref().map(|l| Prepared { entries: l.entries.clone(), sorted: l.sorted, print: l.print })
+            };
+            if let (Some(p), Some(l)) = (self.pane_mut(at), l) {
+                if p.update_prepared(l) {
                     tracing::debug!("listing changed");
                 }
             }

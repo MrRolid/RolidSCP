@@ -6,6 +6,7 @@ use std::time::SystemTime;
 use tokio::io::AsyncSeekExt;
 
 use async_trait::async_trait;
+use rolid_core::names::{from_os, to_os};
 use rolid_core::vfs::{Reader, Writer};
 use rolid_core::{Entry, EntryKind, Vfs, VfsError, VfsResult};
 
@@ -43,6 +44,30 @@ pub fn read_at(f: &std::fs::File, offset: u64, len: usize) -> VfsResult<Vec<u8>>
     Ok(buf)
 }
 
+/// Open a file for reading, only if it is a regular file (also behind a
+/// symbolic link). A pipe (FIFO) is opened without waiting for a writer and
+/// refused, like sockets and devices: reading one could wait forever.
+pub fn open_regular(path: &Path) -> VfsResult<std::fs::File> {
+    let mut o = std::fs::OpenOptions::new();
+    o.read(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        o.custom_flags(rustix::fs::OFlags::NONBLOCK.bits() as i32);
+    }
+    let f = o.open(path)?;
+    if !f.metadata()?.is_file() {
+        return Err(VfsError::not_regular());
+    }
+    // Back to ordinary reads (no effect on a regular file, but clean).
+    #[cfg(unix)]
+    {
+        let fl = rustix::fs::fcntl_getfl(&f).map_err(std::io::Error::from)?;
+        rustix::fs::fcntl_setfl(&f, fl - rustix::fs::OFlags::NONBLOCK).map_err(std::io::Error::from)?;
+    }
+    Ok(f)
+}
+
 fn to_entry(name: String, meta: &std::fs::Metadata, link_target_dir: bool) -> Entry {
     let ft = meta.file_type();
     let kind = if ft.is_symlink() {
@@ -75,26 +100,33 @@ fn stat_sync(path: &Path) -> std::io::Result<Entry> {
     let meta = std::fs::symlink_metadata(path)?;
     let link_dir = meta.file_type().is_symlink()
         && std::fs::metadata(path).map(|m| m.is_dir()).unwrap_or(false);
-    let name = path
-        .file_name()
-        .map(|n| n.to_string_lossy().into_owned())
-        .unwrap_or_else(|| path.to_string_lossy().into_owned());
+    let name = path.file_name().map(from_os).unwrap_or_else(|| from_os(path.as_os_str()));
     Ok(to_entry(name, &meta, link_dir))
 }
 
 fn list_sync(path: &Path) -> std::io::Result<Vec<Entry>> {
-    let mut out = Vec::new();
-    for de in std::fs::read_dir(path)? {
-        let Ok(de) = de else { continue };
-        let name = de.file_name().to_string_lossy().into_owned();
-        let Ok(meta) = de.metadata() else { continue };
+    let items: Vec<std::fs::DirEntry> = std::fs::read_dir(path)?.filter_map(Result::ok).collect();
+    let entry = |de: &std::fs::DirEntry| {
+        // Names keep their exact bytes, also when they are not valid UTF-8.
+        let name = from_os(&de.file_name());
+        let meta = de.metadata().ok()?;
         let link_dir = meta.file_type().is_symlink()
             && std::fs::metadata(de.path())
                 .map(|m| m.is_dir())
                 .unwrap_or(false);
-        out.push(to_entry(name, &meta, link_dir));
+        Some(to_entry(name, &meta, link_dir))
+    };
+    // The details of a big folder are read on several threads (a million
+    // files: 12 s on one with a cold cache, the limit is 10 s to the panel).
+    let threads = if items.len() < 20_000 { 1 } else { std::thread::available_parallelism().map_or(1, |n| n.get()).min(8) };
+    if threads == 1 {
+        return Ok(items.iter().filter_map(entry).collect());
     }
-    Ok(out)
+    let entry = &entry;
+    Ok(std::thread::scope(|s| {
+        let hs: Vec<_> = items.chunks(items.len().div_ceil(threads)).map(|c| s.spawn(move || c.iter().filter_map(entry).collect::<Vec<_>>())).collect();
+        hs.into_iter().flat_map(|h| h.join().unwrap_or_default()).collect()
+    }))
 }
 
 async fn blocking<T: Send + 'static>(
@@ -118,51 +150,70 @@ impl Vfs for LocalFs {
         true
     }
     fn join(&self, dir: &str, name: &str) -> String {
-        Path::new(dir).join(name).to_string_lossy().into_owned()
+        from_os(to_os(dir).join(to_os(name)).as_os_str())
     }
     fn parent(&self, path: &str) -> Option<String> {
-        Path::new(path)
-            .parent()
-            .map(|p| p.to_string_lossy().into_owned())
+        to_os(path).parent().map(|p| from_os(p.as_os_str()))
     }
     async fn home(&self) -> VfsResult<String> {
-        Ok(std::env::home_dir()
-            .unwrap_or_else(|| PathBuf::from("/"))
-            .to_string_lossy()
-            .into_owned())
+        Ok(from_os(std::env::home_dir().unwrap_or_else(|| PathBuf::from("/")).as_os_str()))
     }
     async fn canonicalize(&self, path: &str) -> VfsResult<String> {
-        let p = PathBuf::from(path);
-        blocking(move || std::fs::canonicalize(p).map(|p| p.to_string_lossy().into_owned())).await
+        let p = to_os(path);
+        blocking(move || std::fs::canonicalize(p).map(|p| from_os(p.as_os_str()))).await
     }
     async fn list(&self, path: &str) -> VfsResult<Vec<Entry>> {
-        let p = PathBuf::from(path);
+        let p = to_os(path);
         blocking(move || list_sync(&p)).await
     }
     async fn stat(&self, path: &str) -> VfsResult<Entry> {
-        let p = PathBuf::from(path);
+        let p = to_os(path);
         blocking(move || stat_sync(&p)).await
     }
     async fn mkdir(&self, path: &str) -> VfsResult<()> {
-        Ok(tokio::fs::create_dir(path).await?)
+        Ok(tokio::fs::create_dir(to_os(path)).await?)
     }
     async fn remove_file(&self, path: &str) -> VfsResult<()> {
-        Ok(tokio::fs::remove_file(path).await?)
+        Ok(tokio::fs::remove_file(to_os(path)).await?)
     }
     async fn remove_dir(&self, path: &str) -> VfsResult<()> {
-        Ok(tokio::fs::remove_dir(path).await?)
+        Ok(tokio::fs::remove_dir(to_os(path)).await?)
+    }
+    async fn remove_files(&self, dir: &str, names: &[String]) -> Vec<VfsResult<()>> {
+        let dir = to_os(dir);
+        let names = names.to_vec();
+        let n = names.len();
+        let r = tokio::task::spawn_blocking(move || names.iter().map(|name| std::fs::remove_file(dir.join(to_os(name))).map_err(VfsError::from)).collect::<Vec<_>>()).await;
+        r.unwrap_or_else(|e| {
+            let e = e.to_string();
+            (0..n).map(|_| Err(VfsError::raw(&e))).collect()
+        })
     }
     async fn rename(&self, from: &str, to: &str) -> VfsResult<()> {
-        Ok(tokio::fs::rename(from, to).await?)
+        Ok(tokio::fs::rename(to_os(from), to_os(to)).await?)
     }
     async fn rename_replace(&self, from: &str, to: &str) -> VfsResult<bool> {
         // rename(2) / MoveFileEx(REPLACE_EXISTING) replace the target atomically.
-        tokio::fs::rename(from, to).await?;
+        tokio::fs::rename(to_os(from), to_os(to)).await?;
         Ok(true)
+    }
+    #[cfg(target_os = "linux")]
+    async fn rename_noreplace(&self, from: &str, to: &str) -> VfsResult<bool> {
+        let (from, to) = (to_os(from), to_os(to));
+        blocking(move || {
+            use rustix::fs::{renameat_with, RenameFlags, CWD};
+            match renameat_with(CWD, &from, CWD, &to, RenameFlags::NOREPLACE) {
+                Ok(()) => Ok(true),
+                // The file system (or an old kernel) cannot do it.
+                Err(rustix::io::Errno::INVAL | rustix::io::Errno::NOSYS | rustix::io::Errno::NOTSUP) => Ok(false),
+                Err(e) => Err(std::io::Error::from(e)),
+            }
+        })
+        .await
     }
     #[cfg(unix)]
     async fn space(&self, path: &str) -> VfsResult<Option<rolid_core::vfs::Space>> {
-        let p = PathBuf::from(path);
+        let p = to_os(path);
         blocking(move || {
             let s = rustix::fs::statvfs(&p).map_err(std::io::Error::from)?;
             Ok(Some(rolid_core::vfs::Space {
@@ -173,14 +224,16 @@ impl Vfs for LocalFs {
         .await
     }
     async fn open_read_at(&self, path: &str, offset: u64) -> VfsResult<Reader> {
-        let mut f = tokio::fs::File::open(path).await?;
+        let p = to_os(path);
+        let mut f = tokio::fs::File::from_std(tokio::task::spawn_blocking(move || open_regular(&p)).await.map_err(VfsError::raw)??);
         if offset > 0 {
             f.seek(std::io::SeekFrom::Start(offset)).await?;
         }
         Ok(Box::new(f))
     }
     async fn open_random_native(&self, path: &str) -> VfsResult<Option<Box<dyn rolid_core::vfs::RandomFile>>> {
-        let f = std::fs::File::open(path)?;
+        let p = to_os(path);
+        let f = tokio::task::spawn_blocking(move || open_regular(&p)).await.map_err(VfsError::raw)??;
         Ok(Some(Box::new(LocalRandom(std::sync::Arc::new(f)))))
     }
     async fn open_write_at(&self, path: &str, offset: u64) -> VfsResult<Writer> {
@@ -188,7 +241,7 @@ impl Vfs for LocalFs {
             .write(true)
             .create(true)
             .truncate(offset == 0)
-            .open(path)
+            .open(to_os(path))
             .await?;
         if offset > 0 {
             f.set_len(offset).await?;
@@ -205,12 +258,12 @@ impl Vfs for LocalFs {
         #[cfg(unix)]
         if let Some(m) = mode {
             use std::os::unix::fs::PermissionsExt;
-            tokio::fs::set_permissions(path, std::fs::Permissions::from_mode(m)).await?;
+            tokio::fs::set_permissions(to_os(path), std::fs::Permissions::from_mode(m)).await?;
         }
         #[cfg(not(unix))]
         let _ = mode;
         if let Some(t) = mtime {
-            let p = PathBuf::from(path);
+            let p = to_os(path);
             blocking(move || {
                 std::fs::File::options()
                     .write(true)

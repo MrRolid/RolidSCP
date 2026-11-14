@@ -99,7 +99,17 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
   signalée et la source reste.
 - **F2** ou **Shift+F6** renomme directement dans la liste : le nom sans l'extension est sélectionné,
   **Enter** confirme, **Esc** annule.
-- **F7** crée un dossier, **F8** supprime (avec confirmation).
+- **F7** crée un dossier, **F8** supprime (avec confirmation). La suppression s’exécute dans la file
+  des transferts avec le nombre d’éléments supprimés ; **Annuler** l’arrête (ce qui est déjà
+  supprimé le reste).
+- Les tubes (FIFO), sockets, périphériques et liens symboliques qui ne mènent nulle part (cible
+  absente ou boucle) ne sont pas copiés : ils sont ignorés et listés dans le rapport final, le reste
+  de la copie continue.
+- Les noms inhabituels sont copiés à l’identique : sauts de ligne, barre oblique inverse, noms de
+  255 octets et, sur les disques de cet ordinateur, noms qui ne sont pas en UTF-8 valide. La liste
+  les affiche sur une ligne : caractères de contrôle comme `\n` ou `\t`, chaque octet invalide comme
+  `\xFF`. Un nom qui n’est pas en UTF-8 valide ne peut pas être envoyé à un serveur (SFTP prend les
+  noms comme du texte) ; c’est signalé.
 - La file de transferts exécute jusqu'à trois transferts à la fois. La limite de vitesse se trouve
   dans la boîte de dialogue de copie.
 - **Glisser vers d'autres applications** (X11) : faites glisser des fichiers ou des dossiers hors de la

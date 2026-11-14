@@ -12,6 +12,7 @@
 //! or cannot be checked, is not continued; it is left alone and reported (the
 //! user can start over with "Overwrite").
 
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Instant;
@@ -23,6 +24,12 @@ use crate::rate::RateLimit;
 use crate::vfs::{validate_name, Entry, EntryKind, Vfs, VfsError, VfsResult};
 
 const BUF_SIZE: usize = 256 * 1024;
+
+/// Files smaller than this whose name is free in the target go several at a
+/// time: each one costs a few round trips to a server, not bandwidth.
+const SMALL_FILE: u64 = RESUME_INFO_MIN;
+/// How many small files are transferred at the same time.
+const SMALL_AT_ONCE: usize = 16;
 pub const PARTIAL_SUFFIX: &str = ".filepart";
 /// Next to a `.filepart`: which source it belongs to (see the module docs).
 pub const PARTIAL_INFO_SUFFIX: &str = ".filepart-info";
@@ -377,8 +384,15 @@ impl<'a> CopyJob<'a> {
     /// In keep-going mode a per-item error is recorded and swallowed; anything
     /// else (normal mode, lost connection, cancel) is passed on.
     fn tolerate(&mut self, path: &str, r: VfsResult<()>) -> VfsResult<()> {
+        // A pipe, socket or device is skipped and reported, also in a job that
+        // stops at the first error (it is not a failure of the transfer).
+        let special = matches!(&r, Err(e) if e.is_not_regular() || e.is_broken_link());
         match r {
-            Err(e) if self.keep_going && !e.is_connection_lost() && !self.cancel.load(Ordering::Relaxed) => {
+            Err(e) if (self.keep_going || special) && !e.is_connection_lost() && !self.cancel.load(Ordering::Relaxed) => {
+                if special {
+                    self.progress.files_skipped += 1;
+                    (self.on_progress)(&self.progress);
+                }
                 if !self.failures.iter().any(|f| f.path == path) {
                     let mut error = e.text();
                     if path.contains('\u{FFFD}') {
@@ -466,6 +480,18 @@ impl<'a> CopyJob<'a> {
         &self.progress
     }
 
+    /// A name with bytes that are not valid UTF-8 (see [`crate::names`]) can
+    /// be written only to the local disk: a server gets names as text.
+    fn can_name(&self, name: &str) -> VfsResult<()> {
+        if !self.dst.is_local_disk() && crate::names::has_escapes(name) {
+            return Err(VfsError::Backend(txt!(
+                "“{name}”: the name is not valid UTF-8, it cannot be transferred to the server",
+                name = crate::names::visible(name).as_ref()
+            )));
+        }
+        Ok(())
+    }
+
     fn check_cancel(&self) -> VfsResult<()> {
         if self.cancel.load(Ordering::Relaxed) {
             Err(VfsError::canceled())
@@ -480,6 +506,7 @@ impl<'a> CopyJob<'a> {
         let src_path = self.src.join(src_dir, name);
         let dst_name = self.target_name.clone().unwrap_or_else(|| name.to_owned());
         validate_name(&dst_name)?;
+        self.can_name(&dst_name)?;
         let dst_path = self.dst.join(dst_dir, &dst_name);
         let entry = self.src.stat(&src_path).await?;
         if self.moving && entry.kind == EntryKind::Symlink {
@@ -490,8 +517,10 @@ impl<'a> CopyJob<'a> {
         }
         if entry.is_dir_like() {
             self.copy_dir(&src_path, &dst_path, &entry).await
+        } else if entry.kind == EntryKind::Other {
+            Err(VfsError::not_regular())
         } else {
-            self.copy_file(&src_path, &dst_path, &entry).await
+            self.copy_file(&src_path, &dst_path, &entry, false).await
         }
     }
 
@@ -512,7 +541,8 @@ impl<'a> CopyJob<'a> {
                 Ok(v) => v,
                 Err(e) => return self.tolerate(src_path, Err(e)),
             };
-            if self.dst.stat(dst_path).await.is_err() {
+            let created = self.dst.stat(dst_path).await.is_err();
+            if created {
                 if let Err(e) = self.dst.mkdir(dst_path).await {
                     // Without the folder its contents cannot be copied either.
                     return self.tolerate(src_path, Err(e));
@@ -521,23 +551,55 @@ impl<'a> CopyJob<'a> {
                     let _ = self.dst.set_attrs(dst_path, Some(m & 0o777), None).await;
                 }
             }
+            // What is in the target folder now (one listing instead of checking
+            // every file: a server answers each question after a round trip).
+            // `None` = unknown: each file is checked.
+            let present: Option<HashMap<String, Entry>> = if created {
+                Some(HashMap::new())
+            } else {
+                self.dst.list(dst_path).await.ok().map(|v| v.into_iter().map(|e| (e.name.clone(), e)).collect())
+            };
+            let mut small: Vec<(String, String, Entry)> = Vec::new();
             for e in entries {
                 let s = self.src.join(src_path, &e.name);
-                if let Err(err) = validate_name(&e.name) {
+                if let Err(err) = validate_name(&e.name).and_then(|_| self.can_name(&e.name)) {
                     self.tolerate(&s, Err(err))?;
                     continue;
                 }
                 let d = self.dst.join(dst_path, &e.name);
+                let free = present.as_ref().is_some_and(|p| name_is_free(p, &e.name));
+                // The target is there (and nothing half-done next to it): the
+                // conflict choice decides from the listing; skipping costs nothing.
+                if let Some(t) = present.as_ref().filter(|p| e.kind == EntryKind::File && only_target(p, &e.name)).and_then(|p| p.get(&e.name)) {
+                    if !self.state.completed.contains(&d) && !self.overwrites(&e, t) {
+                        self.progress.files_skipped += 1;
+                        self.state.completed.insert(d);
+                        (self.on_progress)(&self.progress);
+                        continue;
+                    }
+                }
+                if free && e.kind == EntryKind::File && e.size < SMALL_FILE && self.limit.is_none() && !self.state.completed.contains(&d) {
+                    small.push((s, d, e));
+                    if small.len() == SMALL_AT_ONCE {
+                        Box::pin(self.copy_small(std::mem::take(&mut small))).await?;
+                    }
+                    continue;
+                }
                 let r = match e.kind {
                     EntryKind::Dir => self.copy_dir(&s, &d, &e).await,
                     // A move leaves links where they are (the folder stays too).
                     EntryKind::Symlink if self.moving => continue,
                     // Do not follow directory symlinks recursively (loops, escaping the tree).
                     EntryKind::Symlink if e.link_to_dir => continue,
-                    EntryKind::Other => continue,
-                    _ => self.copy_file(&s, &d, &e).await,
+                    EntryKind::Other => Err(VfsError::not_regular()),
+                    // Boxed (like the folders): each level of a deep tree then
+                    // takes little stack while it waits for the one below.
+                    _ => Box::pin(self.copy_file(&s, &d, &e, free)).await,
                 };
                 self.tolerate(&s, r)?;
+            }
+            if !small.is_empty() {
+                Box::pin(self.copy_small(small)).await?;
             }
             if self.moving && !self.state.moved_dirs.iter().any(|d| d == src_path) {
                 self.state.moved_dirs.push(src_path.to_owned());
@@ -567,32 +629,145 @@ impl<'a> CopyJob<'a> {
                 _ => Plan::NotResumed,
             };
         }
-        match (self.conflict, target) {
-            (_, None) => Plan::Write { offset: 0 },
-            (Conflict::Overwrite, Some(_)) => Plan::Write { offset: 0 },
-            (Conflict::Skip, Some(_)) => Plan::Skip,
-            (Conflict::Newer, Some(t)) => match (src.modified, t.modified) {
-                // Filesystems differ in timestamp precision: compare whole seconds.
-                (Some(s), Some(d)) if secs(s) > secs(d) => Plan::Write { offset: 0 },
-                (Some(_), Some(_)) => Plan::Skip,
-                _ => Plan::Write { offset: 0 },
-            },
-            (Conflict::Resume, Some(t)) if t.kind == EntryKind::File && t.size == src.size => {
-                Plan::Skip
-            }
-            // Never written into under the real name: a different (also a
-            // shorter) target is replaced through a new .filepart.
-            (Conflict::Resume, Some(_)) => Plan::Write { offset: 0 },
+        match target {
+            None => Plan::Write { offset: 0 },
+            Some(t) if self.overwrites(src, &t) => Plan::Write { offset: 0 },
+            Some(_) => Plan::Skip,
         }
     }
 
-    async fn copy_file(&mut self, src_path: &str, dst_path: &str, src: &Entry) -> VfsResult<()> {
+    /// The target exists: is it replaced by the source (by the conflict choice)?
+    fn overwrites(&self, src: &Entry, target: &Entry) -> bool {
+        match self.conflict {
+            Conflict::Overwrite => true,
+            Conflict::Skip => false,
+            Conflict::Newer => match (src.modified, target.modified) {
+                // Filesystems differ in timestamp precision: compare whole seconds.
+                (Some(s), Some(d)) => secs(s) > secs(d),
+                _ => true,
+            },
+            // Never written into under the real name: a different (also a
+            // shorter) target is replaced through a new .filepart.
+            Conflict::Resume => !(target.kind == EntryKind::File && target.size == src.size),
+        }
+    }
+
+    /// A file written to `.filepart` was not in the target folder when it was
+    /// listed: put it in place only if the name is still free. If a file got
+    /// there meanwhile, the conflict choice decides. Returns false when skipped.
+    async fn put_new(&self, part_path: &str, dst_path: &str, src: &Entry) -> VfsResult<bool> {
+        match self.dst.rename_noreplace(part_path, dst_path).await {
+            Ok(true) => Ok(true),
+            Ok(false) => crate::replace::safe_replace(self.dst, part_path, dst_path).await.map(|()| true),
+            Err(e) => match self.dst.stat(dst_path).await {
+                Ok(t) if self.overwrites(src, &t) => crate::replace::safe_replace(self.dst, part_path, dst_path).await.map(|()| true),
+                Ok(_) => {
+                    let _ = self.dst.remove_file(part_path).await;
+                    Ok(false)
+                }
+                Err(_) => Err(e),
+            },
+        }
+    }
+
+    /// Copy small files (`(source, target, source entry)`) whose names are free
+    /// in the target, all at the same time; then record what each did, in order.
+    async fn copy_small(&mut self, files: Vec<(String, String, Entry)>) -> VfsResult<()> {
+        self.check_cancel()?;
+        self.progress.current = files[0].0.clone();
+        (self.on_progress)(&self.progress);
+        let this = &*self;
+        let results = futures_util::future::join_all(files.iter().map(|(s, d, e)| this.small_file(s, d, e))).await;
+        let mut first_err = None;
+        for ((s, d, e), r) in files.into_iter().zip(results) {
+            match r {
+                Ok(true) => {
+                    self.progress.files_done += 1;
+                    self.progress.bytes_done += e.size;
+                    if self.moving {
+                        self.state.moved_files.push(Moved { src: s, dst: d.clone(), size: e.size, modified: e.modified });
+                    }
+                    self.state.completed.insert(d);
+                }
+                Ok(false) => {
+                    self.progress.files_skipped += 1;
+                    self.state.completed.insert(d);
+                }
+                Err(err) => {
+                    if let Err(err) = self.tolerate(&s, Err(err)) {
+                        first_err.get_or_insert(err);
+                    }
+                }
+            }
+        }
+        (self.on_progress)(&self.progress);
+        first_err.map_or(Ok(()), Err)
+    }
+
+    /// One small file of [`CopyJob::copy_small`]: through `.filepart`, put in
+    /// place only if the name is still free (or the conflict choice says so).
+    /// Returns false when skipped.
+    async fn small_file(&self, src_path: &str, dst_path: &str, src: &Entry) -> VfsResult<bool> {
+        self.check_cancel()?;
+        let part_path = crate::vfs::with_suffix(dst_path, PARTIAL_SUFFIX);
+        let mut r = self.src.open_read(src_path).await?;
+        let mut w = self.dst.open_write(&part_path).await?;
+        let mut buf = vec![0u8; (src.size as usize + 1).clamp(4096, BUF_SIZE)];
+        let copied: VfsResult<()> = async {
+            loop {
+                self.check_cancel()?;
+                let n = r.read(&mut buf).await?;
+                if n == 0 {
+                    return Ok(());
+                }
+                w.write_all(&buf[..n]).await?;
+            }
+        }
+        .await;
+        if let Err(e) = copied {
+            let _ = w.flush().await;
+            return Err(e);
+        }
+        w.shutdown().await?;
+        drop(w);
+        drop(r);
+        let placed = self.put_new(&part_path, dst_path, src).await?;
+        if placed {
+            // Keep permission bits (without setuid/setgid/sticky) and modification time.
+            let _ = self.dst.set_attrs(dst_path, src.mode.map(|m| m & 0o777), src.modified).await;
+        }
+        Ok(placed)
+    }
+
+    /// Copy one file. `free`: the target folder's listing has neither the
+    /// name nor its `.filepart`, `.filepart-info` or a file left aside by an
+    /// interrupted replacement – no checks of the target are needed.
+    async fn copy_file(&mut self, src_path: &str, dst_path: &str, src: &Entry, free: bool) -> VfsResult<()> {
         self.check_cancel()?;
         self.progress.current = src_path.to_owned();
         (self.on_progress)(&self.progress);
+        // A link to a pipe would make the server (or this computer) wait for a
+        // writer forever when the file is opened: look at what it points to.
+        // A link that leads nowhere is skipped too (the rest of the copy goes on).
+        if src.kind == EntryKind::Symlink {
+            match self.src.canonicalize(src_path).await {
+                Ok(real) => {
+                    if self.src.stat(&real).await.is_ok_and(|t| t.kind == EntryKind::Other) {
+                        return Err(VfsError::not_regular());
+                    }
+                }
+                Err(e) if e.is_not_found() || e.is_link_loop() => return Err(VfsError::broken_link()),
+                Err(_) => {}
+            }
+        }
 
-        let part_path = format!("{dst_path}{PARTIAL_SUFFIX}");
-        let offset = match self.plan(src_path, src, dst_path, &part_path).await {
+        let part_path = crate::vfs::with_suffix(dst_path, PARTIAL_SUFFIX);
+        let plan = if free && !self.state.completed.contains(dst_path) {
+            Plan::Write { offset: 0 }
+        } else {
+            self.plan(src_path, src, dst_path, &part_path).await
+        };
+        let offset = match plan {
             Plan::Done => return Ok(()),
             Plan::Skip => {
                 self.progress.files_skipped += 1;
@@ -612,7 +787,8 @@ impl<'a> CopyJob<'a> {
 
         self.state.in_flight = Some(dst_path.to_owned());
         let info = info_path(dst_path);
-        if offset == 0 && src.size >= RESUME_INFO_MIN {
+        let with_info = offset == 0 && src.size >= RESUME_INFO_MIN;
+        if with_info {
             // Which source this part file belongs to (for resuming it later).
             // Best effort: without it the file is just not resumable.
             let _ = write_info(self.dst, &info, &PartInfo::of(src_path, src)).await;
@@ -650,8 +826,21 @@ impl<'a> CopyJob<'a> {
 
         // In place of the target: atomically where possible, never deleting
         // the old target before the new one is there.
-        crate::replace::safe_replace(self.dst, &part_path, dst_path).await?;
-        if self.dst.stat(&info).await.is_ok() {
+        if free {
+            if !self.put_new(&part_path, dst_path, src).await? {
+                if with_info {
+                    let _ = self.dst.remove_file(&info).await;
+                }
+                self.state.in_flight = None;
+                self.progress.files_skipped += 1;
+                self.state.completed.insert(dst_path.to_owned());
+                (self.on_progress)(&self.progress);
+                return Ok(());
+            }
+        } else {
+            crate::replace::safe_replace(self.dst, &part_path, dst_path).await?;
+        }
+        if (with_info || !free) && self.dst.stat(&info).await.is_ok() {
             let _ = self.dst.remove_file(&info).await;
         }
         self.state.completed.insert(dst_path.to_owned());
@@ -686,9 +875,28 @@ impl CopyJob<'_> {
     }
 }
 
+/// Nothing in the listing `present` of the target folder is in the way of
+/// writing `name` there: not the name itself, its part files, or an original
+/// left aside by an interrupted replacement.
+fn name_is_free(present: &HashMap<String, Entry>, name: &str) -> bool {
+    !present.contains_key(name) && nothing_half_done(present, name)
+}
+
+/// `name` is in the listing as it is: no part files and nothing left aside
+/// next to it.
+fn only_target(present: &HashMap<String, Entry>, name: &str) -> bool {
+    present.contains_key(name) && nothing_half_done(present, name)
+}
+
+fn nothing_half_done(present: &HashMap<String, Entry>, name: &str) -> bool {
+    !present.contains_key(&crate::vfs::with_suffix(name, PARTIAL_SUFFIX))
+        && !present.contains_key(&crate::vfs::with_suffix(name, PARTIAL_INFO_SUFFIX))
+        && !crate::replace::aside_names(name).iter().any(|a| present.contains_key(a))
+}
+
 /// `name.filepart-info` for the target `dst_path`.
 pub fn info_path(dst_path: &str) -> String {
-    format!("{dst_path}{PARTIAL_INFO_SUFFIX}")
+    crate::vfs::with_suffix(dst_path, PARTIAL_INFO_SUFFIX)
 }
 
 /// Which source a `.filepart` belongs to.

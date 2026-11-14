@@ -696,6 +696,17 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
             for news in [
                 trc!(
                     "news",
+                    "0.8.15 many files: copying many small files to and from a server is several times faster \
+                     (the target folder is listed once, several files go at a time), deleting is a job in the \
+                     queue with progress and Cancel, big folders are listed, sorted and filtered several times \
+                     faster and refresh without stalling the window, folder listings over SFTP are much faster; pipes, sockets, devices and broken links \
+                     are skipped with a message instead of hanging or stopping the copy; names with invalid UTF-8, \
+                     backslashes, line breaks or 255 bytes are copied exactly and shown readably; very deep \
+                     folder trees no longer crash the program; search, folder sizes and checksums use commands on \
+                     the server again instead of the slow walk over SFTP."
+                ),
+                trc!(
+                    "news",
                     "0.8.14 data protection: on a production server copying, uploading, moving and a new folder \
                      never start with Overwrite and Enter does not confirm them; a move deletes the source only when \
                      it did not change meanwhile, and to a server only after the checksums match; an interrupted \

@@ -37,6 +37,33 @@ impl VfsError {
     pub fn is_canceled(&self) -> bool {
         matches!(self, VfsError::Backend(t) if t.id == "canceled by the user")
     }
+    /// The file is a pipe, socket or device: reading it could wait forever (a
+    /// pipe gives data only when another program writes into it).
+    pub fn not_regular() -> Self {
+        VfsError::Backend(txt!("not a regular file (a pipe, socket or device): it is not read or copied"))
+    }
+
+    /// The error made by [`VfsError::not_regular`].
+    pub fn is_not_regular(&self) -> bool {
+        matches!(self, VfsError::Backend(t) if t.id == "not a regular file (a pipe, socket or device): it is not read or copied")
+    }
+
+    /// A symbolic link whose target is missing or leads back to itself.
+    pub fn broken_link() -> Self {
+        VfsError::Backend(txt!("a symbolic link that leads nowhere (its target is missing or a loop): it is not copied"))
+    }
+
+    /// The error made by [`VfsError::broken_link`].
+    pub fn is_broken_link(&self) -> bool {
+        matches!(self, VfsError::Backend(t) if t.id == "a symbolic link that leads nowhere (its target is missing or a loop): it is not copied")
+    }
+
+    /// Too many levels of symbolic links (a link that leads back to itself).
+    pub fn is_link_loop(&self) -> bool {
+        // ELOOP: 40 on Linux, 62 on macOS and the BSDs.
+        let eloop = if cfg!(target_os = "linux") { 40 } else { 62 };
+        matches!(self, VfsError::Io(e) if cfg!(unix) && e.raw_os_error() == Some(eloop))
+    }
     /// The message for the user (English template, translated by the UI).
     /// An I/O error carries the system's own text.
     pub fn text(&self) -> Text {
@@ -150,10 +177,26 @@ pub trait Vfs: Send + Sync {
     async fn mkdir(&self, path: &str) -> VfsResult<()>;
     async fn remove_file(&self, path: &str) -> VfsResult<()>;
     async fn remove_dir(&self, path: &str) -> VfsResult<()>;
+    /// Delete the files `names` in folder `dir`, one result for each in order.
+    /// The local disk does it in one go (one call for each file made deleting a
+    /// million files take 2.6× longer than `rm -rf`).
+    async fn remove_files(&self, dir: &str, names: &[String]) -> Vec<VfsResult<()>> {
+        let mut out = Vec::with_capacity(names.len());
+        for n in names {
+            out.push(self.remove_file(&self.join(dir, n)).await);
+        }
+        out
+    }
     async fn rename(&self, from: &str, to: &str) -> VfsResult<()>;
     /// Rename `from` onto `to` in one atomic step, replacing an existing `to`.
     /// `Ok(false)` = this backend (or server) cannot do that; nothing was changed.
     async fn rename_replace(&self, _from: &str, _to: &str) -> VfsResult<bool> {
+        Ok(false)
+    }
+    /// Rename `from` to `to` only if `to` does not exist (an error if it does),
+    /// in one step. `Ok(false)` = this backend cannot promise that; nothing was
+    /// changed.
+    async fn rename_noreplace(&self, _from: &str, _to: &str) -> VfsResult<bool> {
         Ok(false)
     }
     /// Open a file for reading, positioned at `offset`.
@@ -237,16 +280,46 @@ impl RandomFile for Reopen {
     }
 }
 
+/// Longest file name in bytes on common file systems (ext4, XFS, Btrfs, APFS,
+/// NTFS in UTF-16 units is close enough) and SFTP servers on them.
+pub const NAME_MAX: usize = 255;
+
+/// `path` with `suffix` added to its file name (`a/b.txt` + `.filepart`). A
+/// name that would get longer than [`NAME_MAX`] bytes is shortened and given a
+/// fixed hash of the whole name instead, so the helper file of a 255-byte name
+/// can still be created and is always found under the same name.
+pub fn with_suffix(path: &str, suffix: &str) -> String {
+    let cut = path.rfind(|c| c == '/' || (cfg!(windows) && c == '\\')).map_or(0, |i| i + 1);
+    let (dir, name) = path.split_at(cut);
+    if name.len() + suffix.len() <= NAME_MAX {
+        return format!("{path}{suffix}");
+    }
+    // FNV-1a: the same on every computer and in every version.
+    let hash = name.bytes().fold(0xcbf2_9ce4_8422_2325u64, |h, b| (h ^ b as u64).wrapping_mul(0x0100_0000_01b3));
+    let mut keep = NAME_MAX.saturating_sub(suffix.len() + 17);
+    while !name.is_char_boundary(keep) {
+        keep -= 1;
+    }
+    format!("{dir}{}~{hash:016x}{suffix}", &name[..keep])
+}
+
 /// Reject names coming from listings that could escape the target directory
 /// (path traversal) when used as a destination name.
+///
+/// A backslash is an ordinary character in names on Linux and macOS
+/// (`back\slash.txt` is a valid file there), so it is allowed unless a part
+/// between backslashes is `.` or `..`: such a name could still climb out of
+/// the folder on a server that treats the backslash as a separator. Windows
+/// file names cannot contain it at all.
 pub fn validate_name(name: &str) -> VfsResult<()> {
+    let climbs = name.contains('\\') && name.split('\\').any(|p| p == "." || p == "..");
     let bad = name.is_empty()
         || name == "."
         || name == ".."
         || name.contains('/')
-        || name.contains('\\')
-        || name.contains('\0')
-        || (cfg!(windows) && name.contains(':'));
+        || climbs
+        || (cfg!(windows) && (name.contains('\\') || name.contains(':')))
+        || name.contains('\0');
     if bad {
         Err(VfsError::InvalidName(name.to_owned()))
     } else {
@@ -272,12 +345,30 @@ mod tests {
         assert!(!VfsError::InvalidName("..".into()).is_connection_lost());
     }
 
+    /// The helper files of a 255-byte name (roadmap 0.8.15: odd names) fit too.
+    #[test]
+    fn a_suffix_never_makes_a_name_too_long() {
+        assert_eq!(with_suffix("/d/a.txt", ".filepart"), "/d/a.txt.filepart");
+        assert_eq!(with_suffix("a.txt", ".filepart"), "a.txt.filepart");
+        for name in ["x".repeat(255), "日".repeat(85), format!("{}é", "y".repeat(246))] {
+            let long = with_suffix(&format!("/d/{name}"), ".filepart-info");
+            let file = long.strip_prefix("/d/").unwrap();
+            assert!(file.len() <= NAME_MAX && file.ends_with(".filepart-info"), "{file}");
+            assert_eq!(long, with_suffix(&format!("/d/{name}"), ".filepart-info"), "always the same");
+            assert_ne!(long, with_suffix(&format!("/d/{name}z"), ".filepart-info"), "another name, another file");
+            assert_eq!(with_suffix(&name, ".filepart-info"), file, "the same for a bare name");
+        }
+    }
+
     #[test]
     fn rejects_traversal() {
-        for n in ["", ".", "..", "../x", "a/b", "a\\b", "x\0"] {
+        for n in ["", ".", "..", "../x", "a/b", "x\0", "..\\x", "a\\..", "a\\.\\b", "\\..\\..\\etc"] {
             assert!(validate_name(n).is_err(), "{n:?}");
         }
         assert!(validate_name("..hidden").is_ok());
+        // An ordinary character on Linux and macOS (roadmap 0.8.15: odd names).
+        assert_eq!(validate_name("back\\slash.txt").is_ok(), !cfg!(windows));
+        assert_eq!(validate_name("a\\..b").is_ok(), !cfg!(windows));
         assert!(validate_name("file.txt").is_ok());
     }
 }

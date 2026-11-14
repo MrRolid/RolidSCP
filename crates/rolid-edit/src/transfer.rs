@@ -79,7 +79,7 @@ pub async fn upload_replace(
     mode: Option<u32>,
     ctl: &Ctl<'_>,
 ) -> VfsResult<u64> {
-    let part = format!("{dst_path}{PARTIAL_SUFFIX}");
+    let part = rolid_core::vfs::with_suffix(dst_path, PARTIAL_SUFFIX);
     let r = async {
         let size = local.stat(local_path).await?.size;
         let n = pump(local, local_path, dst, &part, ctl).await?;

@@ -141,9 +141,11 @@ mod tests {
 
     #[test]
     fn names_that_could_escape_are_rejected() {
-        for bad in ["", ".", "..", "../x", "a/b", "a\\b", "x\0", "new\nline"] {
+        for bad in ["", ".", "..", "../x", "a/b", "..\\x", "x\0", "new\nline"] {
             assert!(local_name(bad).is_err(), "{bad:?}");
         }
+        // A backslash is an ordinary character in names on Linux and macOS.
+        assert_eq!(local_name("a\\b").is_ok(), !cfg!(windows));
         assert_eq!(local_name("index.php").unwrap(), "index.php");
         assert_eq!(local_name("..hidden.conf").unwrap(), "..hidden.conf");
         assert_eq!(local_name("Příliš žluťoučký.txt").unwrap(), "Příliš žluťoučký.txt");

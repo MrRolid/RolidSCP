@@ -87,7 +87,15 @@ hurtigtaster står på den andre siden i dette vinduet.
   nytt og sammenlignes først; en forskjell meldes, og kilden blir.
 - **F2** eller **Shift+F6** gir nytt navn direkte i listen: navnet uten filendelse er merket,
   **Enter** bekrefter, **Esc** avbryter.
-- **F7** oppretter en mappe, **F8** sletter (med bekreftelse).
+- **F7** oppretter en mappe, **F8** sletter (med bekreftelse). Slettingen går i overføringskøen med
+  antall slettede elementer; **Avbryt** stopper den (det som allerede er slettet, forblir slettet).
+- Pipes (FIFO), sockets, enheter og symbolske lenker som ikke fører noe sted (målet mangler eller er
+  en løkke), kopieres ikke: de hoppes over og vises i rapporten til slutt, resten av kopieringen
+  fortsetter.
+- Uvanlige navn kopieres nøyaktig: linjeskift, en omvendt skråstrek, navn på 255 byte og på denne
+  datamaskinens disker også navn som ikke er gyldig UTF-8. Listen viser dem på én linje: kontrolltegn
+  som `\n` eller `\t`, hver ugyldig byte som `\xFF`. Et navn som ikke er gyldig UTF-8, kan ikke
+  sendes til en server (SFTP tar navn som tekst); det meldes.
 - Overføringskøen kjører opptil tre overføringer samtidig. Hastighetsgrensen finnes i kopieringsdialogen.
 - **Dra ut til andre programmer** (X11): dra filer eller mapper ut av vinduet, for eksempel til en
   filbehandler eller et redigeringsprogram. Lokale filer kopieres, med **Shift** flyttes de. Filer fra en

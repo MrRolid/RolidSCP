@@ -830,3 +830,17 @@ fn zip64_over_65535_entries() {
     zip64_check(&out, 1 + 70 + 70_000);
     fs::remove_dir_all(&d).unwrap();
 }
+
+/// A 255-byte name gets a part file that the file system accepts (roadmap 0.8.15: odd names).
+#[test]
+fn the_part_file_of_a_long_name_fits() {
+    let d = std::path::Path::new("/d");
+    assert_eq!(part_path(&d.join("a.txt")), d.join("a.txt.filepart"));
+    for name in ["x".repeat(255), "日".repeat(85)] {
+        let p = part_path(&d.join(&name));
+        let file = p.file_name().unwrap().to_str().unwrap();
+        assert!(file.len() <= 255 && file.ends_with(".filepart"), "{file}");
+        assert_eq!(p.parent(), Some(d));
+        assert_ne!(p, part_path(&d.join(format!("{name}z"))));
+    }
+}

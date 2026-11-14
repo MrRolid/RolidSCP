@@ -95,7 +95,17 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
   und die Quelle bleibt.
 - **F2** oder **Shift+F6** benennt direkt in der Liste um: Der Name ohne Erweiterung ist markiert,
   **Enter** bestätigt, **Esc** bricht ab.
-- **F7** erstellt einen Ordner, **F8** löscht (mit Bestätigung).
+- **F7** erstellt einen Ordner, **F8** löscht (mit Bestätigung). Das Löschen läuft in der
+  Übertragungswarteschlange mit der Zahl der gelöschten Einträge; **Abbrechen** hält es an (was bis
+  dahin gelöscht ist, bleibt gelöscht).
+- Pipes (FIFO), Sockets, Geräte und symbolische Links, die ins Leere führen (Ziel fehlt oder
+  Schleife), werden nicht kopiert: Sie werden übersprungen und im Bericht am Ende aufgeführt, der
+  Rest der Kopie läuft weiter.
+- Ungewöhnliche Namen werden exakt kopiert: Zeilenumbrüche, ein Backslash, Namen mit 255 Bytes und
+  auf den Laufwerken dieses Computers auch Namen, die kein gültiges UTF-8 sind. Die Liste zeigt sie
+  in einer Zeile: Steuerzeichen als `\n` oder `\t`, jedes ungültige Byte als `\xFF`. Ein Name, der
+  kein gültiges UTF-8 ist, kann nicht auf einen Server übertragen werden (SFTP nimmt Namen als
+  Text); das wird gemeldet.
 - Die Übertragungswarteschlange führt bis zu drei Übertragungen gleichzeitig aus. Das
   Geschwindigkeitslimit befindet sich im Kopierdialog.
 - **Ziehen in andere Anwendungen** (X11): Ziehen Sie Dateien oder Ordner aus dem Fenster, etwa auf einen

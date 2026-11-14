@@ -4460,7 +4460,7 @@ dependencies = [
 
 [[package]]
 name = "rolid-archive"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "chrono",
  "encoding_rs",
@@ -4479,7 +4479,7 @@ dependencies = [
 
 [[package]]
 name = "rolid-config"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "argon2",
  "chacha20poly1305",
@@ -4497,10 +4497,11 @@ dependencies = [
 
 [[package]]
 name = "rolid-core"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "async-trait",
  "blake3",
+ "futures-util",
  "rolid-text",
  "thiserror 2.0.21",
  "tokio",
@@ -4508,7 +4509,7 @@ dependencies = [
 
 [[package]]
 name = "rolid-disk"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "dirs",
  "serde",
@@ -4519,7 +4520,7 @@ dependencies = [
 
 [[package]]
 name = "rolid-edit"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "async-trait",
  "dirs",
@@ -4537,7 +4538,7 @@ dependencies = [
 
 [[package]]
 name = "rolid-i18n"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "chrono",
  "polib",
@@ -4547,7 +4548,7 @@ dependencies = [
 
 [[package]]
 name = "rolid-local"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "async-trait",
  "rolid-core",
@@ -4558,7 +4559,7 @@ dependencies = [
 
 [[package]]
 name = "rolid-po-tool"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "polib",
  "rolid-text",
@@ -4566,7 +4567,7 @@ dependencies = [
 
 [[package]]
 name = "rolid-search"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "globset",
  "grep-matcher",
@@ -4584,7 +4585,7 @@ dependencies = [
 
 [[package]]
 name = "rolid-ssh"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "async-trait",
  "rolid-core",
@@ -4602,11 +4603,11 @@ dependencies = [
 
 [[package]]
 name = "rolid-text"
-version = "0.8.14"
+version = "0.8.15"
 
 [[package]]
 name = "rolid-view"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "async-trait",
  "encoding_rs",
@@ -4625,7 +4626,7 @@ dependencies = [
 
 [[package]]
 name = "rolidscp"
-version = "0.8.14"
+version = "0.8.15"
 dependencies = [
  "async-trait",
  "blake3",
@@ -4635,6 +4636,7 @@ dependencies = [
  "eframe",
  "egui_extras",
  "egui_system_font_provider",
+ "futures-util",
  "getrandom 0.4.3",
  "image",
  "md5",

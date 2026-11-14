@@ -95,7 +95,17 @@ de teclado está en la segunda página de esta ventana.
   queda.
 - **F2** o **Shift+F6** renombra directamente en la lista: se selecciona el nombre sin la extensión,
   **Enter** confirma, **Esc** cancela.
-- **F7** crea una carpeta, **F8** elimina (con confirmación).
+- **F7** crea una carpeta, **F8** elimina (con confirmación). La eliminación se ejecuta en la cola
+  de transferencias con el número de elementos eliminados; **Cancelar** la detiene (lo ya eliminado
+  sigue eliminado).
+- Las tuberías (FIFO), sockets, dispositivos y enlaces simbólicos que no llevan a ninguna parte
+  (falta el destino o es un bucle) no se copian: se omiten y se listan en el informe final, el resto
+  de la copia continúa.
+- Los nombres inusuales se copian con exactitud: saltos de línea, barra invertida, nombres de
+  255 bytes y, en los discos de este equipo, también nombres que no son UTF-8 válido. La lista los
+  muestra en una línea: caracteres de control como `\n` o `\t`, cada byte no válido como `\xFF`. Un
+  nombre que no es UTF-8 válido no se puede enviar a un servidor (SFTP toma los nombres como texto);
+  se informa.
 - La cola de transferencias ejecuta hasta tres transferencias a la vez. El límite de velocidad está
   en el diálogo de copia.
 - **Arrastrar a otras aplicaciones** (X11): arrastre archivos o carpetas fuera de la ventana, por ejemplo

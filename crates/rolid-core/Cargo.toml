@@ -13,6 +13,8 @@ thiserror = "2.0.21"
 # Comparing a moved file with its source (already in the build: rolid-ui).
 blake3 = { version = "1", features = ["pure"] }
 tokio = { version = "1.54.1", features = ["io-util", "time"] }
+# Several small files at once (already in the build through russh and tokio tools).
+futures-util = { version = "0.3.34", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
 tokio = { version = "1.54.1", features = ["io-util", "time", "macros", "rt", "test-util"] }

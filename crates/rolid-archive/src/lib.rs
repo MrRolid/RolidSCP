@@ -532,11 +532,25 @@ pub fn safe_mode(mode: u32) -> u32 {
     mode & 0o7777 & !0o6000
 }
 
-/// `<path>.filepart` next to `path`.
+/// `<path>.filepart` next to `path`. A name that would get longer than 255
+/// bytes is shortened and given a fixed hash of the whole name (the same rule
+/// as `rolid_core::vfs::with_suffix`), so a 255-byte name can be unpacked.
 pub fn part_path(path: &Path) -> PathBuf {
-    let mut s = path.as_os_str().to_owned();
-    s.push(".filepart");
-    PathBuf::from(s)
+    const SUFFIX: &str = ".filepart";
+    let name = path.file_name().map(|n| n.as_encoded_bytes()).unwrap_or_default();
+    if name.len() + SUFFIX.len() <= 255 {
+        let mut s = path.as_os_str().to_owned();
+        s.push(SUFFIX);
+        return PathBuf::from(s);
+    }
+    let hash = name.iter().fold(0xcbf2_9ce4_8422_2325u64, |h, &b| (h ^ b as u64).wrapping_mul(0x0100_0000_01b3));
+    let lossy = String::from_utf8_lossy(name);
+    let mut keep = 255 - SUFFIX.len() - 17;
+    while !lossy.is_char_boundary(keep.min(lossy.len())) {
+        keep -= 1;
+    }
+    let short = format!("{}~{hash:016x}{SUFFIX}", &lossy[..keep.min(lossy.len())]);
+    path.with_file_name(short)
 }
 
 #[cfg(test)]

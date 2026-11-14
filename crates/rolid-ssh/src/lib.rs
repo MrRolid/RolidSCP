@@ -321,9 +321,10 @@ impl SshConnection {
         let open = async {
             let ch = self.handle.channel_open_session().await.map_err(other)?;
             ch.exec(true, cmd).await.map_err(other)?;
-            // Nothing is sent to the command: a program that reads its input
-            // (or a shell asking something) gets end of input, not a wait.
-            let _ = ch.eof().await;
+            // No end of input is sent: commands run through
+            // `rolid_search::remote::guarded` watch their input and stop when it
+            // ends (the channel was closed: canceled). They read nothing from it.
+            // A shell that waits for input is ended by `limit` instead.
             Ok::<_, SshError>(ch)
         };
         let mut ch = match deadline {
@@ -385,6 +386,7 @@ impl SshConnection {
             conn: self.clone(),
             sftp,
             posix_rename: std::sync::atomic::AtomicU8::new(POSIX_RENAME_UNKNOWN),
+            aux: tokio::sync::OnceCell::new(),
         })
     }
 
@@ -422,9 +424,66 @@ pub struct SftpFs {
     sftp: SftpSession,
     /// Does the server offer [`POSIX_RENAME`]? (0 = not asked yet, 1 = yes, 2 = no)
     posix_rename: std::sync::atomic::AtomicU8,
+    /// A second, low-level SFTP session (opened when first needed) for reading
+    /// folders and for [`POSIX_RENAME`], with whether the server offers that.
+    /// `None` = the server refused another channel.
+    aux: tokio::sync::OnceCell<Option<(russh_sftp::client::RawSftpSession, bool)>>,
+}
+
+/// Read the whole folder `path` with READDIR requests: each batch is appended
+/// (russh-sftp's `read_dir` rebuilds the whole list for every batch of ~100
+/// names, which makes a folder with a million files take many minutes).
+async fn read_dir_batched(
+    raw: &russh_sftp::client::RawSftpSession,
+    path: &str,
+) -> Result<Vec<russh_sftp::protocol::File>, russh_sftp::client::error::Error> {
+    use russh_sftp::client::error::Error;
+    use russh_sftp::protocol::StatusCode;
+    let handle = raw.opendir(path).await?.handle;
+    let mut files = Vec::new();
+    let r = loop {
+        match raw.readdir(handle.as_str()).await {
+            Ok(name) => files.extend(name.files),
+            Err(Error::Status(st)) if st.status_code == StatusCode::Eof => break Ok(()),
+            Err(e) => break Err(e),
+        }
+    };
+    let _ = raw.close(handle).await;
+    r.map(|()| files)
 }
 
 impl SftpFs {
+    async fn aux(&self) -> Option<&(russh_sftp::client::RawSftpSession, bool)> {
+        self.aux
+            .get_or_init(|| async {
+                let (raw, version) = self.conn.raw_sftp().await.ok()?;
+                let posix = version.extensions.get(POSIX_RENAME).is_some_and(|v| v == "1");
+                Some((raw, posix))
+            })
+            .await
+            .as_ref()
+    }
+
+    /// The folder's entries (names and attributes, without `.` and `..`).
+    async fn read_dir(&self, path: &str) -> VfsResult<Vec<(String, FileAttributes)>> {
+        let all: Vec<(String, FileAttributes)> = match self.aux().await {
+            Some((raw, _)) => read_dir_batched(raw, path)
+                .await
+                .map_err(link::classify_sftp)?
+                .into_iter()
+                .map(|f| (f.filename, f.attrs))
+                .collect(),
+            None => self
+                .sftp
+                .read_dir(path)
+                .await
+                .map_err(link::classify_sftp)?
+                .map(|de| (de.file_name(), de.metadata()))
+                .collect(),
+        };
+        Ok(all.into_iter().filter(|(n, _)| n != "." && n != "..").collect())
+    }
+
     pub fn connection(&self) -> &SshConnection {
         &self.conn
     }
@@ -442,13 +501,26 @@ impl SftpFs {
         if self.posix_rename.load(Ordering::Relaxed) == POSIX_RENAME_NO {
             return Ok(false);
         }
-        let (raw, version) = self.conn.raw_sftp().await.map_err(verr)?;
-        let offered = version.extensions.get(POSIX_RENAME).is_some_and(|v| v == "1");
+        // The kept session; a new one (closed afterwards) when it could not be opened.
+        let own;
+        let (raw, offered, owned) = match self.aux().await {
+            Some((raw, offered)) => (raw, *offered, false),
+            None => {
+                let (raw, version) = self.conn.raw_sftp().await.map_err(verr)?;
+                own = raw;
+                (&own, version.extensions.get(POSIX_RENAME).is_some_and(|v| v == "1"), true)
+            }
+        };
+        let close = || {
+            if owned {
+                let _ = raw.close_session();
+            }
+        };
         let flag = if offered { POSIX_RENAME_YES } else { POSIX_RENAME_NO };
         // Keep an explicit "disabled" (set meanwhile) as it is.
         let _ = self.posix_rename.compare_exchange(POSIX_RENAME_UNKNOWN, flag, Ordering::Relaxed, Ordering::Relaxed);
         if !offered {
-            let _ = raw.close_session();
+            close();
             return Ok(false);
         }
         // Same wire format as hardlink@openssh.com: string oldpath, string newpath.
@@ -456,13 +528,13 @@ impl SftpFs {
             .try_into()
             .map_err(verr)?;
         let reply = raw.extended(POSIX_RENAME, data).await;
-        let _ = raw.close_session();
+        close();
         match reply {
             Ok(Packet::Status(st)) if st.status_code == StatusCode::Ok => Ok(true),
-            Ok(Packet::Status(st)) => Err(VfsError::raw(format!("{}: {}", st.status_code, st.error_message))),
+            Ok(Packet::Status(st)) => Err(VfsError::raw(crate::link::status_text(&st))),
             Ok(_) => Err(VfsError::Backend(txt!("{name}: unexpected answer from the server", name = POSIX_RENAME))),
             Err(russh_sftp::client::error::Error::Status(st)) => {
-                Err(VfsError::raw(format!("{}: {}", st.status_code, st.error_message)))
+                Err(VfsError::raw(crate::link::status_text(&st)))
             }
             Err(e) => Err(verr(e)),
         }
@@ -544,14 +616,9 @@ impl Vfs for SftpFs {
         self.sftp.canonicalize(path).await.map_err(link::classify_sftp)
     }
     async fn list(&self, path: &str) -> VfsResult<Vec<Entry>> {
-        let rd = self.sftp.read_dir(path).await.map_err(link::classify_sftp)?;
-        let mut out = Vec::new();
-        for de in rd {
-            let name = de.file_name();
-            if name == "." || name == ".." {
-                continue;
-            }
-            let meta = de.metadata();
+        let rd = self.read_dir(path).await?;
+        let mut out = Vec::with_capacity(rd.len());
+        for (name, meta) in rd {
             let link_to_dir = meta.file_type().is_symlink()
                 && self
                     .sftp
@@ -589,6 +656,12 @@ impl Vfs for SftpFs {
     }
     async fn rename_replace(&self, from: &str, to: &str) -> VfsResult<bool> {
         self.posix_rename(from, to).await
+    }
+    async fn rename_noreplace(&self, from: &str, to: &str) -> VfsResult<bool> {
+        // SFTP version 3: "It is an error if there already exists a file with
+        // the name specified by newpath" (OpenSSH links and unlinks).
+        self.sftp.rename(from, to).await.map_err(link::classify_sftp)?;
+        Ok(true)
     }
     async fn space(&self, path: &str) -> VfsResult<Option<rolid_core::vfs::Space>> {
         // statvfs@openssh.com; None when the server does not offer it.

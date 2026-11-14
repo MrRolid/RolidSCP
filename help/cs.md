@@ -84,7 +84,14 @@ klávesových zkratek je na druhé stránce tohoto okna.
   rozdílu to program ohlásí a zdroj zůstane.
 - **F2** nebo **Shift+F6** přejmenuje přímo v seznamu: název bez přípony je vybraný, **Enter**
   potvrdí, **Esc** zruší.
-- **F7** vytvoří složku, **F8** maže (s potvrzením).
+- **F7** vytvoří složku, **F8** maže (s potvrzením). Mazání běží ve frontě přenosů s počtem
+  smazaných položek; **Zrušit** ho zastaví (co už je smazané, zůstane smazané).
+- Roury (FIFO), sockety, zařízení a symbolické odkazy, které nikam nevedou (cíl chybí nebo vede
+  v kruhu), se nekopírují: přeskočí se a vypíšou ve zprávě na konci, zbytek kopie pokračuje.
+- Neobvyklé názvy se kopírují přesně: konce řádků, zpětné lomítko, názvy o 255 bajtech a na discích
+  tohoto počítače i názvy, které nejsou platné UTF-8. Seznam je ukáže na jednom řádku: řídicí znaky
+  jako `\n` nebo `\t`, každý neplatný bajt jako `\xFF`. Název, který není platné UTF-8, na server
+  poslat nejde (SFTP bere názvy jako text); program to oznámí.
 - Fronta přenosů běží nejvýš se třemi přenosy současně. Omezení rychlosti je v dialogu kopírování.
 - **Tažení ven do jiných aplikací** (X11): soubory nebo složky vytáhněte z okna, třeba do správce
   souborů nebo editoru. Lokální soubory se kopírují, se **Shiftem** přesunou. Soubory ze serveru nebo

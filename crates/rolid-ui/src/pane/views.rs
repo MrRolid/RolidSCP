@@ -109,15 +109,20 @@ pub fn separator_color(ui: &egui::Ui) -> Color32 {
 /// The name as the listing shows it: without the extension when the Ext
 /// column shows it, a folder in [brackets] when asked. Only for painting; the
 /// sort, filter, clipboard and renaming use the real name.
+///
+/// Control characters and bytes that are not valid UTF-8 are shown as `\n`,
+/// `\xFF`… (see [`rolid_core::names::visible`]): never a broken line.
 pub fn shown_name(e: &Entry, strip_ext: bool, brackets: bool) -> std::borrow::Cow<'_, str> {
+    use rolid_core::names::visible;
+    use std::borrow::Cow;
     if e.is_dir_like() {
-        return if brackets { format!("[{}]", e.name).into() } else { e.name.as_str().into() };
+        return if brackets { format!("[{}]", visible(&e.name)).into() } else { visible(&e.name) };
     }
     let ext = ext_of(&e.name);
-    if strip_ext && !ext.is_empty() {
-        e.name[..e.name.len() - ext.len() - 1].into()
-    } else {
-        e.name.as_str().into()
+    let base = if strip_ext && !ext.is_empty() { &e.name[..e.name.len() - ext.len() - 1] } else { e.name.as_str() };
+    match visible(base) {
+        Cow::Borrowed(_) => Cow::Borrowed(base),
+        Cow::Owned(v) => Cow::Owned(v),
     }
 }
 
@@ -199,7 +204,7 @@ impl Pane {
     fn full_name_tip(&self, resp: &Response, row: Row) {
         if let (true, Row::Entry(i)) = (resp.hovered(), row) {
             if let Some(e) = self.entries.get(i) {
-                resp.clone().on_hover_text_at_pointer(&e.name);
+                resp.clone().on_hover_text_at_pointer(rolid_core::names::visible(&e.name));
             }
         }
     }
@@ -239,10 +244,7 @@ impl Pane {
             events.push(PaneEvent::Focus);
             if resp.clicked() && ui.input(|i| i.modifiers.ctrl) {
                 if let Row::Entry(i) = row {
-                    let n = self.entries[i].name.clone();
-                    if !self.marked.remove(&n) {
-                        self.marked.insert(n);
-                    }
+                    self.toggle_mark(i);
                 }
             }
         }
@@ -436,7 +438,7 @@ impl Pane {
                             let ep = ui.painter_at(cols.ext);
                             let ext = ext_of(&e.name);
                             let room = cols.ext.width() - 2.0 * columns::PAD;
-                            let (g, cut) = columns::elided(&ep, ext.to_string(), crate::fonts::prop(13.0), color, room);
+                            let (g, cut) = columns::elided(&ep, rolid_core::names::visible(ext).into_owned(), crate::fonts::prop(13.0), color, room);
                             ep.galley(cols.ext.left_center() + Vec2::new(columns::PAD, -g.size().y / 2.0), g, color);
                             if cut && pointer.is_some_and(|p| cols.ext.contains(p)) {
                                 resp.clone().on_hover_text_at_pointer(ext);

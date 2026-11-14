@@ -137,7 +137,7 @@ pub async fn safe_replace(fs: &dyn Vfs, part: &str, target: &str) -> VfsResult<(
 
 /// [`safe_replace`] with the journal in `dir` (`None` = no journal).
 pub async fn safe_replace_in(fs: &dyn Vfs, part: &str, target: &str, dir: Option<&Path>) -> VfsResult<()> {
-    let aside = format!("{target}{ASIDE_SUFFIX}");
+    let aside = crate::vfs::with_suffix(target, ASIDE_SUFFIX);
     // Atomic replace if possible. If the server offers it but refuses, the plain
     // path below gives the real reason (permissions…) or works where it does not.
     if let Ok(true) = fs.rename_replace(part, target).await {
@@ -182,8 +182,8 @@ pub async fn safe_replace_in(fs: &dyn Vfs, part: &str, target: &str, dir: Option
 }
 
 /// Every name a leftover original of `target` can have (current and older).
-fn aside_names(target: &str) -> Vec<String> {
-    std::iter::once(ASIDE_SUFFIX).chain(LEGACY_ASIDE_SUFFIXES.iter().copied()).map(|s| format!("{target}{s}")).collect()
+pub(crate) fn aside_names(target: &str) -> Vec<String> {
+    std::iter::once(ASIDE_SUFFIX).chain(LEGACY_ASIDE_SUFFIXES.iter().copied()).map(|s| crate::vfs::with_suffix(target, s)).collect()
 }
 
 /// `target` exists: originals left aside by an earlier, cut-off replacement are

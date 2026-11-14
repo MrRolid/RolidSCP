@@ -61,6 +61,19 @@ pub fn message_means_lost(msg: &str) -> bool {
     m == "eof" || PATTERNS.iter().any(|p| m.contains(p))
 }
 
+/// The text of a status reply: the server's message, with the name of the
+/// code only when the message says something else ("Permission denied", not
+/// "Permission denied: Permission denied" as OpenSSH answers).
+pub fn status_text(st: &russh_sftp::protocol::Status) -> String {
+    let code = st.status_code.to_string();
+    let msg = st.error_message.trim();
+    if msg.is_empty() || msg.eq_ignore_ascii_case(&code) {
+        code
+    } else {
+        format!("{code}: {msg}")
+    }
+}
+
 /// Classify an SFTP client error: a status reply from the server (no such file,
 /// permission denied…) is a file error; everything about the transport is a lost
 /// connection.
@@ -69,9 +82,9 @@ pub fn classify_sftp(e: russh_sftp::client::error::Error) -> VfsError {
     match e {
         // "No such file" keeps its kind (the same text), so callers can tell it apart.
         E::Status(st) if st.status_code == russh_sftp::protocol::StatusCode::NoSuchFile => {
-            VfsError::Io(std::io::Error::new(std::io::ErrorKind::NotFound, format!("{}: {}", st.status_code, st.error_message)))
+            VfsError::Io(std::io::Error::new(std::io::ErrorKind::NotFound, status_text(&st)))
         }
-        E::Status(st) => VfsError::raw(format!("{}: {}", st.status_code, st.error_message)),
+        E::Status(st) => VfsError::raw(status_text(&st)),
         E::Timeout => VfsError::ConnectionLost(txt!("the server does not respond (timeout)")),
         E::IO(m) => VfsError::ConnectionLost(txt!("connection interrupted: {error}", error = m)),
         E::UnexpectedBehavior(m) if message_means_lost(&m) => {
@@ -514,6 +527,9 @@ impl Vfs for RemoteFs {
     async fn rename_replace(&self, from: &str, to: &str) -> VfsResult<bool> {
         self.run(|s| async move { s.rename_replace(from, to).await }).await
     }
+    async fn rename_noreplace(&self, from: &str, to: &str) -> VfsResult<bool> {
+        self.run(|s| async move { s.rename_noreplace(from, to).await }).await
+    }
     async fn space(&self, path: &str) -> VfsResult<Option<rolid_core::vfs::Space>> {
         self.run(|s| async move { s.space(path).await }).await
     }
@@ -653,6 +669,17 @@ mod tests {
         }
         assert!(classify_sftp(status(StatusCode::NoSuchFile, "No such file")).is_not_found());
         assert!(!classify_sftp(status(StatusCode::PermissionDenied, "Permission denied")).is_not_found());
+    }
+
+    /// OpenSSH sends the name of the code as the message: it is said once
+    /// (an F4 upload into a read-only folder said "Permission denied: Permission denied").
+    #[test]
+    fn a_status_is_not_said_twice() {
+        let text = |e| classify_sftp(e).text().to_string();
+        assert_eq!(text(status(StatusCode::PermissionDenied, "Permission denied")), "Permission denied");
+        assert_eq!(text(status(StatusCode::NoSuchFile, "No such file")), "No such file");
+        assert_eq!(text(status(StatusCode::Failure, "")), "Failure");
+        assert_eq!(text(status(StatusCode::Failure, "disk quota exceeded")), "Failure: disk quota exceeded");
     }
 
     #[test]

@@ -53,6 +53,8 @@ image = { version = "0.25.10", default-features = false, features = ["jpeg", "pn
 # Ctrl+P terminal: the SSH_ASKPASS helper (socket peer check, terminal echo,
 # one-time token). Both already in the build (rolid-local, rolid-config).
 getrandom = "0.4.3"
+# Deleting several files at once (already in the build).
+futures-util = { version = "0.3.34", default-features = false, features = ["alloc"] }
 
 [target.'cfg(unix)'.dependencies]
 rustix = { version = "1.1.6", features = ["net", "process", "termios"] }
