@@ -13,18 +13,26 @@ No new features. Each release tests one area under load, fixes what breaks and a
 catch it again.
 
 - **0.8.15 Many files:** a folder with a million files, deep folder trees, memory use, sorting,
-  search, folder sizes, copying and deleting millions of small files.
+  search, folder sizes, copying and deleting millions of small files. Unusual file names (invalid
+  UTF-8, line breaks, different Unicode forms) and special files such as pipes, sockets and devices.
 - **0.8.16 Big files:** files over 100 GB tested for real. Terabytes and petabytes are tested with a
   **simulated** data source, not with real data: counters, time estimates, resuming and sparse files.
-  Also a full disk, disk quotas and transfers running overnight.
+  Also a full disk, disk quotas and transfers running overnight. The program killed or the power
+  lost in the middle of every operation: no data may be lost, and settings are written safely.
 - **0.8.17 Bad connections:** high latency, jitter, packet loss, changing speed, repeated drop-outs
-  and frozen connections. Every transfer in these tests is verified with a checksum.
+  and frozen connections. Every transfer in these tests is verified with a checksum. The computer
+  going to sleep and waking up during a session.
 - **0.8.18 Servers and distributions:** different OpenSSH versions, Dropbear, SFTP-only servers
   without a shell, BusyBox, NAS devices and Windows servers; Debian, Ubuntu, Linux Mint, Fedora,
-  openSUSE and Arch; X11 and Wayland; high-DPI screens.
+  openSUSE and Arch; X11 and Wayland; high-DPI screens. A broken or hostile server (odd names, huge
+  or false listings, links pointing outside the target folder), permissions, ACLs and extended
+  attributes, and time zones and server clocks that are off.
 - **0.8.19 Polish:** consistent controls in every dialog, fuzz testing of everything the program reads
   (archives, server listings, `known_hosts`), a licence check of all dependencies and a check of the
-  code for matches with other projects, and performance measured on every build.
+  code for matches with other projects, and performance measured on every build. Two copies of the
+  program running at once; settings from older versions, going back to an older version and damaged
+  settings files. Keyboard-only use, screen readers and long translated texts. Signed checksums of
+  the release files and reproducible builds.
 
 ## 0.9.x: small new features
 
