@@ -496,23 +496,24 @@ mod tests {
             .unwrap();
         assert_eq!(sm, dm);
 
-        // Resume from an interrupted .filepart.
+        // Resume with a .filepart nobody can vouch for (no info file): small
+        // files are simply written again from the start.
         std::fs::remove_file(b.join("d/f.bin")).unwrap();
         std::fs::write(b.join("d/f.bin.filepart"), &data[..300_000]).unwrap();
         let p = copy_with(&b, "f.bin", Conflict::Resume).await;
-        assert_eq!(p.bytes_resumed, 300_000);
-        assert_eq!(p.bytes_done, 700_000);
+        assert_eq!(p.bytes_resumed, 0);
         assert_eq!(std::fs::read(b.join("d/f.bin")).unwrap(), data);
         assert!(!b.join("d/f.bin.filepart").exists());
 
-        // Resume: identical size -> skip; shorter target -> append.
+        // Resume: identical size -> skip; a shorter target is NOT appended to
+        // under its real name, it is replaced through a new .filepart.
         assert_eq!(
             copy_with(&b, "f.bin", Conflict::Resume).await.files_skipped,
             1
         );
         std::fs::write(b.join("d/f.bin"), &data[..10]).unwrap();
         let p = copy_with(&b, "f.bin", Conflict::Resume).await;
-        assert_eq!(p.bytes_resumed, 10);
+        assert_eq!(p.bytes_resumed, 0);
         assert_eq!(std::fs::read(b.join("d/f.bin")).unwrap(), data);
 
         // Overwrite never leaves a .filepart behind.
@@ -630,6 +631,67 @@ mod tests {
             failures: std::sync::atomic::AtomicU32::new(failures),
             opens: Default::default(),
         }
+    }
+
+    /// Copy big.bin from `src` into d/ with `c`; the job and its outcome.
+    async fn copy_big(base: &Path, src: &dyn Vfs, c: rolid_core::copy::Conflict) -> (VfsResult<()>, Vec<String>, rolid_core::copy::Progress) {
+        let cb = |_: &rolid_core::copy::Progress| {};
+        let mut job = CopyJob::new(src, &LocalFs, Arc::new(AtomicBool::new(false)), &cb).with_conflict(c);
+        let r = job.copy_entry(base.join("s").to_str().unwrap(), "big.bin", base.join("d").to_str().unwrap()).await;
+        (r, job.not_resumed().to_vec(), job.progress().clone())
+    }
+
+    #[tokio::test]
+    async fn resume_only_a_part_file_of_the_same_source() {
+        use rolid_core::copy::Conflict;
+        let b = tmpdir("resume-info");
+        let big: Vec<u8> = (0..3_000_000u32).map(|i| (i * 13 % 251) as u8).collect();
+        std::fs::write(b.join("s/big.bin"), &big).unwrap();
+        let part = b.join("d/big.bin.filepart");
+        let info = b.join("d/big.bin.filepart-info");
+
+        // The program "ends" in the middle of the file (no retry in this run).
+        let (r, _, _) = copy_big(&b, &flaky(1), Conflict::Overwrite).await;
+        assert!(r.is_err());
+        assert_eq!(std::fs::metadata(&part).unwrap().len(), 1_000_000);
+        assert!(info.exists(), "the part file says which source it belongs to");
+        // Next run: Resume continues it.
+        let (r, not, p) = copy_big(&b, &LocalFs, Conflict::Resume).await;
+        r.unwrap();
+        assert!(not.is_empty());
+        assert_eq!(p.bytes_resumed, 1_000_000);
+        assert_eq!(std::fs::read(b.join("d/big.bin")).unwrap(), big);
+        assert!(!part.exists() && !info.exists(), "nothing left behind");
+
+        // A foreign .filepart (no info file): not continued, left alone, reported.
+        std::fs::remove_file(b.join("d/big.bin")).unwrap();
+        std::fs::write(&part, vec![9u8; 2_000_000]).unwrap();
+        let (r, not, p) = copy_big(&b, &LocalFs, Conflict::Resume).await;
+        r.unwrap();
+        assert_eq!(not, [b.join("d/big.bin").to_string_lossy()]);
+        assert_eq!(p.bytes_done, 0);
+        assert_eq!(std::fs::read(&part).unwrap(), vec![9u8; 2_000_000], "untouched");
+        assert!(!b.join("d/big.bin").exists());
+        // "Overwrite" starts over.
+        let (r, _, _) = copy_big(&b, &LocalFs, Conflict::Overwrite).await;
+        r.unwrap();
+        assert_eq!(std::fs::read(b.join("d/big.bin")).unwrap(), big);
+
+        // The source changed after the interruption (same size, another time):
+        // the old part file does not belong to it any more.
+        std::fs::remove_file(b.join("d/big.bin")).unwrap();
+        let (r, _, _) = copy_big(&b, &flaky(1), Conflict::Overwrite).await;
+        assert!(r.is_err());
+        let mut changed = big.clone();
+        changed[10] ^= 0xff;
+        std::fs::write(b.join("s/big.bin"), &changed).unwrap();
+        let later = SystemTime::now() + std::time::Duration::from_secs(120);
+        std::fs::File::options().write(true).open(b.join("s/big.bin")).unwrap().set_modified(later).unwrap();
+        let (r, not, _) = copy_big(&b, &LocalFs, Conflict::Resume).await;
+        r.unwrap();
+        assert_eq!(not.len(), 1, "a part file of the old content is not continued");
+        assert!(!b.join("d/big.bin").exists());
+        std::fs::remove_dir_all(&b).unwrap();
     }
 
     #[tokio::test]

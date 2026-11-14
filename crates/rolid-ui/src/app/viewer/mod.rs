@@ -843,4 +843,10 @@ impl rolid_view::search::Exec for LinkExec {
         };
         conn.exec_stream(&rolid_search::remote::guarded(cmd), cancel, out).await.map_err(|e| e.to_string())
     }
+    async fn probe(&self, cmd: &str, cancel: &std::sync::atomic::AtomicBool, out: &mut (dyn for<'b> FnMut(&'b [u8]) -> bool + Send)) -> Result<(Option<u32>, String), String> {
+        let Some((_, conn)) = self.0.current() else {
+            return Err(rolid_i18n::t(&self.0.state().text()));
+        };
+        conn.exec_probe(&rolid_search::remote::guarded(cmd), cancel, out).await.map_err(|e| e.to_string())
+    }
 }

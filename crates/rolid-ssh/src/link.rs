@@ -153,6 +153,8 @@ struct Inner {
 /// The shared connection to one server (see the module docs).
 pub struct Link {
     pub label: String,
+    /// `user@host:port` (see [`SshConnection::key`]).
+    pub key: String,
     inner: Mutex<Inner>,
     wake: tokio::sync::Notify,
 }
@@ -161,6 +163,7 @@ impl Link {
     pub fn new(conn: SshConnection) -> Arc<Link> {
         Arc::new(Link {
             label: conn.label.clone(),
+            key: conn.key.clone(),
             inner: Mutex::new(Inner { conn: Some(conn), generation: 1, state: LinkState::Up, driver: false }),
             wake: tokio::sync::Notify::new(),
         })
@@ -170,6 +173,7 @@ impl Link {
     pub fn new_lost(label: &str, error: &str) -> Arc<Link> {
         Arc::new(Link {
             label: label.into(),
+            key: label.into(),
             inner: Mutex::new(Inner {
                 conn: None,
                 generation: 0,
@@ -470,6 +474,9 @@ impl RemoteFs {
 impl Vfs for RemoteFs {
     fn label(&self) -> String {
         self.link.label.clone()
+    }
+    fn journal_key(&self) -> Option<String> {
+        Some(self.link.key.clone())
     }
     fn is_remote(&self) -> bool {
         true

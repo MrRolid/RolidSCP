@@ -78,6 +78,13 @@ hurtigtaster står på den andre siden i dette vinduet.
   gjenoppta en avbrutt overføring. Standardvalget kan angis i Innstillinger-menyen.
 - Filer skrives under et midlertidig navn og får det riktige navnet når de er ferdige, slik at en avbrutt
   overføring aldri etterlater en halvskrevet fil under det virkelige navnet.
+- Gjenopptak fortsetter bare en delfil (`.filepart`) fra den samme kildefilen: stien, størrelsen og
+  endringstiden lagres ved siden av. En delfil fra en annen eller ukjent kilde blir ikke rørt og
+  meldes; velg **Overskriv** for å starte forfra.
+- Flytting mellom disker eller servere sletter en kildefil bare når den ikke ble endret under
+  overføringen (størrelse og endringstid) og kopien har samme størrelse. Med **Kontroller med
+  kontrollsum før kilden slettes** (slått på som standard ved flytting til en server) leses begge på
+  nytt og sammenlignes først; en forskjell meldes, og kilden blir.
 - **F2** eller **Shift+F6** gir nytt navn direkte i listen: navnet uten filendelse er merket,
   **Enter** bekrefter, **Esc** avbryter.
 - **F7** oppretter en mappe, **F8** sletter (med bekreftelse).
@@ -96,6 +103,9 @@ hurtigtaster står på den andre siden i dette vinduet.
   profil med navn og fanefarge, og koble til med **Enter**.
 - Merk en server som **produksjonsserver**: fanene får rød overskrift, og farlige handlinger spør
   én gang til (sletting kan ikke bekreftes med Enter).
+- På en produksjonsserver kan heller ikke kopiering, opplasting, flytting og oppretting av en mappe
+  bekreftes med Enter, og kopiering starter aldri med Overskriv (Hopp over eksisterende er
+  forhåndsvalgt).
 - Servernøkkelen kontrolleres mot `~/.ssh/known_hosts`. En ny nøkkel legges til først når du har
   bekreftet fingeravtrykket; en endret nøkkel avvises.
 - Innloggingen prøver ssh-agent, nøklene dine og deretter passordet. Lagrede passord lagres kryptert,
@@ -143,6 +153,13 @@ hurtigtaster står på den andre siden i dette vinduet.
 
 - **F4** åpner filen i et eksternt redigeringsprogram. En fil fra en server lastes opp igjen etter hver
   lagring; hvis den er endret på serveren i mellomtiden, blir du spurt hva som skal skje.
+- Den lokale kopien ligger i en privat mappe på disken (`~/.local/state/rolidscp/edit`, bare for
+  deg) og slettes når redigeringen avsluttes. En opplasting som mislykkes av en annen grunn enn
+  mistet forbindelse, prøves igjen to ganger og meldes deretter. Tidspunktet for siste opplasting
+  vises med sekunder.
+- En server uten atomisk navneendring får en endret fil i trinn (originalen flyttes først til side).
+  Brytes forbindelsen eller programmet underveis, fullføres eller angres trinnet ved neste
+  tilkobling til den serveren, og du får vite hvilke filer det gjaldt.
 - **Shift+F4** (også **Fil → Ny fil…** og hurtigmenyen) oppretter en ny fil og åpner den i det eksterne
   redigeringsprogrammet. Navnet under markøren foreslås. På denne datamaskinen opprettes den tomme filen
   med en gang; på en server ved første lagring, så å lukke uten å lagre oppretter ingenting. Et

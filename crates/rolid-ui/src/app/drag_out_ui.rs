@@ -297,6 +297,7 @@ impl App {
                     then: Some(ready),
                     temp: None,
                     moving: false,
+                    verify: false,
                     target_name: None,
                 });
                 let id = self.jobs.last().map(|j| j.id);
@@ -349,6 +350,7 @@ impl App {
                     then: None,
                     temp: None,
                     moving: false,
+                    verify: false,
                     target_name: None,
                 });
                 true

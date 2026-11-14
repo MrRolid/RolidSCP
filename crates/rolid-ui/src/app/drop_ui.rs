@@ -459,7 +459,7 @@ impl App {
             // even if something appears meanwhile.
             self.start_drop(r, Conflict::Skip);
         } else if matches!(self.dialog, Dialog::None) {
-            let conflict = super::preset_conflict(self.settings.drop_preset());
+            let conflict = super::initial_conflict(self.settings.drop_preset(), r.production);
             self.dialog = Dialog::Drop(Box::new(DropAsk { ready: r, conflict }));
             // Keyboard focus is still in the file manager (Enter / Esc should work here).
             self.ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
@@ -508,6 +508,7 @@ impl App {
             then: Some(then),
             temp: None,
             moving: false,
+            verify: false,
             target_name: None,
         });
     }
@@ -576,7 +577,7 @@ impl App {
                     }
                     ui.label(tr!("to  {dest}", dest = &r.dest_label));
                     if r.production {
-                        dialog::warn(ui, tr!("⚠ The target is a PRODUCTION server."), true);
+                        dialog::warn(ui, tr!("⚠ PRODUCTION SERVER: Enter is disabled, confirm with the button."), true);
                     }
                     if r.plan.is_large() {
                         dialog::note(
@@ -608,7 +609,12 @@ impl App {
                     dialog::note(ui, tr!("The source files are only read, nothing in them is changed."));
                     // Without conflicts nothing is overwritten; with them an answer is needed.
                     let choice = if r.conflicts.is_empty() { Some(Conflict::Skip) } else { ask.conflict };
-                    let b = dialog::buttons(ui, [dialog::btn(role, title).default(true).enabled(choice.is_some()), dialog::cancel()]);
+                    let label = match (r.production, r.remote) {
+                        (true, true) => tr!("Upload to production"),
+                        (true, false) => tr!("Copy to production"),
+                        _ => title.clone(),
+                    };
+                    let b = dialog::buttons(ui, [dialog::confirm(role, label, r.production).enabled(choice.is_some()), dialog::cancel()]);
                     if b[0] {
                         start = choice;
                     }

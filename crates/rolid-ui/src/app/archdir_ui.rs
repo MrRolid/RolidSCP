@@ -112,6 +112,7 @@ impl App {
             then: Some(Box::new(move |a: &mut App| a.open_archive_dir(at, arch, Some(t2), None))),
             temp: Some(temp),
             moving: false,
+            verify: false,
             target_name: None,
         });
     }

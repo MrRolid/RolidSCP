@@ -85,6 +85,14 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
   sich im Menü Einstellungen festlegen.
 - Dateien werden unter einem temporären Namen geschrieben und erst nach Abschluss umbenannt, sodass
   eine abgebrochene Übertragung nie eine halb geschriebene Datei unter dem echten Namen hinterlässt.
+- Fortgesetzt wird nur eine Teildatei (`.filepart`) derselben Quelldatei: Ihr Pfad, ihre Größe und
+  Änderungszeit werden daneben gespeichert. Eine Teildatei einer anderen oder unbekannten Quelle
+  bleibt unangetastet und wird gemeldet; wählen Sie **Überschreiben**, um neu zu beginnen.
+- Verschieben zwischen Datenträgern oder Servern löscht eine Quelldatei nur, wenn sie sich während
+  der Übertragung nicht geändert hat (Größe und Änderungszeit) und die Kopie dieselbe Größe hat. Mit
+  **Vor dem Löschen der Quelle per Prüfsumme prüfen** (beim Verschieben auf einen Server
+  standardmäßig an) werden beide zuvor erneut gelesen und verglichen; ein Unterschied wird gemeldet
+  und die Quelle bleibt.
 - **F2** oder **Shift+F6** benennt direkt in der Liste um: Der Name ohne Erweiterung ist markiert,
   **Enter** bestätigt, **Esc** bricht ab.
 - **F7** erstellt einen Ordner, **F8** löscht (mit Bestätigung).
@@ -105,6 +113,9 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
   Profil mit Namen und Tabfarbe speichern und mit **Enter** verbinden.
 - Einen Server als **Produktionsserver** kennzeichnen: Seine Tabs erhalten einen roten Kopf, und
   gefährliche Aktionen fragen noch einmal nach (Löschen lässt sich nicht mit Enter bestätigen).
+- Auf einem Produktionsserver lassen sich auch Kopieren, Hochladen, Verschieben und das Anlegen
+  eines Ordners nicht mit Enter bestätigen, und Kopieren beginnt nie mit Überschreiben (vorgewählt
+  ist Vorhandene überspringen).
 - Der Serverschlüssel wird mit `~/.ssh/known_hosts` abgeglichen. Ein neuer Schlüssel wird erst
   hinzugefügt, nachdem sein Fingerabdruck bestätigt wurde; ein geänderter Schlüssel wird abgelehnt.
 - Die Anmeldung versucht ssh-agent, dann die eigenen Schlüssel, dann das Passwort. Gespeicherte
@@ -157,6 +168,14 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
 
 - **F4** öffnet die Datei in einem externen Editor. Eine Datei von einem Server wird nach jedem
   Speichern zurück hochgeladen; wurde sie inzwischen auf dem Server geändert, wird nachgefragt.
+- Die lokale Kopie liegt in einem privaten Ordner auf der Festplatte
+  (`~/.local/state/rolidscp/edit`, nur für Sie) und wird nach dem Ende der Bearbeitung gelöscht. Ein
+  Hochladen, das aus einem anderen Grund als einem Verbindungsverlust fehlschlägt, wird zweimal
+  wiederholt und dann gemeldet. Die Zeit des letzten Hochladens wird mit Sekunden angezeigt.
+- Ein Server ohne atomares Umbenennen erhält eine geänderte Datei in Schritten (das Original wird
+  zuerst beiseitegelegt). Bricht dazwischen die Verbindung oder das Programm ab, wird der Schritt
+  bei der nächsten Verbindung zu diesem Server abgeschlossen oder rückgängig gemacht, und Sie
+  erfahren, welche Dateien es betraf.
 - **Shift+F4** (auch **Datei → Neue Datei…** und das Kontextmenü) legt eine neue Datei an und öffnet
   sie im externen Editor. Vorgeschlagen wird der Name unter dem Cursor. Auf diesem Computer entsteht die
   leere Datei sofort, auf einem Server erst beim ersten Speichern – Schließen ohne Speichern legt nichts

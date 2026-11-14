@@ -8,6 +8,7 @@ pub mod filter;
 pub mod perms;
 pub mod rate;
 pub mod rename;
+pub mod replace;
 pub mod vfs;
 
 pub use vfs::{Entry, EntryKind, Vfs, VfsError, VfsResult};

@@ -467,6 +467,8 @@ impl App {
         match result {
             Ok((conn, sftp, path)) => {
                 let link = self.register_connection(&meta.target, conn);
+                // Replacements cut off at the last visit (lost connection, crash).
+                self.repair_replacements(meta.target.key(), false);
                 let sftp: Arc<dyn Vfs> = Arc::new(rolid_ssh::RemoteFs::with_session(link, sftp));
                 if let Dialog::Connect(f) = &mut self.dialog {
                     if f.target == Some(at) {

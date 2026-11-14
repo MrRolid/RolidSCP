@@ -132,6 +132,12 @@ pub trait Vfs: Send + Sync {
     fn read_only(&self) -> bool {
         false
     }
+    /// The server this backend writes to (`user@host:port`), for the journal of
+    /// unfinished replacements ([`crate::replace`]); `None` = not needed (a local
+    /// disk replaces atomically).
+    fn journal_key(&self) -> Option<String> {
+        None
+    }
 
     fn join(&self, dir: &str, name: &str) -> String;
     /// Parent directory, or `None` at the root.

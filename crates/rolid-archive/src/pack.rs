@@ -300,7 +300,12 @@ fn write_zip(
     use zip::{AesMode, CompressionMethod, ZipWriter};
     let lvl = level_value(Format::Zip, o.level);
     let opts = |s: &Src| -> zip::write::SimpleFileOptions {
-        let store = lvl.is_none() || (o.store_compressed && s.kind == SrcKind::File && already_compressed(&s.name));
+        // An empty file is stored, as 7-Zip does: compressing gives a 2-byte
+        // stream that p7zip 16.02 (Ubuntu 22.04) rejects in an encrypted
+        // entry ("CRC Failed in encrypted file"), although it is valid.
+        let store = lvl.is_none()
+            || (s.kind == SrcKind::File && s.size == 0)
+            || (o.store_compressed && s.kind == SrcKind::File && already_compressed(&s.name));
         let o: FileOptions<()> = FileOptions::default();
         let o = if store {
             o.compression_method(CompressionMethod::Stored)

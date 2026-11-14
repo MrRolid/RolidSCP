@@ -89,6 +89,14 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
   Paramètres.
 - Les fichiers sont écrits sous un nom temporaire et renommés une fois complets : un transfert
   interrompu ne laisse donc jamais un fichier à moitié écrit sous le vrai nom.
+- La reprise ne continue qu’un fichier partiel (`.filepart`) du même fichier source : son chemin, sa
+  taille et sa date de modification sont gardés à côté. Un fichier partiel d’une autre source ou
+  d’une source inconnue n’est pas touché et est signalé ; choisissez **Écraser** pour recommencer.
+- Un déplacement entre disques ou serveurs ne supprime un fichier source que s’il n’a pas changé
+  pendant le transfert (taille et date de modification) et que la copie a la même taille. Avec
+  **Vérifier par somme de contrôle avant de supprimer la source** (activé par défaut lors d’un
+  déplacement vers un serveur), les deux sont d’abord relus et comparés ; une différence est
+  signalée et la source reste.
 - **F2** ou **Shift+F6** renomme directement dans la liste : le nom sans l'extension est sélectionné,
   **Enter** confirme, **Esc** annule.
 - **F7** crée un dossier, **F8** supprime (avec confirmation).
@@ -112,6 +120,9 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
 - Marquez un serveur comme **serveur de production** : ses onglets ont un en-tête rouge et les actions
   dangereuses demandent une confirmation supplémentaire (la suppression ne peut pas être confirmée avec
   Enter).
+- Sur un serveur de production, la copie, l’envoi, le déplacement et la création d’un dossier ne se
+  confirment pas non plus avec Entrée, et la copie ne commence jamais par Écraser (Ignorer les
+  existants est présélectionné).
 - La clé du serveur est vérifiée dans `~/.ssh/known_hosts`. Une nouvelle clé n'est ajoutée qu'après
   confirmation de son empreinte ; une clé modifiée est refusée.
 - La connexion essaie ssh-agent, vos clés, puis le mot de passe. Les mots de passe enregistrés sont
@@ -165,6 +176,13 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
 
 - **F4** ouvre le fichier dans un éditeur externe. Un fichier d'un serveur y est renvoyé après chaque
   enregistrement ; s'il a été modifié sur le serveur entre-temps, on vous demande quoi faire.
+- La copie locale est conservée dans un dossier privé sur le disque (`~/.local/state/rolidscp/edit`,
+  pour vous seul) et supprimée à la fin de la modification. Un envoi qui échoue pour une autre
+  raison qu’une connexion perdue est réessayé deux fois, puis signalé. L’heure du dernier envoi est
+  affichée avec les secondes.
+- Un serveur sans renommage atomique reçoit un fichier modifié par étapes (l’original est d’abord
+  mis de côté). Si la connexion ou le programme s’interrompt entre-temps, l’étape est terminée ou
+  annulée à la connexion suivante à ce serveur, et vous êtes informé des fichiers concernés.
 - **Shift+F4** (aussi **Fichier → Nouveau fichier…** et le menu contextuel) crée un nouveau fichier et
   l'ouvre dans l'éditeur externe. Le nom sous le curseur est proposé. Sur cet ordinateur, le fichier vide
   est créé aussitôt ; sur un serveur, il l'est au premier enregistrement, donc fermer l'éditeur sans

@@ -176,12 +176,19 @@ fn tracing_warn(msg: &str) {
     tracing::warn!("{msg}");
 }
 
+/// How long a short check command on the server may run (see
+/// [`SshConnection::exec_probe`]).
+pub const PROBE_TIMEOUT: Duration = Duration::from_secs(5);
+
 /// An authenticated SSH connection. Cheap to clone; multiple panels/tabs can
 /// share one connection (each opens its own channels).
 #[derive(Clone)]
 pub struct SshConnection {
     handle: Arc<client::Handle<ClientHandler>>,
     pub label: String,
+    /// `user@host:port`: names the server in the local journal of unfinished
+    /// replacements ([`rolid_core::replace`]).
+    pub key: String,
     /// The address actually connected to (after the DNS lookup).
     pub peer: Option<std::net::SocketAddr>,
 }
@@ -246,6 +253,7 @@ impl SshConnection {
         Ok(Self {
             handle: Arc::new(handle),
             label: format!("{}@{}", p.user, p.host),
+            key: format!("{}@{}:{}", p.user, p.host, p.port),
             peer,
         })
     }
@@ -276,10 +284,52 @@ impl SshConnection {
         cancel: &std::sync::atomic::AtomicBool,
         on_stdout: &mut (dyn FnMut(&[u8]) -> bool + Send),
     ) -> Result<(Option<u32>, String), SshError> {
+        self.exec_limited(cmd, cancel, None, on_stdout).await
+    }
+
+    /// A short check of what the server can do ("is there GNU find?"): like
+    /// [`exec_stream`](Self::exec_stream), but ended after [`PROBE_TIMEOUT`]
+    /// with an error, so that a shell that hangs (a login script waiting for
+    /// input, a stuck profile) only makes the caller use SFTP instead.
+    pub async fn exec_probe(
+        &self,
+        cmd: &str,
+        cancel: &std::sync::atomic::AtomicBool,
+        on_stdout: &mut (dyn FnMut(&[u8]) -> bool + Send),
+    ) -> Result<(Option<u32>, String), SshError> {
+        self.exec_limited(cmd, cancel, Some(PROBE_TIMEOUT), on_stdout).await
+    }
+
+    /// [`exec_stream`](Self::exec_stream) ended after `limit` (counted from
+    /// the start, the opening of the channel included).
+    pub async fn exec_limited(
+        &self,
+        cmd: &str,
+        cancel: &std::sync::atomic::AtomicBool,
+        limit: Option<Duration>,
+        on_stdout: &mut (dyn FnMut(&[u8]) -> bool + Send),
+    ) -> Result<(Option<u32>, String), SshError> {
         use std::sync::atomic::Ordering;
         const STDERR_MAX: usize = 4096;
-        let mut ch = self.handle.channel_open_session().await.map_err(other)?;
-        ch.exec(true, cmd).await.map_err(other)?;
+        let deadline = limit.map(|l| tokio::time::Instant::now() + l);
+        let timed_out = || {
+            SshError::Other(txt!(
+                "the command on the server did not answer within {n} s",
+                n = limit.unwrap_or_default().as_secs().to_string()
+            ))
+        };
+        let open = async {
+            let ch = self.handle.channel_open_session().await.map_err(other)?;
+            ch.exec(true, cmd).await.map_err(other)?;
+            // Nothing is sent to the command: a program that reads its input
+            // (or a shell asking something) gets end of input, not a wait.
+            let _ = ch.eof().await;
+            Ok::<_, SshError>(ch)
+        };
+        let mut ch = match deadline {
+            Some(d) => tokio::time::timeout_at(d, open).await.map_err(|_| timed_out())??,
+            None => open.await?,
+        };
         let mut status = None;
         let mut stderr = Vec::new();
         loop {
@@ -287,8 +337,12 @@ impl SshConnection {
                 let _ = ch.close().await;
                 break;
             }
+            if deadline.is_some_and(|d| tokio::time::Instant::now() >= d) {
+                let _ = ch.close().await;
+                return Err(timed_out());
+            }
             let msg = match tokio::time::timeout(Duration::from_millis(200), ch.wait()).await {
-                Err(_) => continue, // poll cancel
+                Err(_) => continue, // poll cancel and the deadline
                 Ok(None) => break,
                 Ok(Some(m)) => m,
             };
@@ -470,6 +524,9 @@ pub fn posix_parent(path: &str) -> Option<String> {
 impl Vfs for SftpFs {
     fn label(&self) -> String {
         self.conn.label.clone()
+    }
+    fn journal_key(&self) -> Option<String> {
+        Some(self.conn.key.clone())
     }
     fn is_remote(&self) -> bool {
         true

@@ -457,6 +457,7 @@ impl App {
             then: Some(Box::new(move |a: &mut App| a.pack_stage(plan, paths, Some(t2)))),
             temp: Some(temp),
             moving: false,
+            verify: false,
             target_name: None,
         });
     }
@@ -532,6 +533,7 @@ impl App {
             then: None,
             temp,
             moving: false,
+            verify: false,
             target_name: None,
         });
     }

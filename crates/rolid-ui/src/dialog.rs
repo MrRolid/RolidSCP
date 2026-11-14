@@ -298,6 +298,12 @@ pub fn btn(role: Role, text: impl Into<String>) -> Btn {
     Btn { role, text: text.into(), default: false, enabled: true, tooltip: None }
 }
 
+/// The confirming button of an action that changes data: Enter presses it,
+/// except on a production server (`production`), where only a click does.
+pub fn confirm(role: Role, text: impl Into<String>, production: bool) -> Btn {
+    btn(role, text).default(!production)
+}
+
 /// Cancel: last in the row, pressed by Esc and the ✕.
 pub fn cancel() -> Btn {
     btn(Role::Cancel, tr!("Cancel"))
@@ -447,6 +453,41 @@ mod tests {
             assert!(l[1].escapes() && !l[1].has_icon() && l[0].has_icon());
         });
         out.textures_delta.clear();
+    }
+
+    /// One frame of `buttons` with Enter pressed: which buttons were pressed.
+    fn press_enter(list: impl Fn() -> [Btn; 2]) -> [bool; 2] {
+        let ctx = egui::Context::default();
+        let mut out = [false; 2];
+        // The first frame only lays out (no previous popups or focus).
+        let mut o = ctx.run_ui(Default::default(), |ui| {
+            buttons(ui, list());
+        });
+        o.textures_delta.clear();
+        let input = egui::RawInput {
+            events: vec![egui::Event::Key {
+                key: Key::Enter,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: Default::default(),
+            }],
+            ..Default::default()
+        };
+        let mut o = ctx.run_ui(input, |ui| {
+            out = buttons(ui, list());
+        });
+        o.textures_delta.clear();
+        out
+    }
+
+    #[test]
+    fn one_enter_never_confirms_on_a_production_server() {
+        // Copy, upload, move, new folder: a normal server confirms with Enter…
+        assert_eq!(press_enter(|| [confirm(Role::Copy, "Copy", false), cancel()]), [true, false]);
+        // …a production server only with a click.
+        assert_eq!(press_enter(|| [confirm(Role::Copy, "Copy to production", true), cancel()]), [false, false]);
+        assert_eq!(press_enter(|| [confirm(Role::NewFolder, "Create on production", true), cancel()]), [false, false]);
     }
 
     #[test]

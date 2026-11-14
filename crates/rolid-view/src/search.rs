@@ -125,6 +125,13 @@ pub trait Exec: Send + Sync {
     /// Run `cmd`, give the standard output to `out` (which returns `false`
     /// to stop); returns the exit status and the start of the error output.
     async fn run(&self, cmd: &str, cancel: &AtomicBool, out: &mut (dyn for<'b> FnMut(&'b [u8]) -> bool + Send)) -> Result<(Option<u32>, String), String>;
+
+    /// [`run`](Self::run) for a short check of what the server can do: ends
+    /// with an error when it does not answer in time (the search then reads
+    /// the file itself).
+    async fn probe(&self, cmd: &str, cancel: &AtomicBool, out: &mut (dyn for<'b> FnMut(&'b [u8]) -> bool + Send)) -> Result<(Option<u32>, String), String> {
+        self.run(cmd, cancel, out).await
+    }
 }
 
 /// What to search.
@@ -393,7 +400,7 @@ async fn probe(exec: &dyn Exec, locale: &str, opts: &str, pattern: &str, sample:
     let cmd = format!("command -v grep >/dev/null 2>&1 && printf '%s\\n' {} | LC_ALL={locale} grep -a -b -o {opts} -e {}", sh_quote(&format!("_{sample}")), sh_quote(pattern));
     let mut out = Vec::new();
     let ok = exec
-        .run(&cmd, cancel, &mut |d: &[u8]| {
+        .probe(&cmd, cancel, &mut |d: &[u8]| {
             out.extend_from_slice(d);
             out.len() < 4096
         })

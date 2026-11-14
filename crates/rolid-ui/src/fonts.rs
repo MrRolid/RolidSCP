@@ -308,6 +308,51 @@ fn skrifa_ok(data: &[u8], index: u32) -> bool {
     skrifa::FontRef::from_index(data, index).is_ok_and(|f| f.head().is_ok())
 }
 
+/// System fonts for characters the built-in fonts lack (CJK, Arabic, …), with
+/// a guard: on a system without any usable font, fontconfig's lookup panics
+/// inside the font library (fontique); that must not end the program. After the
+/// first failure the system fonts are not asked again, and the built-in fonts
+/// are used alone (characters they lack are drawn as boxes).
+pub struct GuardedFontProvider {
+    inner: Box<dyn egui::epaint::text::FontProvider>,
+    broken: std::sync::atomic::AtomicBool,
+}
+
+impl GuardedFontProvider {
+    pub fn new(inner: Box<dyn egui::epaint::text::FontProvider>) -> Self {
+        Self { inner, broken: std::sync::atomic::AtomicBool::new(false) }
+    }
+
+    /// The system font provider of egui (fontconfig on Linux).
+    pub fn system() -> Self {
+        Self::new(Box::new(egui_system_font_provider::SystemFontProvider::new()))
+    }
+
+    fn guarded<T>(&self, fallback: T, f: impl FnOnce() -> T) -> T {
+        if self.broken.load(Ordering::Relaxed) {
+            return fallback;
+        }
+        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)) {
+            Ok(v) => v,
+            Err(_) => {
+                self.broken.store(true, Ordering::Relaxed);
+                tracing::warn!("system fonts are not available (no usable font found by fontconfig): only the built-in fonts are used");
+                fallback
+            }
+        }
+    }
+}
+
+impl egui::epaint::text::FontProvider for GuardedFontProvider {
+    fn fonts_for_family(&self, family: &FontFamily) -> Vec<egui::epaint::text::FontInsert> {
+        self.guarded(Vec::new(), || self.inner.fonts_for_family(family))
+    }
+
+    fn font_for(&self, request: &egui::epaint::text::FallbackRequest<'_>) -> Option<egui::epaint::text::FontInsert> {
+        self.guarded(None, || self.inner.font_for(request))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -455,5 +500,37 @@ mod tests {
         }
         // Not a plain font: unchanged.
         assert_eq!(without_instructions(b"ttcf1234".to_vec()), b"ttcf1234");
+    }
+
+    #[test]
+    fn a_failing_system_font_lookup_does_not_end_the_program() {
+        use egui::epaint::text::{FallbackRequest, FontProvider};
+        struct Panics(std::sync::atomic::AtomicU32);
+        impl FontProvider for Panics {
+            fn font_for(&self, _: &FallbackRequest<'_>) -> Option<egui::epaint::text::FontInsert> {
+                self.0.fetch_add(1, Ordering::Relaxed);
+                // What fontique does on a system without fonts.
+                panic!("called `Result::unwrap()` on an `Err` value: NoMatch");
+            }
+        }
+        let calls = Arc::new(Panics(AtomicU32::new(0)));
+        struct Shared(Arc<Panics>);
+        impl FontProvider for Shared {
+            fn font_for(&self, r: &FallbackRequest<'_>) -> Option<egui::epaint::text::FontInsert> {
+                self.0.font_for(r)
+            }
+        }
+        let p = GuardedFontProvider::new(Box::new(Shared(calls.clone())));
+        let req = FallbackRequest { cluster: "日", family: &FontFamily::Proportional };
+        assert!(p.font_for(&req).is_none());
+        assert!(p.font_for(&req).is_none(), "asked once, then left alone");
+        assert_eq!(calls.0.load(Ordering::Relaxed), 1);
+        // Through egui: text with a character the built-in fonts lack is laid out.
+        let ctx = egui::Context::default();
+        ctx.set_font_providers(vec![Arc::new(GuardedFontProvider::new(Box::new(Shared(Arc::new(Panics(AtomicU32::new(0)))))))]);
+        let mut o = ctx.run_ui(Default::default(), |ui| {
+            ui.label("Zwölf Boxkämpfer 日本語 العربية");
+        });
+        o.textures_delta.clear();
     }
 }

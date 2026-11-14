@@ -75,6 +75,13 @@ klávesových zkratek je na druhé stránce tohoto okna.
   přerušený přenos. Výchozí volbu nastavíte v menu Nastavení.
 - Soubory se zapisují pod dočasným názvem a přejmenují se až po dokončení, takže přerušený přenos
   nikdy nenechá napůl zapsaný soubor pod skutečným názvem.
+- Navazuje se jen rozpracovaný soubor (`.filepart`) téhož zdrojového souboru: vedle něj se ukládá
+  jeho cesta, velikost a čas změny. Rozpracovaný soubor jiného nebo neznámého zdroje zůstane
+  nedotčený a program to ohlásí; pro nový začátek zvolte **Přepsat**.
+- Přesun mezi disky nebo servery smaže zdrojový soubor, jen když se během přenosu nezměnil (velikost
+  a čas změny) a kopie má stejnou velikost. S volbou **Před smazáním zdroje ověřit kontrolním
+  součtem** (při přesunu na server výchozí zapnuto) se navíc oba znovu přečtou a porovnají; při
+  rozdílu to program ohlásí a zdroj zůstane.
 - **F2** nebo **Shift+F6** přejmenuje přímo v seznamu: název bez přípony je vybraný, **Enter**
   potvrdí, **Esc** zruší.
 - **F7** vytvoří složku, **F8** maže (s potvrzením).
@@ -93,6 +100,8 @@ klávesových zkratek je na druhé stránce tohoto okna.
   jako profil s názvem a barvou záložky a připojíte se **Enterem**.
 - Server můžete označit jako **produkční**: jeho záložky mají červenou hlavičku a nebezpečné akce se
   ptají ještě jednou (mazání nejde potvrdit Enterem).
+- Na produkčním serveru nejde Enterem potvrdit ani kopírování, nahrávání, přesun a vytvoření složky
+  a kopírování nikdy nezačíná volbou Přepsat (předvybrané je Přeskočit existující).
 - Klíč serveru se kontroluje proti `~/.ssh/known_hosts`. Nový klíč se přidá jen po potvrzení
   otisku; změněný klíč se odmítne.
 - Přihlášení zkouší ssh-agent, vaše klíče a pak heslo. Uložená hesla jsou šifrovaná a chráněná
@@ -138,6 +147,12 @@ klávesových zkratek je na druhé stránce tohoto okna.
 
 - **F4** otevře soubor v externím editoru. Soubor ze serveru se po každém uložení nahraje zpět;
   pokud se mezitím na serveru změnil, program se zeptá, co dělat.
+- Místní kopie je v soukromé složce na disku (`~/.local/state/rolidscp/edit`, jen pro vás) a po
+  skončení úprav se smaže. Nahrání, které selže z jiného důvodu než ztráty spojení, se dvakrát
+  zopakuje a pak se ohlásí. Čas posledního nahrání se ukazuje na sekundy.
+- Server bez atomického přejmenování dostane změněný soubor po krocích (původní se nejdřív odsune
+  stranou). Když se mezitím přeruší spojení nebo program, krok se při dalším připojení k tomu
+  serveru dokončí nebo vrátí a program řekne, kterých souborů se to týkalo.
 - **Shift+F4** (také **Soubor → Nový soubor…** a místní nabídka) vytvoří nový soubor a otevře ho
   v externím editoru. Nabídne se jméno pod kurzorem. Na tomto počítači prázdný soubor vznikne hned, na
   serveru až prvním uložením, takže zavření editoru bez uložení nic nevytvoří. Existující jméno otevře

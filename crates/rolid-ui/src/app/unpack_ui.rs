@@ -217,6 +217,7 @@ impl App {
             then: Some(Box::new(move |a: &mut App| a.archives_ready(purpose, at, archives, Some(t2)))),
             temp: Some(temp),
             moving: false,
+            verify: false,
             target_name: None,
         });
     }
@@ -778,6 +779,7 @@ impl App {
             then: None,
             temp,
             moving: false,
+            verify: false,
             target_name: None,
         });
     }

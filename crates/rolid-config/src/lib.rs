@@ -738,6 +738,15 @@ pub fn config_dir() -> PathBuf {
         .join("rolidscp")
 }
 
+/// Program state on disk (`~/.local/state/rolidscp` on Linux): the log, the
+/// journal of unfinished replacements on servers. `ROLIDSCP_STATE_DIR` overrides it.
+pub fn state_dir() -> PathBuf {
+    if let Some(d) = std::env::var_os("ROLIDSCP_STATE_DIR") {
+        return PathBuf::from(d);
+    }
+    dirs::state_dir().or_else(dirs::cache_dir).unwrap_or_else(std::env::temp_dir).join("rolidscp")
+}
+
 /// Log file (`~/.local/state/rolidscp/rolidscp.log` on Linux). `ROLIDSCP_LOG_DIR` overrides the directory.
 pub fn log_path() -> PathBuf {
     if let Some(d) = std::env::var_os("ROLIDSCP_LOG_DIR") {

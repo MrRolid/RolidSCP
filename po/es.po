@@ -38,8 +38,8 @@ msgid "The operation was canceled."
 msgstr "La operación se ha cancelado."
 
 #: crates/rolid-archive/src/lib.rs:282
-#: crates/rolid-ui/src/app/archdir_ui.rs:298
-#: crates/rolid-ui/src/app/unpack_ui.rs:836
+#: crates/rolid-ui/src/app/archdir_ui.rs:299
+#: crates/rolid-ui/src/app/unpack_ui.rs:838
 msgid "The archive is password protected."
 msgstr "El archivo comprimido está protegido con contraseña."
 
@@ -57,7 +57,7 @@ msgstr "Archivo comprimido no compatible: {error}"
 
 #: crates/rolid-archive/src/lib.rs:293
 #: crates/rolid-core/src/vfs.rs:72
-#: crates/rolid-view/src/search.rs:431
+#: crates/rolid-view/src/search.rs:438
 msgid "{error}"
 msgstr "{error}"
 
@@ -101,11 +101,11 @@ msgstr "no se puede comprimir la raíz de un disco"
 msgid "special files (device, pipe, socket) are not packed"
 msgstr "los archivos especiales (dispositivo, tubería, socket) no se comprimen"
 
-#: crates/rolid-archive/src/pack.rs:540
+#: crates/rolid-archive/src/pack.rs:545
 msgid "checksum mismatch"
 msgstr "la suma de comprobación no coincide"
 
-#: crates/rolid-archive/src/pack.rs:544
+#: crates/rolid-archive/src/pack.rs:549
 msgid "it is not a 7z archive"
 msgstr "no es un archivo 7z"
 
@@ -211,8 +211,8 @@ msgid "Highest"
 msgstr "Máximo"
 
 #: crates/rolid-config/src/lib.rs:612
-#: crates/rolid-ui/src/app/unpack_ui.rs:540
-#: crates/rolid-ui/src/app.rs:2771
+#: crates/rolid-ui/src/app/unpack_ui.rs:541
+#: crates/rolid-ui/src/app.rs:2848
 msgid "Skip existing"
 msgstr "Omitir existentes"
 
@@ -223,9 +223,9 @@ msgstr "Sobrescribir solo más antiguos"
 #: crates/rolid-config/src/lib.rs:614
 #: crates/rolid-ui/src/app/archive_ui.rs:348
 #: crates/rolid-ui/src/app/checksum_ui.rs:287
-#: crates/rolid-ui/src/app/rename_ui.rs:226
-#: crates/rolid-ui/src/app/unpack_ui.rs:542
-#: crates/rolid-ui/src/app.rs:2773
+#: crates/rolid-ui/src/app/rename_ui.rs:230
+#: crates/rolid-ui/src/app/unpack_ui.rs:543
+#: crates/rolid-ui/src/app.rs:2850
 msgid "Overwrite"
 msgstr "Sobrescribir"
 
@@ -460,37 +460,37 @@ msgstr "Orquídea"
 msgid "Pearl"
 msgstr "Perla"
 
-#: crates/rolid-core/src/copy.rs:113
-#: crates/rolid-ui/src/app.rs:1504
+#: crates/rolid-core/src/copy.rs:143
+#: crates/rolid-ui/src/app.rs:2805
 #: crates/rolid-ui/src/pane.rs:1407
 msgid "{n} file"
 msgid_plural "{n} files"
 msgstr[0] "{n} archivo"
 msgstr[1] "{n} archivos"
 
-#: crates/rolid-core/src/copy.rs:113
+#: crates/rolid-core/src/copy.rs:143
 msgid "file {num}"
 msgstr "archivo {num}"
 
-#: crates/rolid-core/src/copy.rs:118
+#: crates/rolid-core/src/copy.rs:148
 msgid "file {num} of {total}"
 msgstr "archivo {num} de {total}"
 
-#: crates/rolid-core/src/copy.rs:120
+#: crates/rolid-core/src/copy.rs:150
 msgid "file {num} of {total}+"
 msgstr "archivo {num} de {total}+"
 
-#: crates/rolid-core/src/copy.rs:308
+#: crates/rolid-core/src/copy.rs:385
 msgid "{error} (the name is not valid UTF-8, it cannot be transferred)"
 msgstr "{error} (el nombre no es UTF-8 válido, no se puede transferir)"
 
-#: crates/rolid-core/src/copy.rs:359
+#: crates/rolid-core/src/copy.rs:436
 msgid "{error} (the transfer gave up after {n} attempt – try it again manually)"
 msgid_plural "{error} (the transfer gave up after {n} attempts – try it again manually)"
 msgstr[0] "{error} (la transferencia se abandonó tras {n} intento; inténtelo de nuevo manualmente)"
 msgstr[1] "{error} (la transferencia se abandonó tras {n} intentos; inténtelo de nuevo manualmente)"
 
-#: crates/rolid-core/src/copy.rs:409
+#: crates/rolid-core/src/copy.rs:486
 msgid "“{name}” is a symbolic link: it cannot be moved between disks (copy it and delete it manually)"
 msgstr "«{name}» es un enlace simbólico: no se puede mover entre discos (cópielo y elimínelo manualmente)"
 
@@ -566,11 +566,11 @@ msgstr "«{name}» ya no está en la carpeta (¿alguien lo eliminó o renombró?
 msgid "“{name}” is a folder or a folder is being renamed: only a file can overwrite a file."
 msgstr "«{name}» es una carpeta o se está renombrando una carpeta: solo un archivo puede sobrescribir un archivo."
 
-#: crates/rolid-core/src/rename.rs:168
+#: crates/rolid-core/src/rename.rs:161
 msgid "Folder “{name}” cannot be moved into itself."
 msgstr "La carpeta «{name}» no se puede mover dentro de sí misma."
 
-#: crates/rolid-core/src/rename.rs:202
+#: crates/rolid-core/src/rename.rs:195
 msgid "Enter where to move to."
 msgstr "Indique adónde mover."
 
@@ -579,7 +579,7 @@ msgid "canceled by the user"
 msgstr "cancelado por el usuario"
 
 #: crates/rolid-core/src/vfs.rs:49
-#: crates/rolid-edit/src/temp.rs:28
+#: crates/rolid-edit/src/temp.rs:42
 msgid "Invalid file name: {name}"
 msgstr "Nombre de archivo no válido: {name}"
 
@@ -646,33 +646,33 @@ msgstr "no se puede iniciar el editor «{prog}»: {error}"
 #: crates/rolid-edit/src/recover.rs:235
 #: crates/rolid-edit/src/recover.rs:246
 #: crates/rolid-edit/src/recover.rs:254
-#: crates/rolid-edit/src/temp.rs:106
-#: crates/rolid-edit/src/temp.rs:118
+#: crates/rolid-edit/src/temp.rs:120
+#: crates/rolid-edit/src/temp.rs:132
 msgid "{path}: {error}"
 msgstr "{path}: {error}"
 
 #: crates/rolid-edit/src/recover.rs:258
-#: crates/rolid-edit/src/temp.rs:121
+#: crates/rolid-edit/src/temp.rs:135
 msgid "cannot create a temporary folder"
 msgstr "no se puede crear una carpeta temporal"
 
-#: crates/rolid-edit/src/temp.rs:72
+#: crates/rolid-edit/src/temp.rs:86
 msgid "{path} is not a folder"
 msgstr "{path} no es una carpeta"
 
-#: crates/rolid-edit/src/temp.rs:78
+#: crates/rolid-edit/src/temp.rs:92
 msgid "{path} belongs to another user"
 msgstr "{path} pertenece a otro usuario"
 
-#: crates/rolid-edit/src/transfer.rs:41
+#: crates/rolid-edit/src/transfer.rs:43
 #: crates/rolid-ssh/src/auth.rs:351
 #: crates/rolid-ui/src/app/checksum_ui.rs:202
-#: crates/rolid-ui/src/app/checksum_ui.rs:546
+#: crates/rolid-ui/src/app/checksum_ui.rs:548
 #: crates/rolid-ui/src/checksum.rs:135
 msgid "canceled"
 msgstr "cancelado"
 
-#: crates/rolid-edit/src/transfer.rs:112
+#: crates/rolid-edit/src/transfer.rs:88
 msgid "upload incomplete ({written} of {size} B) – the original file was left unchanged"
 msgstr "subida incompleta ({written} de {size} B); el archivo original no se ha modificado"
 
@@ -714,7 +714,7 @@ msgid "Computer"
 msgstr "Equipo"
 
 #: crates/rolid-search/src/lib.rs:100
-#: crates/rolid-ui/src/app/checksum_ui.rs:494
+#: crates/rolid-ui/src/app/checksum_ui.rs:496
 msgid "locally"
 msgstr "localmente"
 
@@ -751,7 +751,7 @@ msgstr "expresión regular: {error}"
 msgid "search text: {error}"
 msgstr "texto de búsqueda: {error}"
 
-#: crates/rolid-search/src/remote.rs:172
+#: crates/rolid-search/src/remote.rs:173
 msgid "searching on a server needs an absolute path"
 msgstr "la búsqueda en un servidor necesita una ruta absoluta"
 
@@ -861,17 +861,21 @@ msgstr "ADVERTENCIA: ¡la clave del servidor {host}:{port} ha cambiado respecto 
 msgid "login failed. {report}"
 msgstr "error de inicio de sesión. {report}"
 
-#: crates/rolid-ssh/src/lib.rs:212
-#: crates/rolid-ssh/src/lib.rs:222
+#: crates/rolid-ssh/src/lib.rs:219
+#: crates/rolid-ssh/src/lib.rs:229
 msgid "the connection timed out"
 msgstr "se agotó el tiempo de conexión"
 
-#: crates/rolid-ssh/src/lib.rs:213
-#: crates/rolid-ssh/src/lib.rs:240
+#: crates/rolid-ssh/src/lib.rs:220
+#: crates/rolid-ssh/src/lib.rs:247
 msgid "connection failed: {error}"
 msgstr "error de conexión: {error}"
 
-#: crates/rolid-ssh/src/lib.rs:409
+#: crates/rolid-ssh/src/lib.rs:316
+msgid "the command on the server did not answer within {n} s"
+msgstr "el comando en el servidor no respondió en {n} s"
+
+#: crates/rolid-ssh/src/lib.rs:463
 msgid "{name}: unexpected answer from the server"
 msgstr "{name}: respuesta inesperada del servidor"
 
@@ -881,7 +885,7 @@ msgstr "el servidor no responde (tiempo agotado)"
 
 #: crates/rolid-ssh/src/link.rs:76
 #: crates/rolid-ssh/src/link.rs:78
-#: crates/rolid-ssh/src/link.rs:440
+#: crates/rolid-ssh/src/link.rs:444
 msgid "connection interrupted: {error}"
 msgstr "conexión interrumpida: {error}"
 
@@ -913,20 +917,20 @@ msgstr "No se puede restablecer la conexión: hay que verificar la clave del ser
 msgid "Disconnected (reconnecting stopped)"
 msgstr "Desconectado (reconexión detenida)"
 
-#: crates/rolid-ssh/src/link.rs:225
-#: crates/rolid-ssh/src/link.rs:460
+#: crates/rolid-ssh/src/link.rs:229
+#: crates/rolid-ssh/src/link.rs:464
 msgid "the connection to the server was interrupted"
 msgstr "se interrumpió la conexión con el servidor"
 
-#: crates/rolid-ssh/src/link.rs:372
+#: crates/rolid-ssh/src/link.rs:376
 msgid "The connection to server {server} is interrupted ({error}). {state}"
 msgstr "La conexión con el servidor {server} está interrumpida ({error}). {state}"
 
-#: crates/rolid-ssh/src/link.rs:378
+#: crates/rolid-ssh/src/link.rs:382
 msgid "The connection to server {server} is interrupted. {state}"
 msgstr "La conexión con el servidor {server} está interrumpida. {state}"
 
-#: crates/rolid-ssh/src/link.rs:554
+#: crates/rolid-ssh/src/link.rs:561
 msgid "the connection to the server was interrupted: {error}"
 msgstr "se interrumpió la conexión con el servidor: {error}"
 
@@ -939,13 +943,13 @@ msgid "“{name}” is {size}: remote archives over {limit} are not opened as a 
 msgstr "«{name}» ocupa {size}: los archivos comprimidos remotos de más de {limit} no se abren como carpeta (el límite está en Configuración). Puede extraerlo con Alt+F9."
 
 #: crates/rolid-ui/src/app/archdir_ui.rs:86
-#: crates/rolid-ui/src/app/archdir_ui.rs:246
+#: crates/rolid-ui/src/app/archdir_ui.rs:247
 #: crates/rolid-ui/src/app/archive_ui.rs:430
-#: crates/rolid-ui/src/app/archive_ui.rs:472
+#: crates/rolid-ui/src/app/archive_ui.rs:473
 #: crates/rolid-ui/src/app/checksum_ui.rs:364
 #: crates/rolid-ui/src/app/drag_out_ui.rs:263
 #: crates/rolid-ui/src/app/unpack_ui.rs:188
-#: crates/rolid-ui/src/app/unpack_ui.rs:634
+#: crates/rolid-ui/src/app/unpack_ui.rs:635
 msgid "Cannot create a temporary folder: {error}"
 msgstr "No se puede crear una carpeta temporal: {error}"
 
@@ -953,75 +957,75 @@ msgstr "No se puede crear una carpeta temporal: {error}"
 msgid "{name} ⇣ to open"
 msgstr "{name} ⇣ para abrir"
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:125
-#: crates/rolid-ui/src/app/archdir_ui.rs:137
-#: crates/rolid-ui/src/app/archdir_ui.rs:321
-#: crates/rolid-ui/src/app/archdir_ui.rs:334
-#: crates/rolid-ui/src/app/archdir_ui.rs:354
-#: crates/rolid-ui/src/app/archdir_ui.rs:402
+#: crates/rolid-ui/src/app/archdir_ui.rs:126
+#: crates/rolid-ui/src/app/archdir_ui.rs:138
+#: crates/rolid-ui/src/app/archdir_ui.rs:322
+#: crates/rolid-ui/src/app/archdir_ui.rs:335
+#: crates/rolid-ui/src/app/archdir_ui.rs:355
+#: crates/rolid-ui/src/app/archdir_ui.rs:403
 msgid "Open {name}"
 msgstr "Abrir {name}"
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:138
+#: crates/rolid-ui/src/app/archdir_ui.rs:139
 msgid "The archive has encrypted file names too; it cannot be listed without the password."
 msgstr "El archivo comprimido también tiene los nombres de archivo cifrados; no se puede listar sin la contraseña."
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:143
-#: crates/rolid-ui/src/app/archdir_ui.rs:363
+#: crates/rolid-ui/src/app/archdir_ui.rs:144
+#: crates/rolid-ui/src/app/archdir_ui.rs:364
 #: crates/rolid-ui/src/app/newfile_ui.rs:167
 msgid "Cannot open “{name}”: {error}"
 msgstr "No se puede abrir «{name}»: {error}"
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:153
-#: crates/rolid-ui/src/app/unpack_ui.rs:284
-#: crates/rolid-ui/src/app/unpack_ui.rs:722
-#: crates/rolid-ui/src/app/unpack_ui.rs:817
+#: crates/rolid-ui/src/app/archdir_ui.rs:154
+#: crates/rolid-ui/src/app/unpack_ui.rs:285
+#: crates/rolid-ui/src/app/unpack_ui.rs:723
+#: crates/rolid-ui/src/app/unpack_ui.rs:819
 msgid "Wrong password, try again."
 msgstr "Contraseña incorrecta, inténtelo de nuevo."
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:180
+#: crates/rolid-ui/src/app/archdir_ui.rs:181
 msgid "“{name}”: hidden items with an unsafe path"
 msgstr "«{name}»: elementos ocultos con una ruta no segura"
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:214
-#: crates/rolid-ui/src/app/archdir_ui.rs:297
+#: crates/rolid-ui/src/app/archdir_ui.rs:215
+#: crates/rolid-ui/src/app/archdir_ui.rs:298
 msgid "Copy from {name}"
 msgstr "Copiar de {name}"
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:215
+#: crates/rolid-ui/src/app/archdir_ui.rs:216
 msgid "The archive is password protected ({items})."
 msgstr "El archivo comprimido está protegido con contraseña ({items})."
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:322
-#: crates/rolid-ui/src/app/archdir_ui.rs:355
+#: crates/rolid-ui/src/app/archdir_ui.rs:323
+#: crates/rolid-ui/src/app/archdir_ui.rs:356
 #: crates/rolid-ui/src/app/viewer/mod.rs:126
 #: crates/rolid-ui/src/app/viewer/mod.rs:155
 msgid "The file is encrypted in the archive."
 msgstr "El archivo está cifrado en el archivo comprimido."
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:380
-#: crates/rolid-ui/src/app/session.rs:941
-#: crates/rolid-ui/src/app/unpack_ui.rs:431
-#: crates/rolid-ui/src/app/unpack_ui.rs:838
+#: crates/rolid-ui/src/app/archdir_ui.rs:381
+#: crates/rolid-ui/src/app/session.rs:943
+#: crates/rolid-ui/src/app/unpack_ui.rs:432
+#: crates/rolid-ui/src/app/unpack_ui.rs:840
 msgid "Password:"
 msgstr "Contraseña:"
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:381
-#: crates/rolid-ui/src/app/unpack_ui.rs:433
-#: crates/rolid-ui/src/app/unpack_ui.rs:839
+#: crates/rolid-ui/src/app/archdir_ui.rs:382
+#: crates/rolid-ui/src/app/unpack_ui.rs:434
+#: crates/rolid-ui/src/app/unpack_ui.rs:841
 msgid "archive password"
 msgstr "contraseña del archivo comprimido"
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:389
+#: crates/rolid-ui/src/app/archdir_ui.rs:390
 #: crates/rolid-ui/src/app/ctx_ui.rs:382
 msgid "Continue"
 msgstr "Continuar"
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:405
+#: crates/rolid-ui/src/app/archdir_ui.rs:406
 msgid "The archive is on the server ({size}). To browse it, it is downloaded into a temporary folder that is deleted when the archive is closed."
 msgstr "El archivo comprimido está en el servidor ({size}). Para examinarlo, se descarga en una carpeta temporal que se elimina al cerrarlo."
 
-#: crates/rolid-ui/src/app/archdir_ui.rs:410
+#: crates/rolid-ui/src/app/archdir_ui.rs:411
 msgid "Download and open"
 msgstr "Descargar y abrir"
 
@@ -1079,7 +1083,7 @@ msgid "Videos, music, jpg/png images, archives, Office documents… are only sto
 msgstr "Vídeos, música, imágenes jpg/png, archivos comprimidos, documentos de Office… solo se almacenan en el zip: comprimirlos no los haría más pequeños, solo más lento."
 
 #: crates/rolid-ui/src/app/archive_ui.rs:292
-#: crates/rolid-ui/src/app/unpack_ui.rs:428
+#: crates/rolid-ui/src/app/unpack_ui.rs:429
 msgid "Password"
 msgstr "Contraseña"
 
@@ -1121,12 +1125,12 @@ msgid "Without a password the archive is not encrypted."
 msgstr "Sin contraseña, el archivo comprimido no se cifra."
 
 #: crates/rolid-ui/src/app/archive_ui.rs:319
-#: crates/rolid-ui/src/app/unpack_ui.rs:498
+#: crates/rolid-ui/src/app/unpack_ui.rs:499
 msgid "Target"
 msgstr "Destino"
 
 #: crates/rolid-ui/src/app/archive_ui.rs:322
-#: crates/rolid-ui/src/app/unpack_ui.rs:501
+#: crates/rolid-ui/src/app/unpack_ui.rs:502
 msgid "to the other panel  {location}"
 msgstr "al otro panel  {location}"
 
@@ -1135,13 +1139,13 @@ msgid "The archive is built in a temporary folder on this computer and transferr
 msgstr "El archivo comprimido se crea en una carpeta temporal de este equipo y se transfiere mediante la cola de transferencias."
 
 #: crates/rolid-ui/src/app/archive_ui.rs:329
-#: crates/rolid-ui/src/app/unpack_ui.rs:509
+#: crates/rolid-ui/src/app/unpack_ui.rs:510
 msgid "to this panel  {location}"
 msgstr "a este panel  {location}"
 
 #: crates/rolid-ui/src/app/archive_ui.rs:333
 #: crates/rolid-ui/src/app/drop_ui.rs:411
-#: crates/rolid-ui/src/app/unpack_ui.rs:514
+#: crates/rolid-ui/src/app/unpack_ui.rs:515
 msgid "The target panel shows search results – open a folder in it first."
 msgstr "El panel de destino muestra resultados de búsqueda: abra antes una carpeta en él."
 
@@ -1162,7 +1166,7 @@ msgid "Overwrite  ⚠ the existing archive will be replaced"
 msgstr "Sobrescribir  ⚠ se reemplazará el archivo comprimido existente"
 
 #: crates/rolid-ui/src/app/archive_ui.rs:357
-#: crates/rolid-ui/src/app/unpack_ui.rs:560
+#: crates/rolid-ui/src/app/unpack_ui.rs:561
 msgid "⚠ The target is a PRODUCTION server – Enter is disabled, confirm with the button."
 msgstr "⚠ El destino es un servidor de PRODUCCIÓN: Enter está desactivado, confirme con el botón."
 
@@ -1174,16 +1178,16 @@ msgstr "El archivo comprimido «{name}» ya existe en el destino; no se comprime
 msgid "{what} ⇣ to pack"
 msgstr "{what} ⇣ para comprimir"
 
-#: crates/rolid-ui/src/app/archive_ui.rs:509
+#: crates/rolid-ui/src/app/archive_ui.rs:510
 msgid "Packing “{name}” failed: {error}"
 msgstr "Error al comprimir «{name}»: {error}"
 
-#: crates/rolid-ui/src/app/archive_ui.rs:631
+#: crates/rolid-ui/src/app/archive_ui.rs:633
 #: crates/rolid-ui/src/app/search.rs:93
 msgid "“{text}”"
 msgstr "«{text}»"
 
-#: crates/rolid-ui/src/app/archive_ui.rs:632
+#: crates/rolid-ui/src/app/archive_ui.rs:634
 #: crates/rolid-ui/src/app/ctx_ui.rs:215
 #: crates/rolid-ui/src/app/drag_ui.rs:243
 msgid "{n} item"
@@ -1200,7 +1204,7 @@ msgid "Calculate checksums"
 msgstr "Calcular sumas de comprobación"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:151
-#: crates/rolid-ui/src/app/session.rs:1026
+#: crates/rolid-ui/src/app/session.rs:1028
 msgid "Options"
 msgstr "Opciones"
 
@@ -1241,7 +1245,7 @@ msgstr[0] "{done} de {n} archivo"
 msgstr[1] "{done} de {n} archivos"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:192
-#: crates/rolid-ui/src/app.rs:2301
+#: crates/rolid-ui/src/app.rs:2316
 msgid "{done} of {total}"
 msgstr "{done} de {total}"
 
@@ -1282,8 +1286,8 @@ msgstr "Guardar en archivo"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:246
 #: crates/rolid-ui/src/app/newfile_ui.rs:78
-#: crates/rolid-ui/src/app/session.rs:917
-#: crates/rolid-ui/src/app.rs:2662
+#: crates/rolid-ui/src/app/session.rs:919
+#: crates/rolid-ui/src/app.rs:2679
 msgid "Name:"
 msgstr "Nombre:"
 
@@ -1315,39 +1319,39 @@ msgstr "Guardado: {path}"
 msgid "Uploading through the queue to {location}"
 msgstr "Subiendo mediante la cola a {location}"
 
-#: crates/rolid-ui/src/app/checksum_ui.rs:444
+#: crates/rolid-ui/src/app/checksum_ui.rs:445
 msgid "{path}/ (folder)"
 msgstr "{path}/ (carpeta)"
 
-#: crates/rolid-ui/src/app/checksum_ui.rs:455
+#: crates/rolid-ui/src/app/checksum_ui.rs:456
 msgid "{path}/: {error}"
 msgstr "{path}/: {error}"
 
-#: crates/rolid-ui/src/app/checksum_ui.rs:469
+#: crates/rolid-ui/src/app/checksum_ui.rs:470
 msgid "{path} (link)"
 msgstr "{path} (enlace)"
 
-#: crates/rolid-ui/src/app/checksum_ui.rs:496
+#: crates/rolid-ui/src/app/checksum_ui.rs:498
 msgid "{tool} on the server (SSH)"
 msgstr "{tool} en el servidor (SSH)"
 
-#: crates/rolid-ui/src/app/checksum_ui.rs:498
+#: crates/rolid-ui/src/app/checksum_ui.rs:500
 msgid "in the archive (by extracting)"
 msgstr "en el archivo comprimido (extrayendo)"
 
-#: crates/rolid-ui/src/app/checksum_ui.rs:500
+#: crates/rolid-ui/src/app/checksum_ui.rs:502
 msgid "by downloading over SFTP ({tool} is not on the server)"
 msgstr "descargando por SFTP ({tool} no está en el servidor)"
 
-#: crates/rolid-ui/src/app/checksum_ui.rs:502
+#: crates/rolid-ui/src/app/checksum_ui.rs:504
 msgid "by downloading over SFTP (the tool is not on the server)"
 msgstr "descargando por SFTP (la herramienta no está en el servidor)"
 
-#: crates/rolid-ui/src/app/checksum_ui.rs:504
+#: crates/rolid-ui/src/app/checksum_ui.rs:506
 msgid "by downloading over SFTP"
 msgstr "descargando por SFTP"
 
-#: crates/rolid-ui/src/app/checksum_ui.rs:638
+#: crates/rolid-ui/src/app/checksum_ui.rs:640
 msgid "cannot be read"
 msgstr "no se puede leer"
 
@@ -1394,8 +1398,8 @@ msgid "Permissions are not available here (the system does not report them)."
 msgstr "Los permisos no están disponibles aquí (el sistema no los informa)."
 
 #: crates/rolid-ui/src/app/ctx_ui.rs:215
-#: crates/rolid-ui/src/app/edit_ui.rs:1569
-#: crates/rolid-ui/src/app/unpack_ui.rs:363
+#: crates/rolid-ui/src/app/edit_ui.rs:1646
+#: crates/rolid-ui/src/app/unpack_ui.rs:364
 #: crates/rolid-ui/src/pane.rs:157
 msgid "“{name}”"
 msgstr "«{name}»"
@@ -1434,7 +1438,11 @@ msgstr[0] "Se omitirá {n} elemento (se indica en el resumen final):"
 msgstr[1] "Se omitirán {n} elementos (se indican en el resumen final):"
 
 #: crates/rolid-ui/src/app/ctx_ui.rs:427
-#: crates/rolid-ui/src/app.rs:2707
+#: crates/rolid-ui/src/app/drop_ui.rs:580
+#: crates/rolid-ui/src/app/rename_ui.rs:375
+#: crates/rolid-ui/src/app.rs:2629
+#: crates/rolid-ui/src/app.rs:2688
+#: crates/rolid-ui/src/app.rs:2728
 msgid "⚠ PRODUCTION SERVER: Enter is disabled, confirm with the button."
 msgstr "⚠ SERVIDOR DE PRODUCCIÓN: Enter está desactivado, confirme con el botón."
 
@@ -2033,7 +2041,7 @@ msgstr "Descargar"
 msgid "{items} → other application"
 msgstr "{items} → otra aplicación"
 
-#: crates/rolid-ui/src/app/drag_out_ui.rs:381
+#: crates/rolid-ui/src/app/drag_out_ui.rs:383
 msgid "The archive is password protected: open a file in it first (to enter the password), then drag again."
 msgstr "El archivo comprimido está protegido con contraseña: abra primero un archivo dentro (para introducir la contraseña) y vuelva a arrastrar."
 
@@ -2046,7 +2054,7 @@ msgid "A folder cannot go into itself"
 msgstr "Una carpeta no puede ir dentro de sí misma"
 
 #: crates/rolid-ui/src/app/drag_ui.rs:214
-#: crates/rolid-ui/src/app/drop_ui.rs:549
+#: crates/rolid-ui/src/app/drop_ui.rs:550
 msgid "Copy here: {n} item"
 msgid_plural "Copy here: {n} items"
 msgstr[0] "Copiar aquí: {n} elemento"
@@ -2125,103 +2133,106 @@ msgid_plural "{n} items → {dest}"
 msgstr[0] "{n} elemento → {dest}"
 msgstr[1] "{n} elementos → {dest}"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:548
+#: crates/rolid-ui/src/app/drop_ui.rs:549
 msgid "Upload here: {n} item"
 msgid_plural "Upload here: {n} items"
 msgstr[0] "Subir aquí: {n} elemento"
 msgstr[1] "Subir aquí: {n} elementos"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:569
-#: crates/rolid-ui/src/app/edit_ui.rs:1547
+#: crates/rolid-ui/src/app/drop_ui.rs:570
 #: crates/rolid-ui/src/app/edit_ui.rs:1624
+#: crates/rolid-ui/src/app/edit_ui.rs:1701
 msgid "Upload"
 msgstr "Subir"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:569
-#: crates/rolid-ui/src/app.rs:2596
-#: crates/rolid-ui/src/app.rs:2646
+#: crates/rolid-ui/src/app/drop_ui.rs:570
+#: crates/rolid-ui/src/app.rs:2611
+#: crates/rolid-ui/src/app.rs:2660
 msgctxt "verb"
 msgid "Copy"
 msgstr "Copiar"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:573
+#: crates/rolid-ui/src/app/drop_ui.rs:574
 msgid "Upload {n} item ({size}) to the server?"
 msgid_plural "Upload {n} items ({size}) to the server?"
 msgstr[0] "¿Subir {n} elemento ({size}) al servidor?"
 msgstr[1] "¿Subir {n} elementos ({size}) al servidor?"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:575
+#: crates/rolid-ui/src/app/drop_ui.rs:576
 msgid "Copy {n} item ({size}) here?"
 msgid_plural "Copy {n} items ({size}) here?"
 msgstr[0] "¿Copiar {n} elemento ({size}) aquí?"
 msgstr[1] "¿Copiar {n} elementos ({size}) aquí?"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:577
+#: crates/rolid-ui/src/app/drop_ui.rs:578
 msgid "to  {dest}"
 msgstr "a  {dest}"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:579
-#: crates/rolid-ui/src/app/rename_ui.rs:356
-#: crates/rolid-ui/src/app.rs:2614
-msgid "⚠ The target is a PRODUCTION server."
-msgstr "⚠ El destino es un servidor de PRODUCCIÓN."
-
-#: crates/rolid-ui/src/app/drop_ui.rs:584
+#: crates/rolid-ui/src/app/drop_ui.rs:585
 msgid "Large transfer (more than {files} files or {size})."
 msgstr "Transferencia grande (más de {files} archivos o {size})."
 
-#: crates/rolid-ui/src/app/drop_ui.rs:592
-#: crates/rolid-ui/src/app/rename_ui.rs:378
-#: crates/rolid-ui/src/app/unpack_ui.rs:526
-#: crates/rolid-ui/src/app.rs:2616
+#: crates/rolid-ui/src/app/drop_ui.rs:593
+#: crates/rolid-ui/src/app/rename_ui.rs:390
+#: crates/rolid-ui/src/app/unpack_ui.rs:527
+#: crates/rolid-ui/src/app.rs:2631
 msgid "Existing files"
 msgstr "Archivos existentes"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:594
+#: crates/rolid-ui/src/app/drop_ui.rs:595
 msgid "⚠ Already in the target: {names}. What to do with the existing files?"
 msgstr "⚠ Ya en el destino: {names}. ¿Qué hacer con los archivos existentes?"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:601
+#: crates/rolid-ui/src/app/drop_ui.rs:602
 msgid "{n} item cannot be transferred – it will be in the error summary."
 msgid_plural "{n} items cannot be transferred – they will be in the error summary."
 msgstr[0] "{n} elemento no se puede transferir; aparecerá en el resumen de errores."
 msgstr[1] "{n} elementos no se pueden transferir; aparecerán en el resumen de errores."
 
-#: crates/rolid-ui/src/app/drop_ui.rs:608
+#: crates/rolid-ui/src/app/drop_ui.rs:609
 msgid "The source files are only read, nothing in them is changed."
 msgstr "Los archivos de origen solo se leen, no se modifica nada en ellos."
 
-#: crates/rolid-ui/src/app/drop_ui.rs:621
+#: crates/rolid-ui/src/app/drop_ui.rs:613
+msgid "Upload to production"
+msgstr "Subir a producción"
+
+#: crates/rolid-ui/src/app/drop_ui.rs:614
+#: crates/rolid-ui/src/app.rs:2660
+msgid "Copy to production"
+msgstr "Copiar a producción"
+
+#: crates/rolid-ui/src/app/drop_ui.rs:627
 msgid "Where to copy the dropped files?"
 msgstr "¿Dónde copiar los archivos soltados?"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:622
+#: crates/rolid-ui/src/app/drop_ui.rs:628
 msgid "Could not find out where the files were dropped – choose a panel."
 msgstr "No se ha podido averiguar dónde se soltaron los archivos: elija un panel."
 
-#: crates/rolid-ui/src/app/drop_ui.rs:625
+#: crates/rolid-ui/src/app/drop_ui.rs:631
 msgid "◧ Left: {path}"
 msgstr "◧ Izquierdo: {path}"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:625
+#: crates/rolid-ui/src/app/drop_ui.rs:631
 msgid "◨ Right: {path}"
 msgstr "◨ Derecho: {path}"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:663
+#: crates/rolid-ui/src/app/drop_ui.rs:669
 msgid "⚠ {title}: {n} item could not be transferred"
 msgid_plural "⚠ {title}: {n} items could not be transferred"
 msgstr[0] "⚠ {title}: no se ha podido transferir {n} elemento"
 msgstr[1] "⚠ {title}: no se han podido transferir {n} elementos"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:665
+#: crates/rolid-ui/src/app/drop_ui.rs:671
 msgid "Details"
 msgstr "Detalles"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:686
+#: crates/rolid-ui/src/app/drop_ui.rs:692
 msgid "Transfer error summary"
 msgstr "Resumen de errores de transferencia"
 
-#: crates/rolid-ui/src/app/drop_ui.rs:688
+#: crates/rolid-ui/src/app/drop_ui.rs:694
 msgid "These items were not transferred, the rest of the transfer finished:"
 msgstr "Estos elementos no se han transferido; el resto de la transferencia ha terminado:"
 
@@ -2257,304 +2268,317 @@ msgstr "Guardado al lado como «{name}» a las {time}"
 msgid "not uploaded: {reason}"
 msgstr "no subido: {reason}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:212
+#: crates/rolid-ui/src/app/edit_ui.rs:227
 msgid "{error} (Settings → External editor…)"
 msgstr "{error} (Configuración → Editor externo…)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:377
+#: crates/rolid-ui/src/app/edit_ui.rs:397
 msgid "recovered after a crash"
 msgstr "recuperado tras un fallo"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:403
+#: crates/rolid-ui/src/app/edit_ui.rs:425
 msgid "A file in an archive cannot be edited (it can be opened with Enter)"
 msgstr "Un archivo dentro de un archivo comprimido no se puede editar (se puede abrir con Enter)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:413
+#: crates/rolid-ui/src/app/edit_ui.rs:435
 msgid "F4 edits files – it does nothing on a folder."
 msgstr "F4 edita archivos; en una carpeta no hace nada."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:458
+#: crates/rolid-ui/src/app/edit_ui.rs:480
 msgid "{path}: cannot be started: {error}"
 msgstr "{path}: no se puede iniciar: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:469
+#: crates/rolid-ui/src/app/edit_ui.rs:491
 msgid "application “{id}” is not in the system"
 msgstr "la aplicación «{id}» no está en el sistema"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:497
+#: crates/rolid-ui/src/app/edit_ui.rs:519
 msgid "A file in an archive cannot be edited"
 msgstr "Un archivo dentro de un archivo comprimido no se puede editar"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:539
-#: crates/rolid-ui/src/app/edit_ui.rs:605
-#: crates/rolid-ui/src/app/edit_ui.rs:610
+#: crates/rolid-ui/src/app/edit_ui.rs:561
+#: crates/rolid-ui/src/app/edit_ui.rs:567
+#: crates/rolid-ui/src/app/edit_ui.rs:635
+#: crates/rolid-ui/src/app/edit_ui.rs:640
 msgid "Cannot start editing: {error}"
 msgstr "No se puede empezar a editar: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:737
+#: crates/rolid-ui/src/app/edit_ui.rs:769
 msgid "Cannot download the file for editing: {error}"
 msgstr "No se puede descargar el archivo para editarlo: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:753
+#: crates/rolid-ui/src/app/edit_ui.rs:788
 msgid "a file of the same name was created on the server in the meantime"
 msgstr "mientras tanto se ha creado en el servidor un archivo con el mismo nombre"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:755
+#: crates/rolid-ui/src/app/edit_ui.rs:790
 msgid "the file has changed on the server in the meantime"
 msgstr "el archivo ha cambiado en el servidor mientras tanto"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:760
+#: crates/rolid-ui/src/app/edit_ui.rs:795
 msgid "waiting for confirmation (production server)"
 msgstr "esperando confirmación (servidor de producción)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:766
+#: crates/rolid-ui/src/app/edit_ui.rs:801
 msgid "Cannot find out the state of the file on the server: {error}"
 msgstr "No se puede averiguar el estado del archivo en el servidor: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:811
+#: crates/rolid-ui/src/app/edit_ui.rs:850
+msgid "Upload failed: {error} – trying again ({n} of {max})"
+msgstr "La subida falló: {error} – reintentando ({n} de {max})"
+
+#: crates/rolid-ui/src/app/edit_ui.rs:863
 msgid "Upload failed: {error}"
 msgstr "Error al subir: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:840
+#: crates/rolid-ui/src/app/edit_ui.rs:865
+msgid ""
+"The edited file “{name}” could not be uploaded to the server: {error}\n"
+"The changes are kept in the local copy. Try “Upload again” in Edited files."
+msgstr ""
+"No se pudo subir al servidor el archivo editado «{name}»: {error}\n"
+"Los cambios se conservan en la copia local. Pruebe «Volver a subir» en Archivos editados."
+
+#: crates/rolid-ui/src/app/edit_ui.rs:900
 msgid "Cannot watch the file for changes: {error}"
 msgstr "No se pueden vigilar los cambios del archivo: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:865
+#: crates/rolid-ui/src/app/edit_ui.rs:925
 msgid "The edited file “{name}” was just being uploaded to its original location. The next save will go to {path}; check that the newest content is there."
 msgstr "El archivo editado «{name}» se estaba subiendo a su ubicación original. El siguiente guardado irá a {path}; compruebe que ahí está el contenido más reciente."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:975
+#: crates/rolid-ui/src/app/edit_ui.rs:1035
 msgid "changed – waiting for the decision about uploading"
 msgstr "modificado: esperando la decisión sobre la subida"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1060
+#: crates/rolid-ui/src/app/edit_ui.rs:1137
 msgid "The upload did not succeed even after {n} restored connection – try “Upload again”"
 msgid_plural "The upload did not succeed even after {n} restored connections – try “Upload again”"
 msgstr[0] "La subida no ha funcionado ni tras {n} conexión restablecida; pruebe «Volver a subir»"
 msgstr[1] "La subida no ha funcionado ni tras {n} conexiones restablecidas; pruebe «Volver a subir»"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1164
+#: crates/rolid-ui/src/app/edit_ui.rs:1241
 msgid "Quitting canceled: the edit could not be uploaded (see Edited files)."
 msgstr "Salida cancelada: no se ha podido subir la edición (vea Archivos editados)."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1224
+#: crates/rolid-ui/src/app/edit_ui.rs:1301
 msgid "⏫ Uploading…"
 msgstr "⏫ Subiendo…"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1226
+#: crates/rolid-ui/src/app/edit_ui.rs:1303
 msgid "⚠ Edits: {n} file – not uploaded"
 msgid_plural "⚠ Edits: {n} files – not uploaded"
 msgstr[0] "⚠ Ediciones: {n} archivo sin subir"
 msgstr[1] "⚠ Ediciones: {n} archivos sin subir"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1233
+#: crates/rolid-ui/src/app/edit_ui.rs:1310
 msgid "✎ Editing: {n} file · uploaded at {time}"
 msgid_plural "✎ Editing: {n} files · uploaded at {time}"
 msgstr[0] "✎ Editando: {n} archivo · subido a las {time}"
 msgstr[1] "✎ Editando: {n} archivos · subidos a las {time}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1239
+#: crates/rolid-ui/src/app/edit_ui.rs:1316
 msgid "✎ Editing: {n} file"
 msgid_plural "✎ Editing: {n} files"
 msgstr[0] "✎ Editando: {n} archivo"
 msgstr[1] "✎ Editando: {n} archivos"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1246
+#: crates/rolid-ui/src/app/edit_ui.rs:1323
 msgid "Edited files (F4) – list, upload again, end"
 msgstr "Archivos editados (F4): lista, volver a subir, terminar"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1255
+#: crates/rolid-ui/src/app/edit_ui.rs:1332
 msgid "Edited files"
 msgstr "Archivos editados"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1262
+#: crates/rolid-ui/src/app/edit_ui.rs:1339
 msgid "No file is being edited. Select a file and press F4."
 msgstr "No se está editando ningún archivo. Seleccione un archivo y pulse F4."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1276
-#: crates/rolid-ui/src/app/edit_ui.rs:1355
-#: crates/rolid-ui/src/app/edit_ui.rs:1434
+#: crates/rolid-ui/src/app/edit_ui.rs:1353
+#: crates/rolid-ui/src/app/edit_ui.rs:1432
+#: crates/rolid-ui/src/app/edit_ui.rs:1511
 msgid "Open in editor"
 msgstr "Abrir en el editor"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1279
+#: crates/rolid-ui/src/app/edit_ui.rs:1356
 msgid "Upload again"
 msgstr "Volver a subir"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1282
+#: crates/rolid-ui/src/app/edit_ui.rs:1359
 msgid "End editing"
 msgstr "Terminar edición"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1290
+#: crates/rolid-ui/src/app/edit_ui.rs:1367
 msgid "Every save in the editor is uploaded to the server automatically. Ending deletes the temporary copy."
 msgstr "Cada guardado en el editor se sube automáticamente al servidor. Al terminar se elimina la copia temporal."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1322
+#: crates/rolid-ui/src/app/edit_ui.rs:1399
 msgid "Large file"
 msgstr "Archivo grande"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1325
+#: crates/rolid-ui/src/app/edit_ui.rs:1402
 msgid "“{name}” is {size}. Editing a large file in the editor may be slow and the download will take a while."
 msgstr "«{name}» ocupa {size}. Editar un archivo grande puede ser lento y la descarga tardará un rato."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1331
+#: crates/rolid-ui/src/app/edit_ui.rs:1408
 msgid "“{name}” is {size}. Editing a large file in the editor may be slow."
 msgstr "«{name}» ocupa {size}. Editar un archivo grande puede ser lento."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1333
+#: crates/rolid-ui/src/app/edit_ui.rs:1410
 msgid "Edit anyway"
 msgstr "Editar de todos modos"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1345
+#: crates/rolid-ui/src/app/edit_ui.rs:1422
 msgid "Run the program?"
 msgstr "¿Ejecutar el programa?"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1349
+#: crates/rolid-ui/src/app/edit_ui.rs:1426
 msgid "“{name}” {reason}. Enter does not run it by itself."
 msgstr "«{name}» {reason}. Enter no lo ejecuta por sí solo."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1351
+#: crates/rolid-ui/src/app/edit_ui.rs:1428
 msgid "Run it only if you know what it does. You can look at it safely in the text editor."
 msgstr "Ejecútelo solo si sabe lo que hace. Puede examinarlo con seguridad en el editor de texto."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1353
+#: crates/rolid-ui/src/app/edit_ui.rs:1430
 msgid "Run"
 msgstr "Ejecutar"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1353
+#: crates/rolid-ui/src/app/edit_ui.rs:1430
 msgid "Open with the default application"
 msgstr "Abrir con la aplicación predeterminada"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1376
-#: crates/rolid-ui/src/app/edit_ui.rs:1397
+#: crates/rolid-ui/src/app/edit_ui.rs:1453
+#: crates/rolid-ui/src/app/edit_ui.rs:1474
 msgid "Binary file"
 msgstr "Archivo binario"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1379
+#: crates/rolid-ui/src/app/edit_ui.rs:1456
 msgid "“{name}” looks like a binary file (it contains zero bytes). The text editor may damage it."
 msgstr "«{name}» parece un archivo binario (contiene bytes nulos). El editor de texto podría dañarlo."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1381
-#: crates/rolid-ui/src/app/edit_ui.rs:1406
+#: crates/rolid-ui/src/app/edit_ui.rs:1458
+#: crates/rolid-ui/src/app/edit_ui.rs:1483
 msgid "Open anyway"
 msgstr "Abrir de todos modos"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1400
+#: crates/rolid-ui/src/app/edit_ui.rs:1477
 msgid "“{name}” looks like a binary file (it contains zero bytes). The text editor may damage it and saving would upload it to the server."
 msgstr "«{name}» parece un archivo binario (contiene bytes nulos). El editor de texto podría dañarlo y al guardar se subiría al servidor."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1420
+#: crates/rolid-ui/src/app/edit_ui.rs:1497
 msgid "⚠ A file from the server can run something"
 msgstr "⚠ Un archivo del servidor puede ejecutar algo"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1423
+#: crates/rolid-ui/src/app/edit_ui.rs:1500
 msgid "“{name}” ({location}) {reason}."
 msgstr "«{name}» ({location}) {reason}."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1427
+#: crates/rolid-ui/src/app/edit_ui.rs:1504
 msgid "Opening it with an application other than the text editor may run its content on this computer. It is safe to look at it in the text editor."
 msgstr "Abrirlo con una aplicación distinta del editor de texto puede ejecutar su contenido en este equipo. Es seguro examinarlo en el editor de texto."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1435
+#: crates/rolid-ui/src/app/edit_ui.rs:1512
 msgid "Open anyway ({app})"
 msgstr "Abrir de todos modos ({app})"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1459
+#: crates/rolid-ui/src/app/edit_ui.rs:1536
 msgid "The file has changed"
 msgstr "El archivo ha cambiado"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1463
+#: crates/rolid-ui/src/app/edit_ui.rs:1540
 msgid "“{name}” opened from {location} has changed in the application. Upload the change to the server?"
 msgstr "«{name}», abierto desde {location}, ha cambiado en la aplicación. ¿Subir el cambio al servidor?"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1469
+#: crates/rolid-ui/src/app/edit_ui.rs:1546
 msgid "Before uploading, it is checked whether the file has changed on the server in the meantime."
 msgstr "Antes de subir se comprueba si el archivo ha cambiado en el servidor mientras tanto."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1472
+#: crates/rolid-ui/src/app/edit_ui.rs:1549
 msgid "⚠ Production server – it will be confirmed once more."
 msgstr "⚠ Servidor de producción: se pedirá confirmación una vez más."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1475
+#: crates/rolid-ui/src/app/edit_ui.rs:1552
 msgid "Upload to server"
 msgstr "Subir al servidor"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1476
-#: crates/rolid-ui/src/app/edit_ui.rs:1547
+#: crates/rolid-ui/src/app/edit_ui.rs:1553
+#: crates/rolid-ui/src/app/edit_ui.rs:1624
 #: crates/rolid-ui/src/app/vault_ui.rs:820
 msgid "Not now"
 msgstr "Ahora no"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1484
+#: crates/rolid-ui/src/app/edit_ui.rs:1561
 msgid "change not uploaded (can be uploaded from the list of edits)"
 msgstr "cambio no subido (se puede subir desde la lista de ediciones)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1496
+#: crates/rolid-ui/src/app/edit_ui.rs:1573
 msgid "The file has changed on the server"
 msgstr "El archivo ha cambiado en el servidor"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1498
+#: crates/rolid-ui/src/app/edit_ui.rs:1575
 msgid "A file “{name}” ({location}) was created on the server in the meantime (it is {size}). Your new file has not been uploaded yet."
 msgstr "Mientras tanto se ha creado en el servidor un archivo «{name}» ({location}) de {size}. Su archivo nuevo aún no se ha subido."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1506
+#: crates/rolid-ui/src/app/edit_ui.rs:1583
 msgid "“{name}” ({location}) has changed on the server since you opened it (it is now {size}). Your edit has not been uploaded yet."
 msgstr "«{name}» ({location}) ha cambiado en el servidor desde que lo abrió (ahora ocupa {size}). Su edición aún no se ha subido."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1516
-#: crates/rolid-ui/src/app/edit_ui.rs:1607
+#: crates/rolid-ui/src/app/edit_ui.rs:1593
+#: crates/rolid-ui/src/app/edit_ui.rs:1684
 msgid "⚠ Production server."
 msgstr "⚠ Servidor de producción."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1519
+#: crates/rolid-ui/src/app/edit_ui.rs:1596
 msgid "Overwrite the version on the server"
 msgstr "Sobrescribir la versión del servidor"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1520
+#: crates/rolid-ui/src/app/edit_ui.rs:1597
 msgid "Save alongside under another name"
 msgstr "Guardar al lado con otro nombre"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1545
+#: crates/rolid-ui/src/app/edit_ui.rs:1622
 msgid "⚠ Upload to the production server?"
 msgstr "⚠ ¿Subir al servidor de producción?"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1546
+#: crates/rolid-ui/src/app/edit_ui.rs:1623
 msgid "The saved edit of “{name}” will be uploaded to {location}."
 msgstr "La edición guardada de «{name}» se subirá a {location}."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1564
+#: crates/rolid-ui/src/app/edit_ui.rs:1641
 msgid "Changes not uploaded"
 msgstr "Cambios sin subir"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1567
+#: crates/rolid-ui/src/app/edit_ui.rs:1644
 msgid "These edited files are not on the server yet: {names}."
 msgstr "Estos archivos editados aún no están en el servidor: {names}."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1573
+#: crates/rolid-ui/src/app/edit_ui.rs:1650
 msgid "Upload and close the tab"
 msgstr "Subir y cerrar la pestaña"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1573
+#: crates/rolid-ui/src/app/edit_ui.rs:1650
 msgid "Discard changes and close"
 msgstr "Descartar cambios y cerrar"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1574
+#: crates/rolid-ui/src/app/edit_ui.rs:1651
 msgid "Upload and quit"
 msgstr "Subir y salir"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1574
+#: crates/rolid-ui/src/app/edit_ui.rs:1651
 msgid "Quit without uploading"
 msgstr "Salir sin subir"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1575
+#: crates/rolid-ui/src/app/edit_ui.rs:1652
 msgid "Upload and end editing"
 msgstr "Subir y terminar edición"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1575
+#: crates/rolid-ui/src/app/edit_ui.rs:1652
 msgid "Discard changes"
 msgstr "Descartar cambios"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1580
+#: crates/rolid-ui/src/app/edit_ui.rs:1657
 #: crates/rolid-ui/src/app/menu.rs:273
 #: crates/rolid-ui/src/app/places.rs:150
 #: crates/rolid-ui/src/app/places.rs:166
@@ -2563,47 +2587,47 @@ msgstr "Descartar cambios"
 msgid "Back"
 msgstr "Atrás"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1594
+#: crates/rolid-ui/src/app/edit_ui.rs:1671
 msgid "Unsaved edits were left after a crash"
 msgstr "Quedaron ediciones sin guardar tras un fallo"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1597
+#: crates/rolid-ui/src/app/edit_ui.rs:1674
 msgid "“{name}” ({user}@{host}:{path}) was edited in an application that did not end properly. This version is not on the server."
 msgstr "«{name}» ({user}@{host}:{path}) se editó en una aplicación que no terminó correctamente. Esta versión no está en el servidor."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1610
+#: crates/rolid-ui/src/app/edit_ui.rs:1687
 msgid "Open folder"
 msgstr "Abrir carpeta"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1622
+#: crates/rolid-ui/src/app/edit_ui.rs:1699
 msgid "Esc = decide later (it asks again at the next start)."
 msgstr "Esc = decidir más tarde (se volverá a preguntar en el próximo inicio)."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1624
+#: crates/rolid-ui/src/app/edit_ui.rs:1701
 msgid "Connects to the server and uploads (with a conflict check)"
 msgstr "Se conecta al servidor y sube (con comprobación de conflictos)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1625
+#: crates/rolid-ui/src/app/edit_ui.rs:1702
 msgid "Discard"
 msgstr "Descartar"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1645
+#: crates/rolid-ui/src/app/edit_ui.rs:1722
 msgid "External editor (F4)"
 msgstr "Editor externo (F4)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1646
+#: crates/rolid-ui/src/app/edit_ui.rs:1723
 msgid "The command that opens the file. {{file}} is replaced by the path to the file."
 msgstr "El comando que abre el archivo. {{file}} se sustituye por la ruta del archivo."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1653
+#: crates/rolid-ui/src/app/edit_ui.rs:1730
 msgid "Empty = automatic (now: {command})."
 msgstr "Vacío = automático (ahora: {command})."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1654
+#: crates/rolid-ui/src/app/edit_ui.rs:1731
 msgid "A terminal editor only through a terminal, e.g.: x-terminal-emulator -e nano {{file}}"
 msgstr "Un editor de terminal solo a través de un terminal, p. ej.: x-terminal-emulator -e nano {{file}}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1666
+#: crates/rolid-ui/src/app/edit_ui.rs:1743
 #: crates/rolid-ui/src/app/places.rs:147
 #: crates/rolid-ui/src/app/view_ui.rs:649
 msgid "Save"
@@ -2643,32 +2667,48 @@ msgstr "Doble clic o → abre una carpeta, Retroceso sube un nivel."
 msgid "Select"
 msgstr "Seleccionar"
 
-#: crates/rolid-ui/src/app/link_ui.rs:245
+#: crates/rolid-ui/src/app/link_ui.rs:235
+msgid ""
+"Replacing a file on {server} was cut off (lost connection or crash). The original file was put back under its name; the new version did not arrive, copy or save it again:\n"
+"{files}"
+msgstr ""
+"La sustitución de un archivo en {server} se interrumpió (conexión perdida o cierre inesperado). El archivo original se devolvió a su nombre; la versión nueva no llegó, cópiela o guárdela de nuevo:\n"
+"{files}"
+
+#: crates/rolid-ui/src/app/link_ui.rs:243
+msgid ""
+"Replacing a file on {server} was cut off (lost connection or crash). The new version had arrived complete and is now in place:\n"
+"{files}"
+msgstr ""
+"La sustitución de un archivo en {server} se interrumpió (conexión perdida o cierre inesperado). La versión nueva había llegado completa y ya está en su sitio:\n"
+"{files}"
+
+#: crates/rolid-ui/src/app/link_ui.rs:296
 msgid "Connect now"
 msgstr "Conectar ahora"
 
-#: crates/rolid-ui/src/app/link_ui.rs:253
+#: crates/rolid-ui/src/app/link_ui.rs:304
 #: crates/rolid-ui/src/app/menu.rs:227
 msgid "Unlock…"
 msgstr "Desbloquear…"
 
-#: crates/rolid-ui/src/app/link_ui.rs:258
+#: crates/rolid-ui/src/app/link_ui.rs:309
 msgid "The saved password is needed to restore the connection."
 msgstr "Se necesita la contraseña guardada para restablecer la conexión."
 
-#: crates/rolid-ui/src/app/link_ui.rs:268
+#: crates/rolid-ui/src/app/link_ui.rs:319
 msgid "Enter credentials…"
 msgstr "Introducir credenciales…"
 
-#: crates/rolid-ui/src/app/link_ui.rs:274
+#: crates/rolid-ui/src/app/link_ui.rs:325
 #: crates/rolid-ui/src/app/viewer/text/find.rs:241
 #: crates/rolid-ui/src/app/viewer/text.rs:479
-#: crates/rolid-ui/src/app.rs:2330
-#: crates/rolid-ui/src/dialog.rs:303
+#: crates/rolid-ui/src/app.rs:2345
+#: crates/rolid-ui/src/dialog.rs:309
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: crates/rolid-ui/src/app/link_ui.rs:342
+#: crates/rolid-ui/src/app/link_ui.rs:393
 msgid "{error} (the server asks for more information)"
 msgstr "{error} (el servidor pide más información)"
 
@@ -2744,20 +2784,20 @@ msgstr "Mover al otro panel"
 
 #: crates/rolid-ui/src/app/menu.rs:106
 #: crates/rolid-ui/src/app/places.rs:189
-#: crates/rolid-ui/src/app/rename_ui.rs:187
-#: crates/rolid-ui/src/app/rename_ui.rs:195
+#: crates/rolid-ui/src/app/rename_ui.rs:191
+#: crates/rolid-ui/src/app/rename_ui.rs:199
 #: crates/rolid-ui/src/pane/views.rs:286
 msgid "Rename"
 msgstr "Renombrar"
 
 #: crates/rolid-ui/src/app/menu.rs:112
-#: crates/rolid-ui/src/app.rs:2660
+#: crates/rolid-ui/src/app.rs:2677
 #: crates/rolid-ui/src/pane/views.rs:333
 msgid "New folder"
 msgstr "Nueva carpeta"
 
 #: crates/rolid-ui/src/app/menu.rs:117
-#: crates/rolid-ui/src/app/session.rs:907
+#: crates/rolid-ui/src/app/session.rs:909
 #: crates/rolid-ui/src/pane/views.rs:287
 msgid "Delete"
 msgstr "Eliminar"
@@ -2778,8 +2818,8 @@ msgid "Extract…"
 msgstr "Extraer…"
 
 #: crates/rolid-ui/src/app/menu.rs:130
-#: crates/rolid-ui/src/app/unpack_ui.rs:835
-#: crates/rolid-ui/src/app/unpack_ui.rs:858
+#: crates/rolid-ui/src/app/unpack_ui.rs:837
+#: crates/rolid-ui/src/app/unpack_ui.rs:860
 #: crates/rolid-ui/src/pane/views.rs:292
 msgid "Test archive"
 msgstr "Probar archivo comprimido"
@@ -3528,99 +3568,104 @@ msgstr "Novedades"
 
 #: crates/rolid-ui/src/app/menu.rs:697
 msgctxt "news"
+msgid "0.8.14 data protection: on a production server copying, uploading, moving and a new folder never start with Overwrite and Enter does not confirm them; a move deletes the source only when it did not change meanwhile, and to a server only after the checksums match; an interrupted transfer is resumed only from a part file of the same source; a file replaced on a server without atomic rename is repaired at the next connection after a cut-off; F4 copies are kept on disk, a failed upload is tried again, the time of the upload has seconds; starts without system fonts; slow server shells no longer hold up search and checksums."
+msgstr ""
+
+#: crates/rolid-ui/src/app/menu.rs:707
+msgctxt "news"
 msgid "0.8.13 listings refresh by themselves: local folders at once, server folders when you come back to them and every 30 s while the window is active (View → Automatic refresh), the cursor and the marks stay; thin lines between the columns, drag them to change the width (a double click fits the content), kept for each panel; names that do not fit end with “…”; the disk health badge shows the reason; dragging files into Thunar works; hovering changes only colors."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:705
+#: crates/rolid-ui/src/app/menu.rs:715
 msgctxt "news"
 msgid "0.8.12 a bar above each panel: the folders on the path and the disks in a drop-down (Alt+↓), back, forward, up, root, home, refresh and favorites; the free space, file system and disk health moved into the path row; a right click on the empty space of a panel offers a new file, a new folder, a terminal and the disk properties."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:712
+#: crates/rolid-ui/src/app/menu.rs:722
 msgctxt "news"
 msgid "0.8.11 files and folders can be dragged out of the window to other applications (X11), from a server or an archive they are downloaded first; Shift+F4 creates a new file in the external editor; favorite folders can be added, renamed and removed in the new tab menu; stricter disk temperature and wear limits, the temperature is checked every 5 minutes."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:719
+#: crates/rolid-ui/src/app/menu.rs:729
 msgctxt "news"
 msgid "0.8.10 the free-space row shows the file system type and the disk health (SMART) with a detail in plain language; Ctrl+P opens a terminal in the panel's folder, on a server ssh with the saved password; the tab and server switcher moved to Ctrl+K."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:725
+#: crates/rolid-ui/src/app/menu.rs:735
 msgctxt "news"
 msgid "0.8.9 built-in viewer (F3) in a window of its own: files of any size, also on a server without downloading them whole, syntax highlighting, encodings, hex, following a growing log, searching with the ripgrep engine (on a server with grep over SSH) and images (JPEG, PNG, animated GIF, WebP, BMP) with zoom, rotation and next / previous image."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:732
+#: crates/rolid-ui/src/app/menu.rs:742
 msgctxt "news"
 msgid "0.8.8 new tab menu (Ctrl+T: home folder, favorites, servers, recent places), favorite folders (Ctrl+D), tab menu (duplicate, color, close others), dragging files inside the app (Shift moves, Esc cancels), saved passwords lock again after a set time, one look for all dialogs and a target history with Browse… when copying and moving."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:739
+#: crates/rolid-ui/src/app/menu.rs:749
 msgctxt "news"
 msgid "0.8.7 in eight languages: English, Czech, German, French, Polish, Spanish, Norwegian and Danish (by the system or in Settings, switches at once; your own translation in ~/.config/rolidscp/lang), numbers and dates written as the language does (or ISO), help on F1."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:745
+#: crates/rolid-ui/src/app/menu.rs:755
 msgctxt "news"
 msgid "0.8.6 sharper text: strong hinting puts the vertical strokes of letters on whole pixels (the default, together with higher contrast); table lines stay sharp at 125% and 150% scaling too."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:750
+#: crates/rolid-ui/src/app/menu.rs:760
 msgctxt "news"
 msgid "0.8.5 rename right in the list (F2, Shift+F6), move to the other panel (F6), also between disks and servers, rename a tab by double-clicking it, font size in whole points (default 14), font Hinting and Contrast options in Settings, the bottom bar adapts to the window width."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:756
+#: crates/rolid-ui/src/app/menu.rs:766
 msgctxt "news"
 msgid "0.8.4 GPL-3.0-or-later license and source code on GitHub, sharper Noto Sans font (system font and text size can be chosen in Settings), size of the folder under the cursor (Alt+Space or Shift+Space), more readable colors on the cursor row."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:762
+#: crates/rolid-ui/src/app/menu.rs:772
 msgctxt "news"
 msgid "0.8.3 Enter opens a file in the default application (for a program or script it asks: editor / Run), more precise drop target when dragging, compression on all cores (a No compression level; already compressed files are only stored), estimated time remaining, folders in [square brackets], selecting by mask also for folders, folder sizes (Alt+Shift+Enter, on a server via du), MD5/SHA/BLAKE3/CRC32 checksums saved in a format compatible with sha256sum -c."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:770
+#: crates/rolid-ui/src/app/menu.rs:780
 msgctxt "news"
 msgid "0.8.2 archives: pack (Alt+F5: zip, 7z, tar, tar.gz, tar.zst, AES-256 password for zip and 7z), extract (Alt+F9) with protection against zip-slip and zip bombs, archive test (Alt+Shift+F9), Enter opens an archive as a read-only folder (F5 copies out, also from a server)."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:776
+#: crates/rolid-ui/src/app/menu.rs:786
 msgctxt "news"
 msgid "0.8.1 toolbar, brief view and image thumbnails, folder history (Alt+←/→), selecting a group by mask, a distinct header for the active panel, free space, selection summary, file type icons and colors, exact drop target highlighting while dragging on X11."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:782
+#: crates/rolid-ui/src/app/menu.rs:792
 msgctxt "news"
 msgid "0.8.0 context menu (Open with, permissions, copying the path to the clipboard), default choice on conflict, consistent dialog look with icons, the queue shows “file 3 of 120”."
 msgstr ""
 
-#: crates/rolid-ui/src/app/menu.rs:792
+#: crates/rolid-ui/src/app/menu.rs:802
 msgid "❤ Support development"
 msgstr "❤ Apoyar el desarrollo"
 
-#: crates/rolid-ui/src/app/menu.rs:793
+#: crates/rolid-ui/src/app/menu.rs:803
 msgid "RolidSCP is free and has no ads. If it saves you time, you can support its further development with a bitcoin donation of any amount. Thank you!"
 msgstr "RolidSCP es gratuito y no tiene anuncios. Si le ahorra tiempo, puede apoyar su desarrollo con una donación en bitcoin de cualquier importe. ¡Gracias!"
 
-#: crates/rolid-ui/src/app/menu.rs:802
+#: crates/rolid-ui/src/app/menu.rs:812
 msgid "Bitcoin (BTC):"
 msgstr "Bitcoin (BTC):"
 
-#: crates/rolid-ui/src/app/menu.rs:805
+#: crates/rolid-ui/src/app/menu.rs:815
 msgid "Copy address"
 msgstr "Copiar dirección"
 
-#: crates/rolid-ui/src/app/menu.rs:808
+#: crates/rolid-ui/src/app/menu.rs:818
 msgid "₿ Open in wallet"
 msgstr "₿ Abrir en el monedero"
 
-#: crates/rolid-ui/src/app/menu.rs:810
+#: crates/rolid-ui/src/app/menu.rs:820
 msgid "🔎 Address on mempool.space"
 msgstr "🔎 Dirección en mempool.space"
 
-#: crates/rolid-ui/src/app/menu.rs:814
+#: crates/rolid-ui/src/app/menu.rs:824
 msgid "Scan the QR code with a mobile wallet."
 msgstr "Escanee el código QR con un monedero móvil."
 
@@ -3834,7 +3879,7 @@ msgstr "Cambiar color"
 
 #: crates/rolid-ui/src/app/places.rs:735
 #: crates/rolid-ui/src/app/viewer/mod.rs:497
-#: crates/rolid-ui/src/dialog.rs:308
+#: crates/rolid-ui/src/dialog.rs:314
 msgid "Close"
 msgstr "Cerrar"
 
@@ -3850,117 +3895,129 @@ msgstr "Color personalizado (16M tonos)"
 msgid "Hex:"
 msgstr "Hex:"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:115
+#: crates/rolid-ui/src/app/rename_ui.rs:119
 msgid "Renaming “{from}” to “{to}” failed: {error}"
 msgstr "Error al renombrar «{from}» a «{to}»: {error}"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:188
+#: crates/rolid-ui/src/app/rename_ui.rs:192
 msgid "“{from}”  →  “{to}”"
 msgstr "«{from}»  →  «{to}»"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:190
+#: crates/rolid-ui/src/app/rename_ui.rs:194
 msgid "⚠ This is a PRODUCTION server."
 msgstr "⚠ Este es un servidor de PRODUCCIÓN."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:194
+#: crates/rolid-ui/src/app/rename_ui.rs:198
 msgid "Really rename on the production server? (Enter does not confirm here.)"
 msgstr "¿Renombrar realmente en el servidor de producción? (Enter no confirma aquí.)"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:205
+#: crates/rolid-ui/src/app/rename_ui.rs:209
 msgid "“{name}” already exists in this folder (a folder)."
 msgstr "«{name}» ya existe en esta carpeta (una carpeta)."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:207
+#: crates/rolid-ui/src/app/rename_ui.rs:211
 msgid "“{name}” already exists in this folder (a file)."
 msgstr "«{name}» ya existe en esta carpeta (un archivo)."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:213
+#: crates/rolid-ui/src/app/rename_ui.rs:217
 msgid "A folder cannot be renamed over an existing item. Choose a different name."
 msgstr "Una carpeta no se puede renombrar sobre un elemento existente. Elija otro nombre."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:215
+#: crates/rolid-ui/src/app/rename_ui.rs:219
 msgid "A file cannot overwrite a folder. Choose a different name."
 msgstr "Un archivo no puede sobrescribir una carpeta. Elija otro nombre."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:224
+#: crates/rolid-ui/src/app/rename_ui.rs:228
 msgid "File “{name}” already exists in this folder. Overwrite it?"
 msgstr "El archivo «{name}» ya existe en esta carpeta. ¿Sobrescribirlo?"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:225
+#: crates/rolid-ui/src/app/rename_ui.rs:229
 msgid "An overwritten file cannot be restored. Enter does not confirm here."
 msgstr "Un archivo sobrescrito no se puede recuperar. Enter no confirma aquí."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:270
+#: crates/rolid-ui/src/app/rename_ui.rs:274
 msgid "Cannot move out of an archive (it is read-only), only copy out of it: opening Copy (F5)."
 msgstr "No se puede mover fuera de un archivo comprimido (es de solo lectura), solo copiar: se abre Copiar (F5)."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:275
-#: crates/rolid-ui/src/app.rs:1262
+#: crates/rolid-ui/src/app/rename_ui.rs:279
+#: crates/rolid-ui/src/app.rs:1268
 msgid "The target panel shows search results: open a folder in it first."
 msgstr "El panel de destino muestra resultados de búsqueda: abra antes una carpeta en él."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:278
+#: crates/rolid-ui/src/app/rename_ui.rs:282
 msgid "Cannot move into an archive"
 msgstr "No se puede mover a un archivo comprimido"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:318
-#: crates/rolid-ui/src/app/rename_ui.rs:394
+#: crates/rolid-ui/src/app/rename_ui.rs:330
+#: crates/rolid-ui/src/app/rename_ui.rs:415
 #: crates/rolid-ui/src/app/vault_ui.rs:819
 msgid "Move"
 msgstr "Mover"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:320
+#: crates/rolid-ui/src/app/rename_ui.rs:332
 msgid "Move “{name}” to {disk}:"
 msgstr "Mover «{name}» a {disk}:"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:322
+#: crates/rolid-ui/src/app/rename_ui.rs:334
 msgid "Move {n} item to {disk}:"
 msgid_plural "Move {n} items to {disk}:"
 msgstr[0] "Mover {n} elemento a {disk}:"
 msgstr[1] "Mover {n} elementos a {disk}:"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:328
+#: crates/rolid-ui/src/app/rename_ui.rs:340
 msgid "On the same disk or server the items are only renamed. Otherwise they are copied through the transfer queue and the source is deleted only after a successful finish (a file that does not have the same size in the target stays)."
 msgstr "En el mismo disco o servidor los elementos solo se renombran. Si no, se copian mediante la cola de transferencias y el origen se elimina solo tras terminar correctamente (un archivo que no tenga el mismo tamaño en el destino se conserva)."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:342
-#: crates/rolid-ui/src/app.rs:2608
+#: crates/rolid-ui/src/app/rename_ui.rs:354
+#: crates/rolid-ui/src/app.rs:2623
 msgid "Browse…"
 msgstr "Examinar…"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:347
+#: crates/rolid-ui/src/app/rename_ui.rs:359
 msgid "The end of the path is the name the item will have in the target (you can change it). A slash at the end = into that folder under the same name."
 msgstr "El final de la ruta es el nombre que tendrá el elemento en el destino (puede cambiarlo). Una barra al final = dentro de esa carpeta con el mismo nombre."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:354
+#: crates/rolid-ui/src/app/rename_ui.rs:366
 msgid "⚠ Both the source and the target are PRODUCTION servers."
 msgstr "⚠ Tanto el origen como el destino son servidores de PRODUCCIÓN."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:355
+#: crates/rolid-ui/src/app/rename_ui.rs:367
 msgid "⚠ The source is a PRODUCTION server: the files will disappear from it."
 msgstr "⚠ El origen es un servidor de PRODUCCIÓN: los archivos desaparecerán de él."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:363
-msgid "On a production server Enter does not confirm: click Move."
-msgstr "En un servidor de producción Enter no confirma: haga clic en Mover."
+#: crates/rolid-ui/src/app/rename_ui.rs:368
+msgid "⚠ The target is a PRODUCTION server."
+msgstr "⚠ El destino es un servidor de PRODUCCIÓN."
 
-#: crates/rolid-ui/src/app/rename_ui.rs:383
-#: crates/rolid-ui/src/app/unpack_ui.rs:531
-#: crates/rolid-ui/src/app.rs:2621
+#: crates/rolid-ui/src/app/rename_ui.rs:395
+#: crates/rolid-ui/src/app/unpack_ui.rs:532
+#: crates/rolid-ui/src/app.rs:2636
 msgid "⚠ {n} item already exists in the target. What to do with existing files?"
 msgid_plural "⚠ {n} items already exist in the target. What to do with existing files?"
 msgstr[0] "⚠ {n} elemento ya existe en el destino. ¿Qué hacer con los archivos existentes?"
 msgstr[1] "⚠ {n} elementos ya existen en el destino. ¿Qué hacer con los archivos existentes?"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:452
+#: crates/rolid-ui/src/app/rename_ui.rs:407
+msgid "Verify by checksum before deleting the source"
+msgstr "Verificar con suma de comprobación antes de eliminar el origen"
+
+#: crates/rolid-ui/src/app/rename_ui.rs:410
+msgid "After the copy, the source and the copy are read again and their checksums (BLAKE3) compared; the source is deleted only when they match. Takes as long as reading both once more. On by default when moving to a server."
+msgstr "Tras la copia se vuelven a leer el origen y la copia y se comparan sus sumas de comprobación (BLAKE3); el origen se elimina solo si coinciden. Tarda lo mismo que leer ambos una vez más. Activado por defecto al mover a un servidor."
+
+#: crates/rolid-ui/src/app/rename_ui.rs:415
+msgid "Move on production"
+msgstr "Mover en producción"
+
+#: crates/rolid-ui/src/app/rename_ui.rs:476
 msgid "Moving “{name}”: {error}"
 msgstr "Moviendo «{name}»: {error}"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:488
+#: crates/rolid-ui/src/app/rename_ui.rs:513
 msgid "Moving {name} → {target}"
 msgstr "Moviendo {name} → {target}"
 
-#: crates/rolid-ui/src/app/rename_ui.rs:490
+#: crates/rolid-ui/src/app/rename_ui.rs:515
 msgid "Moving {n} item → {target}"
 msgid_plural "Moving {n} items → {target}"
 msgstr[0] "Moviendo {n} elemento → {target}"
@@ -4052,7 +4109,7 @@ msgid "Text in the file:"
 msgstr "Texto en el archivo:"
 
 #: crates/rolid-ui/src/app/search.rs:300
-#: crates/rolid-ui/src/app/session.rs:945
+#: crates/rolid-ui/src/app/session.rs:947
 msgid "optional"
 msgstr "opcional"
 
@@ -4164,181 +4221,181 @@ msgstr "No conectado: las contraseñas guardadas están bloqueadas (Enter o Ctrl
 msgid "{report}; system keyring unavailable: {error}"
 msgstr "{report}; depósito de claves del sistema no disponible: {error}"
 
-#: crates/rolid-ui/src/app/session.rs:499
+#: crates/rolid-ui/src/app/session.rs:501
 msgid "Not connected: {error}  (Enter or Ctrl+R = try again)"
 msgstr "No conectado: {error}  (Enter o Ctrl+R = reintentar)"
 
-#: crates/rolid-ui/src/app/session.rs:658
+#: crates/rolid-ui/src/app/session.rs:660
 msgid "Profile saved."
 msgstr "Perfil guardado."
 
-#: crates/rolid-ui/src/app/session.rs:661
-#: crates/rolid-ui/src/app/session.rs:719
+#: crates/rolid-ui/src/app/session.rs:663
+#: crates/rolid-ui/src/app/session.rs:721
 #: crates/rolid-ui/src/app/vault_ui.rs:479
 msgid "Cannot save the profiles: {error}"
 msgstr "No se pueden guardar los perfiles: {error}"
 
-#: crates/rolid-ui/src/app/session.rs:681
+#: crates/rolid-ui/src/app/session.rs:683
 msgid "Password saved (protected by the master password)."
 msgstr "Contraseña guardada (protegida por la contraseña maestra)."
 
-#: crates/rolid-ui/src/app/session.rs:691
+#: crates/rolid-ui/src/app/session.rs:693
 msgid "Profile saved, the saved password did not change (the master password was not entered)."
 msgstr "Perfil guardado; la contraseña guardada no ha cambiado (no se introdujo la contraseña maestra)."
 
-#: crates/rolid-ui/src/app/session.rs:693
+#: crates/rolid-ui/src/app/session.rs:695
 msgid "Profile saved without a password (the master password was not entered)."
 msgstr "Perfil guardado sin contraseña (no se introdujo la contraseña maestra)."
 
-#: crates/rolid-ui/src/app/session.rs:707
+#: crates/rolid-ui/src/app/session.rs:709
 msgid "The password did not change (the master password was not entered)."
 msgstr "La contraseña no ha cambiado (no se introdujo la contraseña maestra)."
 
-#: crates/rolid-ui/src/app/session.rs:709
+#: crates/rolid-ui/src/app/session.rs:711
 msgid "The password was not saved (the master password was not entered)."
 msgstr "La contraseña no se ha guardado (no se introdujo la contraseña maestra)."
 
-#: crates/rolid-ui/src/app/session.rs:727
+#: crates/rolid-ui/src/app/session.rs:729
 msgid "Profile deleted."
 msgstr "Perfil eliminado."
 
-#: crates/rolid-ui/src/app/session.rs:802
+#: crates/rolid-ui/src/app/session.rs:804
 msgid "Login – {target}"
 msgstr "Inicio de sesión – {target}"
 
-#: crates/rolid-ui/src/app/session.rs:805
+#: crates/rolid-ui/src/app/session.rs:807
 msgid "The password was not accepted. Enter it again."
 msgstr "La contraseña no se ha aceptado. Introdúzcala de nuevo."
 
-#: crates/rolid-ui/src/app/session.rs:813
+#: crates/rolid-ui/src/app/session.rs:815
 msgid "The server asks (keyboard-interactive):"
 msgstr "El servidor pregunta (keyboard-interactive):"
 
-#: crates/rolid-ui/src/app/session.rs:825
+#: crates/rolid-ui/src/app/session.rs:827
 msgid "Send"
 msgstr "Enviar"
 
-#: crates/rolid-ui/src/app/session.rs:853
+#: crates/rolid-ui/src/app/session.rs:855
 msgid "Server manager"
 msgstr "Gestor de servidores"
 
-#: crates/rolid-ui/src/app/session.rs:859
+#: crates/rolid-ui/src/app/session.rs:861
 msgid "＋ New / quick connect"
 msgstr "＋ Nuevo / conexión rápida"
 
-#: crates/rolid-ui/src/app/session.rs:867
+#: crates/rolid-ui/src/app/session.rs:869
 msgid "No saved servers yet."
 msgstr "Aún no hay servidores guardados."
 
-#: crates/rolid-ui/src/app/session.rs:904
+#: crates/rolid-ui/src/app/session.rs:906
 msgid "Really delete?"
 msgstr "¿Eliminar realmente?"
 
-#: crates/rolid-ui/src/app/session.rs:920
+#: crates/rolid-ui/src/app/session.rs:922
 msgid "e.g. Web production"
 msgstr "p. ej. Web producción"
 
-#: crates/rolid-ui/src/app/session.rs:924
+#: crates/rolid-ui/src/app/session.rs:926
 msgid "Server:"
 msgstr "Servidor:"
 
-#: crates/rolid-ui/src/app/session.rs:927
+#: crates/rolid-ui/src/app/session.rs:929
 msgid "host or user@host:port"
 msgstr "host o usuario@host:puerto"
 
-#: crates/rolid-ui/src/app/session.rs:935
+#: crates/rolid-ui/src/app/session.rs:937
 msgid "Port:"
 msgstr "Puerto:"
 
-#: crates/rolid-ui/src/app/session.rs:938
+#: crates/rolid-ui/src/app/session.rs:940
 msgid "User:"
 msgstr "Usuario:"
 
-#: crates/rolid-ui/src/app/session.rs:943
+#: crates/rolid-ui/src/app/session.rs:945
 msgid "saved (protected by the master password)"
 msgstr "guardada (protegida por la contraseña maestra)"
 
-#: crates/rolid-ui/src/app/session.rs:944
+#: crates/rolid-ui/src/app/session.rs:946
 msgid "saved in the system keyring (older version)"
 msgstr "guardada en el depósito de claves del sistema (versión anterior)"
 
-#: crates/rolid-ui/src/app/session.rs:949
+#: crates/rolid-ui/src/app/session.rs:951
 msgid "Key:"
 msgstr "Clave:"
 
-#: crates/rolid-ui/src/app/session.rs:952
+#: crates/rolid-ui/src/app/session.rs:954
 msgid "default: agent, ~/.ssh/id_*"
 msgstr "predeterminado: agente, ~/.ssh/id_*"
 
-#: crates/rolid-ui/src/app/session.rs:956
+#: crates/rolid-ui/src/app/session.rs:958
 msgid "Key passphrase:"
 msgstr "Frase de contraseña de la clave:"
 
-#: crates/rolid-ui/src/app/session.rs:957
+#: crates/rolid-ui/src/app/session.rs:959
 msgid "optional, not saved"
 msgstr "opcional, no se guarda"
 
-#: crates/rolid-ui/src/app/session.rs:959
+#: crates/rolid-ui/src/app/session.rs:961
 msgid "Start folder:"
 msgstr "Carpeta inicial:"
 
-#: crates/rolid-ui/src/app/session.rs:962
+#: crates/rolid-ui/src/app/session.rs:964
 msgid "home"
 msgstr "carpeta personal"
 
-#: crates/rolid-ui/src/app/session.rs:966
+#: crates/rolid-ui/src/app/session.rs:968
 msgid "Tab color:"
 msgstr "Color de pestaña:"
 
-#: crates/rolid-ui/src/app/session.rs:996
+#: crates/rolid-ui/src/app/session.rs:998
 msgid "Do not change the tab color"
 msgstr "No cambiar el color de la pestaña"
 
-#: crates/rolid-ui/src/app/session.rs:1010
+#: crates/rolid-ui/src/app/session.rs:1012
 msgid "Any color (16M shades)"
 msgstr "Cualquier color (16M tonos)"
 
-#: crates/rolid-ui/src/app/session.rs:1029
+#: crates/rolid-ui/src/app/session.rs:1031
 msgid "Save password (protected by the master password)"
 msgstr "Guardar contraseña (protegida por la contraseña maestra)"
 
-#: crates/rolid-ui/src/app/session.rs:1032
+#: crates/rolid-ui/src/app/session.rs:1034
 msgid "The password is saved in an encrypted file. The first time you create a master password; after the application starts, you enter it once when a saved password is first used."
 msgstr "La contraseña se guarda en un archivo cifrado. La primera vez se crea una contraseña maestra; tras iniciar la aplicación, se introduce una vez cuando se usa por primera vez una contraseña guardada."
 
-#: crates/rolid-ui/src/app/session.rs:1039
+#: crates/rolid-ui/src/app/session.rs:1041
 msgid "⚠ Production server (red stripe, stricter confirmations)"
 msgstr "⚠ Servidor de producción (franja roja, confirmaciones más estrictas)"
 
-#: crates/rolid-ui/src/app/session.rs:1044
+#: crates/rolid-ui/src/app/session.rs:1046
 msgid "Unknown server (not in ~/.ssh/known_hosts)."
 msgstr "Servidor desconocido (no está en ~/.ssh/known_hosts)."
 
-#: crates/rolid-ui/src/app/session.rs:1045
+#: crates/rolid-ui/src/app/session.rs:1047
 msgid "Key type: {algorithm}"
 msgstr "Tipo de clave: {algorithm}"
 
-#: crates/rolid-ui/src/app/session.rs:1049
+#: crates/rolid-ui/src/app/session.rs:1051
 msgid "Trust and connect"
 msgstr "Confiar y conectar"
 
-#: crates/rolid-ui/src/app/session.rs:1052
+#: crates/rolid-ui/src/app/session.rs:1054
 msgid "Check the fingerprint with the server administrator. Once confirmed, it is saved to known_hosts."
 msgstr "Compruebe la huella con el administrador del servidor. Una vez confirmada, se guarda en known_hosts."
 
-#: crates/rolid-ui/src/app/session.rs:1072
+#: crates/rolid-ui/src/app/session.rs:1074
 msgid "Connecting…"
 msgstr "Conectando…"
 
-#: crates/rolid-ui/src/app/session.rs:1076
+#: crates/rolid-ui/src/app/session.rs:1078
 msgid "Connect"
 msgstr "Conectar"
 
-#: crates/rolid-ui/src/app/session.rs:1077
+#: crates/rolid-ui/src/app/session.rs:1079
 msgid "Save profile"
 msgstr "Guardar perfil"
 
-#: crates/rolid-ui/src/app/session.rs:1135
+#: crates/rolid-ui/src/app/session.rs:1137
 msgid "Cannot save the workspace: {error}"
 msgstr "No se puede guardar el espacio de trabajo: {error}"
 
@@ -4398,143 +4455,143 @@ msgstr "{what} ⇣ para probar"
 msgid "{what} ⇣ for extraction"
 msgstr "{what} ⇣ para extraer"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:361
-#: crates/rolid-ui/src/app/unpack_ui.rs:566
+#: crates/rolid-ui/src/app/unpack_ui.rs:362
+#: crates/rolid-ui/src/app/unpack_ui.rs:567
 #: crates/rolid-ui/src/app/view_ui.rs:370
 msgid "Extract"
 msgstr "Extraer"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:364
+#: crates/rolid-ui/src/app/unpack_ui.rs:365
 msgid "{archives}  from  {location}"
 msgstr "{archives}  de  {location}"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:377
+#: crates/rolid-ui/src/app/unpack_ui.rs:378
 msgid "Loading the archive contents…"
 msgstr "Cargando el contenido del archivo comprimido…"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:397
+#: crates/rolid-ui/src/app/unpack_ui.rs:398
 msgid "“{archive}”: {n} item, {size}"
 msgid_plural "“{archive}”: {n} items, {size}"
 msgstr[0] "«{archive}»: {n} elemento, {size}"
 msgstr[1] "«{archive}»: {n} elementos, {size}"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:399
+#: crates/rolid-ui/src/app/unpack_ui.rs:400
 msgid "{n} item, {size} when extracted"
 msgid_plural "{n} items, {size} when extracted"
 msgstr[0] "{n} elemento, {size} al extraer"
 msgstr[1] "{n} elementos, {size} al extraer"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:404
+#: crates/rolid-ui/src/app/unpack_ui.rs:405
 msgid "“{archive}”: the file names are encrypted."
 msgstr "«{archive}»: los nombres de archivo están cifrados."
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:408
-#: crates/rolid-ui/src/app/unpack_ui.rs:862
+#: crates/rolid-ui/src/app/unpack_ui.rs:409
+#: crates/rolid-ui/src/app/unpack_ui.rs:864
 msgid "“{archive}”: {error}"
 msgstr "«{archive}»: {error}"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:418
+#: crates/rolid-ui/src/app/unpack_ui.rs:419
 msgid "⚠ {n} item has an unsafe path (outside the target) – it will not be extracted and will be listed in the summary."
 msgid_plural "⚠ {n} items have an unsafe path (outside the target) – they will not be extracted and will be listed in the summary."
 msgstr[0] "⚠ {n} elemento tiene una ruta no segura (fuera del destino): no se extraerá y aparecerá en el resumen."
 msgstr[1] "⚠ {n} elementos tienen una ruta no segura (fuera del destino): no se extraerán y aparecerán en el resumen."
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:438
+#: crates/rolid-ui/src/app/unpack_ui.rs:439
 msgctxt "password"
 msgid "Show"
 msgstr "Mostrar"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:439
+#: crates/rolid-ui/src/app/unpack_ui.rs:440
 msgid "Load contents"
 msgstr "Cargar contenido"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:455
+#: crates/rolid-ui/src/app/unpack_ui.rs:456
 #: crates/rolid-ui/src/app/viewer/mod.rs:598
 msgid "Encoding"
 msgstr "Codificación"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:457
+#: crates/rolid-ui/src/app/unpack_ui.rs:458
 msgid "The file names are not in UTF-8. Encoding:"
 msgstr "Los nombres de archivo no están en UTF-8. Codificación:"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:481
+#: crates/rolid-ui/src/app/unpack_ui.rs:482
 msgid "Not enough space on the disk: {needed} needed, {free} free (1 GB is kept in reserve)."
 msgstr "No hay espacio suficiente en el disco: se necesitan {needed}, hay {free} libres (se reserva 1 GB)."
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:483
+#: crates/rolid-ui/src/app/unpack_ui.rs:484
 msgid "The extracted archive would take {size} – more than the set limit of {limit}."
 msgstr "El archivo comprimido extraído ocuparía {size}, más que el límite establecido de {limit}."
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:492
+#: crates/rolid-ui/src/app/unpack_ui.rs:493
 msgid "⚠ The compression ratio {ratio} : 1 is suspiciously high (possibly an archive bomb)."
 msgstr "⚠ La tasa de compresión {ratio} : 1 es sospechosamente alta (posible bomba de compresión)."
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:493
+#: crates/rolid-ui/src/app/unpack_ui.rs:494
 msgid "Extract anyway"
 msgstr "Extraer de todos modos"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:506
+#: crates/rolid-ui/src/app/unpack_ui.rs:507
 msgid "The files are extracted into a temporary folder on this computer and uploaded through the transfer queue."
 msgstr "Los archivos se extraen en una carpeta temporal de este equipo y se suben mediante la cola de transferencias."
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:518
+#: crates/rolid-ui/src/app/unpack_ui.rs:519
 msgid "An archive cannot be written to – choose another target."
 msgstr "No se puede escribir en un archivo comprimido: elija otro destino."
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:521
+#: crates/rolid-ui/src/app/unpack_ui.rs:522
 msgid "Each archive into its own subfolder"
 msgstr "Cada archivo comprimido en su propia subcarpeta"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:541
-#: crates/rolid-ui/src/app.rs:2772
+#: crates/rolid-ui/src/app/unpack_ui.rs:542
+#: crates/rolid-ui/src/app.rs:2849
 msgid "Overwrite only older (by modification date)"
 msgstr "Sobrescribir solo más antiguos (por fecha de modificación)"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:546
+#: crates/rolid-ui/src/app/unpack_ui.rs:547
 msgid "{option}  ⚠ existing files will be overwritten"
 msgstr "{option}  ⚠ se sobrescribirán los archivos existentes"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:555
+#: crates/rolid-ui/src/app/unpack_ui.rs:556
 msgid "Choose what to do with existing files – nothing is preselected."
 msgstr "Elija qué hacer con los archivos existentes: no hay nada preseleccionado."
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:647
+#: crates/rolid-ui/src/app/unpack_ui.rs:648
 msgid "Extract {archive}"
 msgstr "Extraer {archive}"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:648
+#: crates/rolid-ui/src/app/unpack_ui.rs:649
 msgid "Extract {n} archive"
 msgid_plural "Extract {n} archives"
 msgstr[0] "Extraer {n} archivo comprimido"
 msgstr[1] "Extraer {n} archivos comprimidos"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:789
+#: crates/rolid-ui/src/app/unpack_ui.rs:791
 msgid "Test {archive}"
 msgstr "Probar {archive}"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:790
+#: crates/rolid-ui/src/app/unpack_ui.rs:792
 msgid "Test {n} archive"
 msgid_plural "Test {n} archives"
 msgstr[0] "Probar {n} archivo comprimido"
 msgstr[1] "Probar {n} archivos comprimidos"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:847
+#: crates/rolid-ui/src/app/unpack_ui.rs:849
 msgid "Test"
 msgstr "Probar"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:865
+#: crates/rolid-ui/src/app/unpack_ui.rs:867
 msgid "“{archive}”: the archive is damaged – {error}"
 msgstr "«{archive}»: el archivo comprimido está dañado: {error}"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:867
+#: crates/rolid-ui/src/app/unpack_ui.rs:869
 msgid "“{archive}”: damaged item {item} – {error}"
 msgstr "«{archive}»: elemento dañado {item}: {error}"
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:870
+#: crates/rolid-ui/src/app/unpack_ui.rs:872
 msgid "“{archive}”: the archive is OK."
 msgstr "«{archive}»: el archivo comprimido está correcto."
 
-#: crates/rolid-ui/src/app/unpack_ui.rs:874
+#: crates/rolid-ui/src/app/unpack_ui.rs:876
 msgid "“{archive}”: {n} damaged item"
 msgid_plural "“{archive}”: {n} damaged items"
 msgstr[0] "«{archive}»: {n} elemento dañado"
@@ -4693,7 +4750,7 @@ msgid "Creating…"
 msgstr "Creando…"
 
 #: crates/rolid-ui/src/app/vault_ui.rs:656
-#: crates/rolid-ui/src/app.rs:2671
+#: crates/rolid-ui/src/app.rs:2690
 msgid "Create"
 msgstr "Crear"
 
@@ -5216,7 +5273,7 @@ msgid "The file cannot be read: {error}"
 msgstr "No se puede leer el archivo: {error}"
 
 #: crates/rolid-ui/src/app/viewer/mod.rs:661
-#: crates/rolid-ui/src/app.rs:2343
+#: crates/rolid-ui/src/app.rs:2358
 msgid "Try again"
 msgstr "Reintentar"
 
@@ -5420,304 +5477,329 @@ msgstr "Ir"
 msgid "Enter a line number, a percentage or an offset."
 msgstr "Introduzca un número de línea, un porcentaje o una posición."
 
-#: crates/rolid-ui/src/app.rs:554
+#: crates/rolid-ui/src/app.rs:560
 msgid "Cannot load the profiles: {error}"
 msgstr "No se pueden cargar los perfiles: {error}"
 
-#: crates/rolid-ui/src/app.rs:561
+#: crates/rolid-ui/src/app.rs:567
 msgid "Cannot load the workspace: {error}"
 msgstr "No se puede cargar el espacio de trabajo: {error}"
 
-#: crates/rolid-ui/src/app.rs:605
-#: crates/rolid-ui/src/app.rs:649
+#: crates/rolid-ui/src/app.rs:611
+#: crates/rolid-ui/src/app.rs:655
 msgid "Settings: {error}"
 msgstr "Configuración: {error}"
 
-#: crates/rolid-ui/src/app.rs:642
+#: crates/rolid-ui/src/app.rs:648
 msgid "System font: {error}. The built-in {font} is used."
 msgstr "Fuente del sistema: {error}. Se usa la integrada {font}."
 
-#: crates/rolid-ui/src/app.rs:1019
+#: crates/rolid-ui/src/app.rs:1025
 msgid "{error}. On a production server overwriting is not repeated by itself after an outage: check the state and press “Try again”."
 msgstr "{error}. En un servidor de producción la sobrescritura no se repite sola tras un corte: compruebe el estado y pulse «Reintentar»."
 
-#: crates/rolid-ui/src/app.rs:1035
+#: crates/rolid-ui/src/app.rs:1041
 msgid "{title}: {error}. The source stayed where it was."
 msgstr "{title}: {error}. El origen se ha quedado donde estaba."
 
-#: crates/rolid-ui/src/app.rs:1037
+#: crates/rolid-ui/src/app.rs:1043
 msgid "Copying: {error}"
 msgstr "Copiando: {error}"
 
-#: crates/rolid-ui/src/app.rs:1265
+#: crates/rolid-ui/src/app.rs:1271
 msgid "Cannot copy into an archive"
 msgstr "No se puede copiar a un archivo comprimido"
 
-#: crates/rolid-ui/src/app.rs:1339
+#: crates/rolid-ui/src/app.rs:1346
 msgid "{n} item → {target}"
 msgid_plural "{n} items → {target}"
 msgstr[0] "{n} elemento → {target}"
 msgstr[1] "{n} elementos → {target}"
 
-#: crates/rolid-ui/src/app.rs:1440
+#: crates/rolid-ui/src/app.rs:1448
 msgid "canceled in the queue"
 msgstr "cancelado en la cola"
 
-#: crates/rolid-ui/src/app.rs:1475
+#: crates/rolid-ui/src/app.rs:1483
 msgid "⚡ waiting for the connection to come back (attempt {n}/{max})"
 msgstr "⚡ esperando a que vuelva la conexión (intento {n}/{max})"
 
-#: crates/rolid-ui/src/app.rs:1502
+#: crates/rolid-ui/src/app.rs:1521
+msgid "{n} unfinished transfer (.filepart) in the target was not resumed: it cannot be confirmed that it belongs to the same source file (path, size, time). It was left untouched. To start over, copy again with “Overwrite”."
+msgid_plural "{n} unfinished transfers (.filepart) in the target were not resumed: it cannot be confirmed that they belong to the same source files (path, size, time). They were left untouched. To start over, copy again with “Overwrite”."
+msgstr[0] "{n} transferencia sin terminar (.filepart) en el destino no se reanudó: no se puede confirmar que pertenezca al mismo archivo de origen (ruta, tamaño, fecha). Se dejó intacta. Para empezar de nuevo, copie otra vez con «Sobrescribir»."
+msgstr[1] "{n} transferencias sin terminar (.filepart) en el destino no se reanudaron: no se puede confirmar que pertenezcan a los mismos archivos de origen (ruta, tamaño, fecha). Se dejaron intactas. Para empezar de nuevo, copie otra vez con «Sobrescribir»."
+
+#: crates/rolid-ui/src/app.rs:1527
+#: crates/rolid-ui/src/app.rs:2788
+#: crates/rolid-ui/src/app.rs:2798
+#: crates/rolid-ui/src/app.rs:2817
+msgid "E.g. {path}"
+msgstr "P. ej. {path}"
+
+#: crates/rolid-ui/src/app.rs:1902
+msgid "Cannot create a folder in search results."
+msgstr "No se puede crear una carpeta en los resultados de búsqueda."
+
+#: crates/rolid-ui/src/app.rs:1905
+msgid "Cannot create a folder in an archive"
+msgstr "No se puede crear una carpeta en un archivo comprimido"
+
+#: crates/rolid-ui/src/app.rs:1919
+msgid "Cannot delete from an archive"
+msgstr "No se puede eliminar de un archivo comprimido"
+
+#: crates/rolid-ui/src/app.rs:2087
+msgid "New tab: home folder, favorites, servers, recent places (Ctrl+T)"
+msgstr "Nueva pestaña: carpeta personal, favoritos, servidores, lugares recientes (Ctrl+T)"
+
+#: crates/rolid-ui/src/app.rs:2248
+msgid "F4 = edit another file · click = list of edits"
+msgstr "F4 = editar otro archivo · clic = lista de ediciones"
+
+#: crates/rolid-ui/src/app.rs:2258
+msgid "Transfers: {count}"
+msgstr "Transferencias: {count}"
+
+#: crates/rolid-ui/src/app.rs:2260
+msgid "Max. speed:"
+msgstr "Vel. máx.:"
+
+#: crates/rolid-ui/src/app.rs:2309
+msgid "{done} of {n} item"
+msgid_plural "{done} of {n} items"
+msgstr[0] "{done} de {n} elemento"
+msgstr[1] "{done} de {n} elementos"
+
+#: crates/rolid-ui/src/app.rs:2311
+msgid "⏳ waiting in the queue"
+msgstr "⏳ esperando en la cola"
+
+#: crates/rolid-ui/src/app.rs:2314
+msgid "archive read {done} of {total}"
+msgstr "archivo comprimido leído {done} de {total}"
+
+#: crates/rolid-ui/src/app.rs:2321
+msgid "{size}/s"
+msgstr "{size}/s"
+
+#: crates/rolid-ui/src/app.rs:2322
+msgid "speed: measuring"
+msgstr "velocidad: midiendo"
+
+#: crates/rolid-ui/src/app.rs:2329
+msgid "{n} skipped"
+msgid_plural "{n} skipped"
+msgstr[0] "{n} omitido"
+msgstr[1] "{n} omitidos"
+
+#: crates/rolid-ui/src/app.rs:2356
+msgid "⚠ Transfer {name} failed:"
+msgstr "⚠ Error en la transferencia {name}:"
+
+#: crates/rolid-ui/src/app.rs:2358
+msgid "Continues where the transfer stopped"
+msgstr "Continúa donde se detuvo la transferencia"
+
+#: crates/rolid-ui/src/app.rs:2395
+msgctxt "key bar"
+msgid "Help"
+msgstr "Ayuda"
+
+#: crates/rolid-ui/src/app.rs:2396
+msgctxt "key bar"
+msgid "Rename"
+msgstr "Renombrar"
+
+#: crates/rolid-ui/src/app.rs:2397
+msgctxt "key bar"
+msgid "View"
+msgstr "Ver"
+
+#: crates/rolid-ui/src/app.rs:2398
+msgctxt "key bar"
+msgid "Edit"
+msgstr "Editar"
+
+#: crates/rolid-ui/src/app.rs:2399
+msgctxt "key bar"
+msgid "Copy"
+msgstr "Copiar"
+
+#: crates/rolid-ui/src/app.rs:2400
+msgctxt "key bar"
+msgid "Move"
+msgstr "Mover"
+
+#: crates/rolid-ui/src/app.rs:2401
+msgctxt "key bar"
+msgid "New folder"
+msgstr "Nueva carpeta"
+
+#: crates/rolid-ui/src/app.rs:2402
+msgctxt "key bar"
+msgid "Delete"
+msgstr "Eliminar"
+
+#: crates/rolid-ui/src/app.rs:2403
+msgctxt "key bar"
+msgid "Search"
+msgstr "Buscar"
+
+#: crates/rolid-ui/src/app.rs:2404
+msgctxt "key bar"
+msgid "Servers"
+msgstr "Servidores"
+
+#: crates/rolid-ui/src/app.rs:2405
+msgctxt "key bar"
+msgid "Local"
+msgstr "Local"
+
+#: crates/rolid-ui/src/app.rs:2406
+msgctxt "key bar"
+msgid "Tab"
+msgstr "Pestaña"
+
+#: crates/rolid-ui/src/app.rs:2407
+msgctxt "key bar"
+msgid "Refresh"
+msgstr "Actualizar"
+
+#: crates/rolid-ui/src/app.rs:2425
+msgid "🔓 Passwords unlocked · {time}"
+msgstr "🔓 Contraseñas desbloqueadas · {time}"
+
+#: crates/rolid-ui/src/app.rs:2426
+msgid "Saved passwords are unlocked; they lock in {time} unless used again. Click to lock them now."
+msgstr "Las contraseñas guardadas están desbloqueadas; se bloquearán en {time} si no se vuelven a usar. Haga clic para bloquearlas ahora."
+
+#: crates/rolid-ui/src/app.rs:2429
+msgid "🔓 Passwords unlocked"
+msgstr "🔓 Contraseñas desbloqueadas"
+
+#: crates/rolid-ui/src/app.rs:2429
+msgid "Saved passwords are unlocked. Click to lock them."
+msgstr "Las contraseñas guardadas están desbloqueadas. Haga clic para bloquearlas."
+
+#: crates/rolid-ui/src/app.rs:2432
+msgid "🔒 Passwords locked"
+msgstr "🔒 Contraseñas bloqueadas"
+
+#: crates/rolid-ui/src/app.rs:2432
+msgid "Saved passwords are locked. Click to unlock them."
+msgstr "Las contraseñas guardadas están bloqueadas. Haga clic para desbloquearlas."
+
+#: crates/rolid-ui/src/app.rs:2475
+msgid "About and supporting the project"
+msgstr "Acerca del proyecto y cómo apoyarlo"
+
+#: crates/rolid-ui/src/app.rs:2613
+msgid "Copy “{name}” to {disk}:"
+msgstr "Copiar «{name}» a {disk}:"
+
+#: crates/rolid-ui/src/app.rs:2615
+msgid "Copy {n} item to {disk}:"
+msgid_plural "Copy {n} items to {disk}:"
+msgstr[0] "Copiar {n} elemento a {disk}:"
+msgstr[1] "Copiar {n} elementos a {disk}:"
+
+#: crates/rolid-ui/src/app.rs:2646
+msgid "Transfer"
+msgstr "Transferencia"
+
+#: crates/rolid-ui/src/app.rs:2649
+msgid "Max. speed (all transfers together):"
+msgstr "Vel. máx. (todas las transferencias juntas):"
+
+#: crates/rolid-ui/src/app.rs:2653
+msgid "Files are written through a temporary .filepart that is renamed when finished."
+msgstr "Los archivos se escriben mediante un .filepart temporal que se renombra al terminar."
+
+#: crates/rolid-ui/src/app.rs:2655
+msgid "Tip: a speed limit keeps a slow line from being flooded (e.g. the server's outgoing line)."
+msgstr "Consejo: un límite de velocidad evita saturar una línea lenta (p. ej. la línea de salida del servidor)."
+
+#: crates/rolid-ui/src/app.rs:2690
+msgid "Create on production"
+msgstr "Crear en producción"
+
+#: crates/rolid-ui/src/app.rs:2711
+#: crates/rolid-ui/src/app.rs:2730
+msgctxt "verb"
+msgid "Delete"
+msgstr "Eliminar"
+
+#: crates/rolid-ui/src/app.rs:2713
+msgid "Permanently delete “{name}”? Folders are deleted with their contents."
+msgstr "¿Eliminar definitivamente «{name}»? Las carpetas se eliminan con su contenido."
+
+#: crates/rolid-ui/src/app.rs:2714
+msgid "Permanently delete “{name}” ON THE SERVER? Folders are deleted with their contents."
+msgstr "¿Eliminar definitivamente «{name}» EN EL SERVIDOR? Las carpetas se eliminan con su contenido."
+
+#: crates/rolid-ui/src/app.rs:2715
+msgid "Permanently delete {n} item? Folders are deleted with their contents."
+msgid_plural "Permanently delete {n} items? Folders are deleted with their contents."
+msgstr[0] "¿Eliminar definitivamente {n} elemento? Las carpetas se eliminan con su contenido."
+msgstr[1] "¿Eliminar definitivamente {n} elementos? Las carpetas se eliminan con su contenido."
+
+#: crates/rolid-ui/src/app.rs:2720
+msgid "Permanently delete {n} item ON THE SERVER? Folders are deleted with their contents."
+msgid_plural "Permanently delete {n} items ON THE SERVER? Folders are deleted with their contents."
+msgstr[0] "¿Eliminar definitivamente {n} elemento EN EL SERVIDOR? Las carpetas se eliminan con su contenido."
+msgstr[1] "¿Eliminar definitivamente {n} elementos EN EL SERVIDOR? Las carpetas se eliminan con su contenido."
+
+#: crates/rolid-ui/src/app.rs:2730
+msgid "Delete on production"
+msgstr "Eliminar en producción"
+
+#: crates/rolid-ui/src/app.rs:2782
+msgid "⚠ The copy of {n} file differs from the source (checksum): the source was NOT deleted. Check the copy in the target."
+msgid_plural "⚠ The copies of {n} files differ from the source (checksum): the sources were NOT deleted. Check the copies in the target."
+msgstr[0] "⚠ La copia de {n} archivo difiere del origen (suma de comprobación): el origen NO se eliminó. Revise la copia en el destino."
+msgstr[1] "⚠ Las copias de {n} archivos difieren de los orígenes (suma de comprobación): los orígenes NO se eliminaron. Revise las copias en el destino."
+
+#: crates/rolid-ui/src/app.rs:2792
+msgid "{n} file changed in the source while it was being moved (size or modification time): it stayed in the source, the target may hold an older version."
+msgid_plural "{n} files changed in the source while they were being moved (size or modification time): they stayed in the source, the target may hold older versions."
+msgstr[0] "{n} archivo cambió en el origen mientras se movía (tamaño o fecha de modificación): se quedó en el origen, el destino puede tener una versión anterior."
+msgstr[1] "{n} archivos cambiaron en el origen mientras se movían (tamaño o fecha de modificación): se quedaron en el origen, el destino puede tener versiones anteriores."
+
+#: crates/rolid-ui/src/app.rs:2803
 msgid "The move finished, but {files} and {dirs} stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgstr "El movimiento ha terminado, pero {files} y {dirs} se han quedado en el origen (omitidos por la opción para archivos existentes, enlaces o archivos cambiados durante el movimiento)."
 
-#: crates/rolid-ui/src/app.rs:1505
+#: crates/rolid-ui/src/app.rs:2806
 #: crates/rolid-ui/src/pane.rs:1412
 msgid "{n} folder"
 msgid_plural "{n} folders"
 msgstr[0] "{n} carpeta"
 msgstr[1] "{n} carpetas"
 
-#: crates/rolid-ui/src/app.rs:1508
+#: crates/rolid-ui/src/app.rs:2809
 msgid "The move finished, but {n} file stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgid_plural "The move finished, but {n} files stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgstr[0] "El movimiento ha terminado, pero {n} archivo se ha quedado en el origen (omitido por la opción para archivos existentes, enlaces o archivos cambiados durante el movimiento)."
 msgstr[1] "El movimiento ha terminado, pero {n} archivos se han quedado en el origen (omitidos por la opción para archivos existentes, enlaces o archivos cambiados durante el movimiento)."
 
-#: crates/rolid-ui/src/app.rs:1516
-msgid "E.g. {path}"
-msgstr "P. ej. {path}"
+#: crates/rolid-ui/src/app.rs:2851
+msgid "Resume an interrupted transfer (.filepart of the same source file)"
+msgstr "Reanudar una transferencia interrumpida (.filepart del mismo archivo de origen)"
 
-#: crates/rolid-ui/src/app.rs:1889
-msgid "Cannot create a folder in search results."
-msgstr "No se puede crear una carpeta en los resultados de búsqueda."
-
-#: crates/rolid-ui/src/app.rs:1892
-msgid "Cannot create a folder in an archive"
-msgstr "No se puede crear una carpeta en un archivo comprimido"
-
-#: crates/rolid-ui/src/app.rs:1904
-msgid "Cannot delete from an archive"
-msgstr "No se puede eliminar de un archivo comprimido"
-
-#: crates/rolid-ui/src/app.rs:2072
-msgid "New tab: home folder, favorites, servers, recent places (Ctrl+T)"
-msgstr "Nueva pestaña: carpeta personal, favoritos, servidores, lugares recientes (Ctrl+T)"
-
-#: crates/rolid-ui/src/app.rs:2233
-msgid "F4 = edit another file · click = list of edits"
-msgstr "F4 = editar otro archivo · clic = lista de ediciones"
-
-#: crates/rolid-ui/src/app.rs:2243
-msgid "Transfers: {count}"
-msgstr "Transferencias: {count}"
-
-#: crates/rolid-ui/src/app.rs:2245
-msgid "Max. speed:"
-msgstr "Vel. máx.:"
-
-#: crates/rolid-ui/src/app.rs:2294
-msgid "{done} of {n} item"
-msgid_plural "{done} of {n} items"
-msgstr[0] "{done} de {n} elemento"
-msgstr[1] "{done} de {n} elementos"
-
-#: crates/rolid-ui/src/app.rs:2296
-msgid "⏳ waiting in the queue"
-msgstr "⏳ esperando en la cola"
-
-#: crates/rolid-ui/src/app.rs:2299
-msgid "archive read {done} of {total}"
-msgstr "archivo comprimido leído {done} de {total}"
-
-#: crates/rolid-ui/src/app.rs:2306
-msgid "{size}/s"
-msgstr "{size}/s"
-
-#: crates/rolid-ui/src/app.rs:2307
-msgid "speed: measuring"
-msgstr "velocidad: midiendo"
-
-#: crates/rolid-ui/src/app.rs:2314
-msgid "{n} skipped"
-msgid_plural "{n} skipped"
-msgstr[0] "{n} omitido"
-msgstr[1] "{n} omitidos"
-
-#: crates/rolid-ui/src/app.rs:2341
-msgid "⚠ Transfer {name} failed:"
-msgstr "⚠ Error en la transferencia {name}:"
-
-#: crates/rolid-ui/src/app.rs:2343
-msgid "Continues where the transfer stopped"
-msgstr "Continúa donde se detuvo la transferencia"
-
-#: crates/rolid-ui/src/app.rs:2380
-msgctxt "key bar"
-msgid "Help"
-msgstr "Ayuda"
-
-#: crates/rolid-ui/src/app.rs:2381
-msgctxt "key bar"
-msgid "Rename"
-msgstr "Renombrar"
-
-#: crates/rolid-ui/src/app.rs:2382
-msgctxt "key bar"
-msgid "View"
-msgstr "Ver"
-
-#: crates/rolid-ui/src/app.rs:2383
-msgctxt "key bar"
-msgid "Edit"
-msgstr "Editar"
-
-#: crates/rolid-ui/src/app.rs:2384
-msgctxt "key bar"
-msgid "Copy"
-msgstr "Copiar"
-
-#: crates/rolid-ui/src/app.rs:2385
-msgctxt "key bar"
-msgid "Move"
-msgstr "Mover"
-
-#: crates/rolid-ui/src/app.rs:2386
-msgctxt "key bar"
-msgid "New folder"
-msgstr "Nueva carpeta"
-
-#: crates/rolid-ui/src/app.rs:2387
-msgctxt "key bar"
-msgid "Delete"
-msgstr "Eliminar"
-
-#: crates/rolid-ui/src/app.rs:2388
-msgctxt "key bar"
-msgid "Search"
-msgstr "Buscar"
-
-#: crates/rolid-ui/src/app.rs:2389
-msgctxt "key bar"
-msgid "Servers"
-msgstr "Servidores"
-
-#: crates/rolid-ui/src/app.rs:2390
-msgctxt "key bar"
-msgid "Local"
-msgstr "Local"
-
-#: crates/rolid-ui/src/app.rs:2391
-msgctxt "key bar"
-msgid "Tab"
-msgstr "Pestaña"
-
-#: crates/rolid-ui/src/app.rs:2392
-msgctxt "key bar"
-msgid "Refresh"
-msgstr "Actualizar"
-
-#: crates/rolid-ui/src/app.rs:2410
-msgid "🔓 Passwords unlocked · {time}"
-msgstr "🔓 Contraseñas desbloqueadas · {time}"
-
-#: crates/rolid-ui/src/app.rs:2411
-msgid "Saved passwords are unlocked; they lock in {time} unless used again. Click to lock them now."
-msgstr "Las contraseñas guardadas están desbloqueadas; se bloquearán en {time} si no se vuelven a usar. Haga clic para bloquearlas ahora."
-
-#: crates/rolid-ui/src/app.rs:2414
-msgid "🔓 Passwords unlocked"
-msgstr "🔓 Contraseñas desbloqueadas"
-
-#: crates/rolid-ui/src/app.rs:2414
-msgid "Saved passwords are unlocked. Click to lock them."
-msgstr "Las contraseñas guardadas están desbloqueadas. Haga clic para bloquearlas."
-
-#: crates/rolid-ui/src/app.rs:2417
-msgid "🔒 Passwords locked"
-msgstr "🔒 Contraseñas bloqueadas"
-
-#: crates/rolid-ui/src/app.rs:2417
-msgid "Saved passwords are locked. Click to unlock them."
-msgstr "Las contraseñas guardadas están bloqueadas. Haga clic para desbloquearlas."
-
-#: crates/rolid-ui/src/app.rs:2460
-msgid "About and supporting the project"
-msgstr "Acerca del proyecto y cómo apoyarlo"
-
-#: crates/rolid-ui/src/app.rs:2598
-msgid "Copy “{name}” to {disk}:"
-msgstr "Copiar «{name}» a {disk}:"
-
-#: crates/rolid-ui/src/app.rs:2600
-msgid "Copy {n} item to {disk}:"
-msgid_plural "Copy {n} items to {disk}:"
-msgstr[0] "Copiar {n} elemento a {disk}:"
-msgstr[1] "Copiar {n} elementos a {disk}:"
-
-#: crates/rolid-ui/src/app.rs:2631
-msgid "Transfer"
-msgstr "Transferencia"
-
-#: crates/rolid-ui/src/app.rs:2634
-msgid "Max. speed (all transfers together):"
-msgstr "Vel. máx. (todas las transferencias juntas):"
-
-#: crates/rolid-ui/src/app.rs:2638
-msgid "Files are written through a temporary .filepart that is renamed when finished."
-msgstr "Los archivos se escriben mediante un .filepart temporal que se renombra al terminar."
-
-#: crates/rolid-ui/src/app.rs:2640
-msgid "Tip: a speed limit keeps a slow line from being flooded (e.g. the server's outgoing line)."
-msgstr "Consejo: un límite de velocidad evita saturar una línea lenta (p. ej. la línea de salida del servidor)."
-
-#: crates/rolid-ui/src/app.rs:2690
-#: crates/rolid-ui/src/app.rs:2709
-msgctxt "verb"
-msgid "Delete"
-msgstr "Eliminar"
-
-#: crates/rolid-ui/src/app.rs:2692
-msgid "Permanently delete “{name}”? Folders are deleted with their contents."
-msgstr "¿Eliminar definitivamente «{name}»? Las carpetas se eliminan con su contenido."
-
-#: crates/rolid-ui/src/app.rs:2693
-msgid "Permanently delete “{name}” ON THE SERVER? Folders are deleted with their contents."
-msgstr "¿Eliminar definitivamente «{name}» EN EL SERVIDOR? Las carpetas se eliminan con su contenido."
-
-#: crates/rolid-ui/src/app.rs:2694
-msgid "Permanently delete {n} item? Folders are deleted with their contents."
-msgid_plural "Permanently delete {n} items? Folders are deleted with their contents."
-msgstr[0] "¿Eliminar definitivamente {n} elemento? Las carpetas se eliminan con su contenido."
-msgstr[1] "¿Eliminar definitivamente {n} elementos? Las carpetas se eliminan con su contenido."
-
-#: crates/rolid-ui/src/app.rs:2699
-msgid "Permanently delete {n} item ON THE SERVER? Folders are deleted with their contents."
-msgid_plural "Permanently delete {n} items ON THE SERVER? Folders are deleted with their contents."
-msgstr[0] "¿Eliminar definitivamente {n} elemento EN EL SERVIDOR? Las carpetas se eliminan con su contenido."
-msgstr[1] "¿Eliminar definitivamente {n} elementos EN EL SERVIDOR? Las carpetas se eliminan con su contenido."
-
-#: crates/rolid-ui/src/app.rs:2709
-msgid "Delete on production"
-msgstr "Eliminar en producción"
-
-#: crates/rolid-ui/src/app.rs:2774
-msgid "Resume an interrupted transfer (.filepart / shorter file)"
-msgstr "Reanudar una transferencia interrumpida (.filepart / archivo más corto)"
-
-#: crates/rolid-ui/src/app.rs:2778
+#: crates/rolid-ui/src/app.rs:2855
 msgid "{choice}  ⚠ existing files will be overwritten"
 msgstr "{choice}  ⚠ se sobrescribirán los archivos existentes"
 
-#: crates/rolid-ui/src/app.rs:2787
+#: crates/rolid-ui/src/app.rs:2864
 msgid "Choose what to do with existing files: nothing is preselected."
 msgstr "Elija qué hacer con los archivos existentes: no hay nada preseleccionado."
 
-#: crates/rolid-ui/src/app.rs:2910
+#: crates/rolid-ui/src/app.rs:2987
 msgid "unlimited"
 msgstr "sin límite"
 
-#: crates/rolid-ui/src/app.rs:2949
+#: crates/rolid-ui/src/app.rs:3026
 msgid "Exact value (drag, or double-click and type)"
 msgstr "Valor exacto (arrastrar, o doble clic y escribir)"
 
@@ -5738,7 +5820,7 @@ msgstr "{path}: no se ha podido extraer"
 msgid "{path}: no such folder in the archive"
 msgstr "{path}: no existe esa carpeta en el archivo comprimido"
 
-#: crates/rolid-ui/src/dialog.rs:417
+#: crates/rolid-ui/src/dialog.rs:423
 msgid "Recent targets"
 msgstr "Destinos recientes"
 
@@ -6119,10 +6201,10 @@ msgstr "Elegir una aplicación en Windows…"
 msgid "Other application…"
 msgstr "Otra aplicación…"
 
-#: crates/rolid-view/src/search.rs:433
+#: crates/rolid-view/src/search.rs:440
 msgid "unexpected output of grep on the server"
 msgstr "salida inesperada de grep en el servidor"
 
-#: crates/rolid-view/src/search.rs:438
+#: crates/rolid-view/src/search.rs:445
 msgid "grep on the server failed: {error}"
 msgstr "grep falló en el servidor: {error}"

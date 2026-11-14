@@ -81,6 +81,13 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
   wznów przerwany transfer. Domyślny wybór można ustawić w menu Ustawienia.
 - Pliki są zapisywane pod nazwą tymczasową i dopiero po ukończeniu otrzymują właściwą nazwę, więc
   przerwany transfer nigdy nie zostawia częściowo zapisanego pliku pod prawdziwą nazwą.
+- Wznawiany jest tylko plik częściowy (`.filepart`) tego samego pliku źródłowego: obok niego
+  zapisywane są jego ścieżka, rozmiar i czas modyfikacji. Plik częściowy z innego lub nieznanego
+  źródła zostaje nietknięty i jest zgłaszany; aby zacząć od nowa, wybierz **Nadpisz**.
+- Przenoszenie między dyskami lub serwerami usuwa plik źródłowy tylko wtedy, gdy nie zmienił się
+  podczas transferu (rozmiar i czas modyfikacji), a kopia ma ten sam rozmiar. Z opcją **Sprawdź sumą
+  kontrolną przed usunięciem źródła** (domyślnie włączona przy przenoszeniu na serwer) oba pliki są
+  najpierw ponownie odczytywane i porównywane; różnica jest zgłaszana, a źródło zostaje.
 - **F2** lub **Shift+F6** zmienia nazwę bezpośrednio na liście: nazwa bez rozszerzenia jest
   zaznaczona, **Enter** potwierdza, **Esc** anuluje.
 - **F7** tworzy folder, **F8** usuwa (z potwierdzeniem).
@@ -100,6 +107,9 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
   jako profil z nazwą i kolorem karty i połącz się klawiszem **Enter**.
 - Oznacz serwer jako **serwer produkcyjny**: jego karty mają czerwony nagłówek, a niebezpieczne
   działania wymagają dodatkowego potwierdzenia (usuwania nie można potwierdzić klawiszem Enter).
+- Na serwerze produkcyjnym również kopiowania, wysyłania, przenoszenia i tworzenia folderu nie da
+  się potwierdzić klawiszem Enter, a kopiowanie nigdy nie zaczyna się od opcji Nadpisz (wstępnie
+  wybrane jest Pomiń istniejące).
 - Klucz serwera jest sprawdzany w `~/.ssh/known_hosts`. Nowy klucz jest dodawany dopiero po
   potwierdzeniu jego odcisku; zmieniony klucz jest odrzucany.
 - Logowanie próbuje kolejno ssh-agent, Twoje klucze, a potem hasło. Zapisane hasła są przechowywane
@@ -150,6 +160,14 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
 
 - **F4** otwiera plik w edytorze zewnętrznym. Plik z serwera jest wysyłany z powrotem po każdym
   zapisie; jeśli w międzyczasie zmienił się na serwerze, zostaniesz zapytany, co zrobić.
+- Lokalna kopia jest w prywatnym folderze na dysku (`~/.local/state/rolidscp/edit`, tylko dla
+  ciebie) i jest usuwana po zakończeniu edycji. Wysyłanie, które nie powiedzie się z innego powodu
+  niż utrata połączenia, jest powtarzane dwa razy, a potem zgłaszane. Czas ostatniego wysłania jest
+  pokazywany z sekundami.
+- Serwer bez atomowej zmiany nazwy dostaje zmieniony plik w krokach (oryginał jest najpierw
+  odkładany na bok). Jeśli w międzyczasie przerwie się połączenie lub program, krok zostanie
+  dokończony lub cofnięty przy następnym połączeniu z tym serwerem, a program poinformuje, których
+  plików to dotyczyło.
 - **Shift+F4** (także **Plik → Nowy plik…** i menu kontekstowe) tworzy nowy plik i otwiera go
   w zewnętrznym edytorze. Proponowana jest nazwa pod kursorem. Na tym komputerze pusty plik powstaje od
   razu, na serwerze dopiero przy pierwszym zapisie, więc zamknięcie edytora bez zapisu niczego nie

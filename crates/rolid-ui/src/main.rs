@@ -60,6 +60,9 @@ fn main() -> eframe::Result {
         std::process::exit(code);
     }
     init_logging();
+    // The journal of unfinished replacements of files on servers (repaired at
+    // the next connection).
+    rolid_core::replace::set_journal_dir(rolid_config::state_dir().join("replace"));
     // Background runtime for all I/O; the UI thread never blocks on disk or network.
     let rt = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -74,6 +77,9 @@ fn main() -> eframe::Result {
             .with_app_id("rolidscp")
             .with_inner_size([1280.0, 800.0])
             .with_min_inner_size([640.0, 400.0]),
+        // Installed by the app with a guard instead (fonts::GuardedFontProvider):
+        // eframe's own one ends the program on a system without fonts.
+        system_font_fallback: false,
         ..Default::default()
     };
     let res = eframe::run_native(

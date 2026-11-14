@@ -1,9 +1,16 @@
 //! Recursive copy between any two `Vfs` backends, with progress reporting,
 //! conflict policies and safe partial files (`name.filepart`, like WinSCP).
 //!
-//! A file is first written to `name.filepart` and renamed over the target only
-//! when complete, so an interrupted transfer never leaves a truncated file under
-//! the real name. With [`Conflict::Resume`] an existing `.filepart` is continued.
+//! A file is first written to `name.filepart` and put in place of the target
+//! only when complete ([`crate::replace::safe_replace`]: atomically where the
+//! backend can), so an interrupted transfer never leaves a truncated file under
+//! the real name.
+//!
+//! With [`Conflict::Resume`] a `.filepart` is continued only when it is known to
+//! belong to the same source: a big file gets `name.filepart-info` next to it
+//! (source path, size and modification time). A part file that does not match,
+//! or cannot be checked, is not continued; it is left alone and reported (the
+//! user can start over with "Overwrite").
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -17,6 +24,13 @@ use crate::vfs::{validate_name, Entry, EntryKind, Vfs, VfsError, VfsResult};
 
 const BUF_SIZE: usize = 256 * 1024;
 pub const PARTIAL_SUFFIX: &str = ".filepart";
+/// Next to a `.filepart`: which source it belongs to (see the module docs).
+pub const PARTIAL_INFO_SUFFIX: &str = ".filepart-info";
+/// Files from this size get a [`PARTIAL_INFO_SUFFIX`] file and can be resumed
+/// after the program was restarted. A smaller part file without one is simply
+/// written again from the start.
+pub const RESUME_INFO_MIN: u64 = 1024 * 1024;
+const INFO_HEADER: &str = "rolidscp-filepart 1";
 
 /// When continuing a `.filepart` on a remote destination, start this much before
 /// its end. Writes are pipelined (many in flight); a server that does not apply
@@ -36,10 +50,19 @@ pub struct CopyState {
     in_flight: Option<String>,
     /// The next run continues after an interruption.
     retrying: bool,
-    /// Moving: files really written to the target (source, target, size).
-    moved_files: Vec<(String, String, u64)>,
+    /// Moving: files really written to the target.
+    moved_files: Vec<Moved>,
     /// Moving: source folders whose contents were copied (children first).
     moved_dirs: Vec<String>,
+}
+
+/// A file a move wrote to the target, with the source as it was when read.
+#[derive(Debug, Clone)]
+struct Moved {
+    src: String,
+    dst: String,
+    size: u64,
+    modified: Option<std::time::SystemTime>,
 }
 
 /// What deleting the sources after a move left behind.
@@ -47,9 +70,16 @@ pub struct CopyState {
 pub struct MoveCleanup {
     /// Source files deleted.
     pub deleted: usize,
-    /// Source files kept: skipped by the conflict choice, changed meanwhile or
-    /// not found in the target with the same size.
+    /// Source files kept: skipped by the conflict choice, or not found in the
+    /// target with the same size.
     pub kept: Vec<String>,
+    /// Source files kept because they changed while they were being moved
+    /// (another size or modification time than when they were read).
+    pub changed: Vec<String>,
+    /// Source files kept because the checksum of the copy differs from the source.
+    pub mismatch: Vec<String>,
+    /// Files whose copy was compared by checksum before the source was deleted.
+    pub verified: usize,
     /// Source folders kept because something stayed in them.
     pub kept_dirs: usize,
 }
@@ -206,20 +236,23 @@ pub struct CopyJob<'a> {
     moving: bool,
     /// Name of the (single) item in the target, when it differs.
     target_name: Option<String>,
+    /// Moving: compare source and copy by checksum before deleting the source.
+    verify: bool,
+    /// Part files not continued because they could not be matched to their source.
+    not_resumed: Vec<String>,
 }
 
 enum Plan {
     Skip,
     /// Already copied by an earlier run of this job.
     Done,
-    /// Write `.filepart` from this offset, then rename over the target.
+    /// Write `.filepart` from this offset, then put it in place of the target.
     Write {
         offset: u64,
     },
-    /// Append directly into the existing (shorter) target from this offset.
-    AppendTarget {
-        offset: u64,
-    },
+    /// Resume was asked for, but the `.filepart` cannot be matched to this
+    /// source: leave it alone and report it.
+    NotResumed,
 }
 
 impl<'a> CopyJob<'a> {
@@ -245,7 +278,22 @@ impl<'a> CopyJob<'a> {
             failures: Vec::new(),
             moving: false,
             target_name: None,
+            verify: false,
+            not_resumed: Vec::new(),
         }
+    }
+
+    /// Moving: compare each copy with its source by checksum (reading both
+    /// again) before the source is deleted.
+    pub fn verify_moved(mut self, on: bool) -> Self {
+        self.verify = on;
+        self
+    }
+
+    /// Part files (`.filepart`) that were not continued because they could not
+    /// be matched to their source (target paths).
+    pub fn not_resumed(&self) -> &[String] {
+        &self.not_resumed
     }
 
     /// A move: the job remembers what it really wrote, so that
@@ -263,17 +311,46 @@ impl<'a> CopyJob<'a> {
     }
 
     /// After a successful move: delete each source file that is in the target
-    /// with the size it had when copied (and still has in the source), then the
-    /// source folders that became empty. Nothing else is deleted.
+    /// with its size and still has the size and modification time it had when
+    /// it was read (and, with [`CopyJob::verify_moved`], the same checksum as
+    /// the copy); then the source folders that became empty. Nothing else is
+    /// deleted.
     pub async fn delete_moved_sources(&mut self) -> MoveCleanup {
         let mut out = MoveCleanup::default();
-        for (src, dst, size) in std::mem::take(&mut self.state.moved_files) {
-            let same_dst = self.dst.stat(&dst).await.is_ok_and(|e| e.size == size);
-            let same_src = self.src.stat(&src).await.is_ok_and(|e| e.size == size);
-            if same_dst && same_src && self.src.remove_file(&src).await.is_ok() {
+        for m in std::mem::take(&mut self.state.moved_files) {
+            let same_dst = self.dst.stat(&m.dst).await.is_ok_and(|e| e.size == m.size);
+            let src_now = self.src.stat(&m.src).await;
+            let Ok(src_now) = src_now else {
+                out.kept.push(m.src);
+                continue;
+            };
+            if src_now.size != m.size || src_now.modified != m.modified {
+                out.changed.push(m.src);
+                continue;
+            }
+            if !same_dst {
+                out.kept.push(m.src);
+                continue;
+            }
+            if self.verify {
+                self.progress.current = m.src.clone();
+                (self.on_progress)(&self.progress);
+                match (checksum(self.src, &m.src, &self.cancel).await, checksum(self.dst, &m.dst, &self.cancel).await) {
+                    (Ok(a), Ok(b)) if a == b => out.verified += 1,
+                    (Ok(_), Ok(_)) => {
+                        out.mismatch.push(m.src);
+                        continue;
+                    }
+                    _ => {
+                        out.kept.push(m.src);
+                        continue;
+                    }
+                }
+            }
+            if self.src.remove_file(&m.src).await.is_ok() {
                 out.deleted += 1;
             } else {
-                out.kept.push(src);
+                out.kept.push(m.src);
             }
         }
         for dir in std::mem::take(&mut self.state.moved_dirs) {
@@ -469,24 +546,28 @@ impl<'a> CopyJob<'a> {
         })
     }
 
-    async fn plan(&self, src: &Entry, dst_path: &str, part_path: &str) -> Plan {
+    async fn plan(&self, src_path: &str, src: &Entry, dst_path: &str, part_path: &str) -> Plan {
         if self.state.completed.contains(dst_path) {
             return Plan::Done;
         }
         let target = self.dst.stat(dst_path).await.ok();
         let partial = self.dst.stat(part_path).await.ok();
-        // Our own interrupted file: continue it, whatever the conflict policy.
+        // Our own interrupted file (this job, this run of the program): continue
+        // it, whatever the conflict policy.
         if self.state.retrying && self.state.in_flight.as_deref() == Some(dst_path) {
             if let Some(p) = partial.as_ref().filter(|p| p.size <= src.size) {
                 return Plan::Write { offset: self.resume_offset(p.size) };
             }
         }
+        if let (Conflict::Resume, Some(p)) = (self.conflict, partial.as_ref()) {
+            let info = read_info(self.dst, &info_path(dst_path)).await;
+            return match info {
+                Some(i) if i.matches(src_path, src) && p.size <= src.size => Plan::Write { offset: self.resume_offset(p.size) },
+                None if src.size < RESUME_INFO_MIN => Plan::Write { offset: 0 },
+                _ => Plan::NotResumed,
+            };
+        }
         match (self.conflict, target) {
-            (Conflict::Resume, _) if partial.as_ref().is_some_and(|p| p.size <= src.size) => {
-                Plan::Write {
-                    offset: self.resume_offset(partial.map(|p| p.size).unwrap_or(0)),
-                }
-            }
             (_, None) => Plan::Write { offset: 0 },
             (Conflict::Overwrite, Some(_)) => Plan::Write { offset: 0 },
             (Conflict::Skip, Some(_)) => Plan::Skip,
@@ -499,9 +580,8 @@ impl<'a> CopyJob<'a> {
             (Conflict::Resume, Some(t)) if t.kind == EntryKind::File && t.size == src.size => {
                 Plan::Skip
             }
-            (Conflict::Resume, Some(t)) if t.kind == EntryKind::File && t.size < src.size => {
-                Plan::AppendTarget { offset: self.resume_offset(t.size) }
-            }
+            // Never written into under the real name: a different (also a
+            // shorter) target is replaced through a new .filepart.
             (Conflict::Resume, Some(_)) => Plan::Write { offset: 0 },
         }
     }
@@ -512,7 +592,7 @@ impl<'a> CopyJob<'a> {
         (self.on_progress)(&self.progress);
 
         let part_path = format!("{dst_path}{PARTIAL_SUFFIX}");
-        let (write_path, offset, rename) = match self.plan(src, dst_path, &part_path).await {
+        let offset = match self.plan(src_path, src, dst_path, &part_path).await {
             Plan::Done => return Ok(()),
             Plan::Skip => {
                 self.progress.files_skipped += 1;
@@ -520,13 +600,25 @@ impl<'a> CopyJob<'a> {
                 (self.on_progress)(&self.progress);
                 return Ok(());
             }
-            Plan::Write { offset } => (part_path.as_str(), offset, true),
-            Plan::AppendTarget { offset } => (dst_path, offset, false),
+            Plan::NotResumed => {
+                self.not_resumed.push(dst_path.to_owned());
+                self.progress.files_skipped += 1;
+                self.state.completed.insert(dst_path.to_owned());
+                (self.on_progress)(&self.progress);
+                return Ok(());
+            }
+            Plan::Write { offset } => offset,
         };
 
         self.state.in_flight = Some(dst_path.to_owned());
+        let info = info_path(dst_path);
+        if offset == 0 && src.size >= RESUME_INFO_MIN {
+            // Which source this part file belongs to (for resuming it later).
+            // Best effort: without it the file is just not resumable.
+            let _ = write_info(self.dst, &info, &PartInfo::of(src_path, src)).await;
+        }
         let mut r = self.src.open_read_at(src_path, offset).await?;
-        let mut w = self.dst.open_write_at(write_path, offset).await?;
+        let mut w = self.dst.open_write_at(&part_path, offset).await?;
         self.progress.bytes_resumed += offset;
         let mut buf = vec![0u8; BUF_SIZE];
         let copied: VfsResult<()> = async {
@@ -556,17 +648,21 @@ impl<'a> CopyJob<'a> {
         drop(w);
         drop(r);
 
-        if rename {
-            // SFTPv3 rename does not overwrite: remove the old target first.
-            if self.dst.stat(dst_path).await.is_ok() {
-                self.dst.remove_file(dst_path).await?;
-            }
-            self.dst.rename(&part_path, dst_path).await?;
+        // In place of the target: atomically where possible, never deleting
+        // the old target before the new one is there.
+        crate::replace::safe_replace(self.dst, &part_path, dst_path).await?;
+        if self.dst.stat(&info).await.is_ok() {
+            let _ = self.dst.remove_file(&info).await;
         }
         self.state.completed.insert(dst_path.to_owned());
         self.state.in_flight = None;
         if self.moving {
-            self.state.moved_files.push((src_path.to_owned(), dst_path.to_owned(), src.size));
+            self.state.moved_files.push(Moved {
+                src: src_path.to_owned(),
+                dst: dst_path.to_owned(),
+                size: src.size,
+                modified: src.modified,
+            });
         }
         // Keep permission bits (without setuid/setgid/sticky) and modification time.
         let _ = self
@@ -590,6 +686,83 @@ impl CopyJob<'_> {
     }
 }
 
+/// `name.filepart-info` for the target `dst_path`.
+pub fn info_path(dst_path: &str) -> String {
+    format!("{dst_path}{PARTIAL_INFO_SUFFIX}")
+}
+
+/// Which source a `.filepart` belongs to.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct PartInfo {
+    src: String,
+    size: u64,
+    mtime: Option<u64>,
+}
+
+impl PartInfo {
+    fn of(src_path: &str, e: &Entry) -> PartInfo {
+        PartInfo { src: src_path.to_owned(), size: e.size, mtime: e.modified.map(secs) }
+    }
+    fn matches(&self, src_path: &str, e: &Entry) -> bool {
+        *self == PartInfo::of(src_path, e)
+    }
+    fn encode(&self) -> String {
+        let path: String = self.src.bytes().map(|b| format!("{b:02x}")).collect();
+        let mtime = self.mtime.map_or("-".to_string(), |t| t.to_string());
+        format!("{INFO_HEADER}\n{path}\n{}\n{mtime}\n", self.size)
+    }
+    fn decode(text: &str) -> Option<PartInfo> {
+        let mut l = text.lines();
+        if l.next()? != INFO_HEADER {
+            return None;
+        }
+        let hex = l.next()?;
+        if hex.len() % 2 != 0 {
+            return None;
+        }
+        let bytes: Option<Vec<u8>> = (0..hex.len()).step_by(2).map(|i| u8::from_str_radix(&hex[i..i + 2], 16).ok()).collect();
+        let src = String::from_utf8(bytes?).ok()?;
+        let size = l.next()?.parse().ok()?;
+        let mtime = match l.next()? {
+            "-" => None,
+            t => Some(t.parse().ok()?),
+        };
+        Some(PartInfo { src, size, mtime })
+    }
+}
+
+async fn write_info(fs: &dyn Vfs, path: &str, info: &PartInfo) -> VfsResult<()> {
+    let mut w = fs.open_write(path).await?;
+    w.write_all(info.encode().as_bytes()).await?;
+    w.shutdown().await?;
+    Ok(())
+}
+
+async fn read_info(fs: &dyn Vfs, path: &str) -> Option<PartInfo> {
+    let mut r = fs.open_read(path).await.ok()?;
+    let mut buf = Vec::new();
+    (&mut r).take(64 * 1024).read_to_end(&mut buf).await.ok()?;
+    PartInfo::decode(std::str::from_utf8(&buf).ok()?)
+}
+
+/// BLAKE3 of a whole file, read through `fs`.
+pub async fn checksum(fs: &dyn Vfs, path: &str, cancel: &AtomicBool) -> VfsResult<[u8; 32]> {
+    let mut r = fs.open_read(path).await?;
+    let mut h = blake3::Hasher::new();
+    let mut buf = vec![0u8; BUF_SIZE];
+    loop {
+        if cancel.load(Ordering::Relaxed) {
+            return Err(VfsError::canceled());
+        }
+        let n = r.read(&mut buf).await?;
+        if n == 0 {
+            break;
+        }
+        h.update(&buf[..n]);
+    }
+    Ok(*h.finalize().as_bytes())
+}
+
 fn secs(t: std::time::SystemTime) -> u64 {
     t.duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs())
@@ -599,6 +772,15 @@ fn secs(t: std::time::SystemTime) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn part_info_round_trip() {
+        let i = PartInfo { src: "/srv/a b/ž\n.bin".into(), size: 5_000_000, mtime: Some(1_700_000_000) };
+        assert_eq!(PartInfo::decode(&i.encode()), Some(i.clone()));
+        let j = PartInfo { mtime: None, ..i };
+        assert_eq!(PartInfo::decode(&j.encode()), Some(j));
+        assert_eq!(PartInfo::decode("something else"), None);
+    }
 
     #[test]
     fn file_counter_text() {

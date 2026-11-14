@@ -107,6 +107,11 @@ pub struct EditSession {
     wait_link: bool,
     /// Automatic retries after lost connections (since the last success).
     auto_retries: u32,
+    /// Automatic retries after an upload failed for another reason.
+    fail_retries: u32,
+    /// The running check is an automatic retry of an upload the user already
+    /// confirmed (production server): it is not asked again.
+    retrying: bool,
     /// What the file is opened with (F4 = the text editor).
     pub opener: Opener,
     /// Opened with another application ("Open with"): ask before uploading a change.
@@ -191,8 +196,18 @@ const LOCAL_WATCH_MAX: usize = 32;
 /// The quiet time after a change of a local file before the panels refresh.
 const LOCAL_QUIET: std::time::Duration = std::time::Duration::from_millis(300);
 
-fn now_hm() -> String {
-    chrono::Local::now().format("%H:%M").to_string()
+fn now_hms() -> String {
+    chrono::Local::now().format("%H:%M:%S").to_string()
+}
+
+/// How often an upload that failed for another reason than a lost connection
+/// is tried again by itself, and after how long.
+const UPLOAD_RETRY_DELAYS: [Duration; 2] = [Duration::from_secs(3), Duration::from_secs(10)];
+
+/// After the `done`-th failed upload in a row: wait and try again, or give up
+/// and tell the user (`None`).
+fn upload_retry_delay(done: u32) -> Option<Duration> {
+    UPLOAD_RETRY_DELAYS.get(done as usize).copied()
 }
 
 impl App {
@@ -218,7 +233,7 @@ impl App {
     /// Watch a local file opened in the editor (not a temporary copy of a
     /// server file: those have their own session).
     fn watch_local_edit(&mut self, path: &std::path::Path) {
-        if path.starts_with(temp::base_dir()) || !path.is_absolute() {
+        if temp::is_temp(path) || !path.is_absolute() {
             return;
         }
         let (Some(dir), Some(name)) = (path.parent(), path.file_name()) else { return };
@@ -282,18 +297,23 @@ impl App {
     /// At start-up: register this instance and process leftovers of crashed ones.
     pub(super) fn edits_startup(&mut self) {
         let base = temp::base_dir();
-        if !base.exists() {
-            return; // nothing was ever edited; the marker is written with the first edit
+        if base.exists() {
+            self.register_instance(&base);
         }
-        self.register_instance(&base);
-        let Some(me) = self.edits.instance.as_ref().map(|i| i.id) else { return };
-        let scan = recover::scan(&base, &me, recover::is_running);
-        if scan.removed > 0 {
-            tracing::info!("cleanup after a crash: deleted {} unchanged temporary copies", scan.removed);
-        }
-        for o in scan.orphans {
-            tracing::warn!("an unsaved edit was left after a crash: {}", o.meta.remote_path);
-            self.edits.prompts.push(EditPrompt::Recovered { orphan: Box::new(o) });
+        let me = recover::ProcId::current();
+        // The folder of 0.8.13 and older (in memory) is scanned as well.
+        for dir in std::iter::once(base).chain(temp::legacy_base_dir()) {
+            if !dir.exists() {
+                continue; // nothing was ever edited; the marker is written with the first edit
+            }
+            let scan = recover::scan(&dir, &me, recover::is_running);
+            if scan.removed > 0 {
+                tracing::info!("cleanup after a crash: deleted {} unchanged temporary copies", scan.removed);
+            }
+            for o in scan.orphans {
+                tracing::warn!("an unsaved edit was left after a crash: {}", o.meta.remote_path);
+                self.edits.prompts.push(EditPrompt::Recovered { orphan: Box::new(o) });
+            }
         }
     }
 
@@ -381,6 +401,8 @@ impl App {
                 end_after_upload: false,
                 wait_link: false,
                 auto_retries: 0,
+            fail_retries: 0,
+            retrying: false,
                 opener: Opener::Editor,
                 ask_upload: false,
                 new_file: o.meta.remote_size.is_none(),
@@ -540,6 +562,12 @@ impl App {
                 return;
             }
         };
+        // Only the user may read the copy, from the first byte on.
+        if let Err(e) = create_private_file(&dir.file) {
+            self.last_error = Some(tr!("Cannot start editing: {error}", error = e.to_string()));
+            let _ = dir.remove();
+            return;
+        }
         let id = self.id();
         let local_path = dir.file.to_string_lossy().into_owned();
         self.edits.sessions.push(EditSession {
@@ -564,6 +592,8 @@ impl App {
             end_after_upload: false,
             wait_link: false,
             auto_retries: 0,
+            fail_retries: 0,
+            retrying: false,
             ask_upload: opener != Opener::Editor,
             opener,
             new_file: false,
@@ -635,6 +665,8 @@ impl App {
             end_after_upload: false,
             wait_link: false,
             auto_retries: 0,
+            fail_retries: 0,
+            retrying: false,
             opener: Opener::Editor,
             ask_upload: false,
             new_file: true,
@@ -742,7 +774,10 @@ impl App {
             }
             EditMsg::Preflight { id, result, lost, missing } => {
                 let Some(s) = self.session(id) else { return };
+                let retrying = std::mem::take(&mut s.retrying);
                 match preflight_next(s.new_file, s.production, s.stamp, &result, lost, missing) {
+                    // Confirmed before the failed attempt.
+                    Next::Confirm if retrying => self.upload(id, None),
                     Next::WaitLink => {
                         s.state = EditState::Failed(lost_text());
                         s.wait_link = true;
@@ -775,6 +810,7 @@ impl App {
                     Ok(stamp) => {
                         s.uploaded = fp;
                         s.auto_retries = 0;
+                        s.fail_retries = 0;
                         // The new file now exists: the panel's cursor goes to it.
                         let created = (s.new_file && aside.is_none()).then(|| (s.at, s.remote_dir.clone(), s.name.clone()));
                         if aside.is_none() {
@@ -782,7 +818,7 @@ impl App {
                             s.new_file = false;
                             Self::write_meta(s, hash);
                         }
-                        s.state = EditState::Uploaded { time: now_hm(), aside: aside.clone() };
+                        s.state = EditState::Uploaded { time: now_hms(), aside: aside.clone() };
                         // Changes saved during the upload are picked up by the next check.
                         s.debounce.event(Instant::now());
                         tracing::info!("edit uploaded to the server");
@@ -808,8 +844,32 @@ impl App {
                     }
                     Err(e) => {
                         tracing::warn!("edit upload failed: {e}");
-                        s.state = EditState::Failed(tr!("Upload failed: {error}", error = e));
-                        self.edit_failed_during_quit();
+                        match upload_retry_delay(s.fail_retries) {
+                            Some(delay) => {
+                                s.fail_retries += 1;
+                                s.state = EditState::Failed(tr!(
+                                    "Upload failed: {error} – trying again ({n} of {max})",
+                                    error = e.as_str(),
+                                    n = s.fail_retries.to_string(),
+                                    max = UPLOAD_RETRY_DELAYS.len().to_string()
+                                ));
+                                self.spawn(async move {
+                                    tokio::time::sleep(delay).await;
+                                    Msg::Then { job: None, f: Box::new(move |a: &mut App| a.retry_failed_upload(id, aside)) }
+                                });
+                            }
+                            None => {
+                                s.fail_retries = 0;
+                                s.state = EditState::Failed(tr!("Upload failed: {error}", error = e.as_str()));
+                                let name = s.name.clone();
+                                self.last_error = Some(tr!(
+                                    "The edited file “{name}” could not be uploaded to the server: {error}\nThe changes are kept in the local copy. Try “Upload again” in Edited files.",
+                                    name = name.as_str(),
+                                    error = e.as_str()
+                                ));
+                                self.edit_failed_during_quit();
+                            }
+                        }
                     }
                 }
                 self.jobs.retain(|j| Some(j.id) != job);
@@ -1029,8 +1089,25 @@ impl App {
         if let Some(s) = self.session(id) {
             s.wait_link = false;
             s.auto_retries = 0;
+            s.fail_retries = 0;
         }
         self.preflight(id);
+    }
+
+    /// The automatic retry of a failed upload (unless something else has
+    /// started meanwhile: a new save, the user's “Upload again”).
+    fn retry_failed_upload(&mut self, id: u64, aside: Option<String>) {
+        let Some(s) = self.session(id) else { return };
+        if s.job.is_some() || !matches!(s.state, EditState::Failed(_)) || s.wait_link {
+            return;
+        }
+        tracing::info!("uploading the edit again after a failure");
+        if aside.is_some() {
+            self.upload(id, aside);
+        } else {
+            s.retrying = true;
+            self.preflight(id);
+        }
     }
 
     pub(super) fn edits_use_link(&self, key: &str) -> bool {

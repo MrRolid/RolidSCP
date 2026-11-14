@@ -23,6 +23,8 @@ pub struct Sshd {
     pub known_hosts: PathBuf,
     host_pub: String,
     child: Option<Child>,
+    /// Extra lines of sshd_config.
+    extra: String,
 }
 
 fn free_port() -> u16 {
@@ -43,6 +45,11 @@ fn keygen(path: &Path) {
 impl Sshd {
     /// `None` when OpenSSH is not available (the test should return early).
     pub fn start(name: &str) -> Option<Sshd> {
+        Self::start_with(name, "")
+    }
+
+    /// [`Sshd::start`] with extra lines of sshd_config (`{dir}` = the server's folder).
+    pub fn start_with(name: &str, extra: &str) -> Option<Sshd> {
         if !Path::new(SSHD).exists() || Command::new("ssh-keygen").arg("-?").output().is_err() {
             eprintln!("SKIP: {SSHD} / ssh-keygen not available");
             return None;
@@ -67,6 +74,7 @@ impl Sshd {
             known_hosts: dir.join("known_hosts"),
             host_pub,
             child: None,
+            extra: extra.replace("{dir}", &dir.display().to_string()),
             dir,
         };
         s.port = free_port();
@@ -82,10 +90,11 @@ impl Sshd {
              AuthorizedKeysFile {d}/authorized_keys\nPasswordAuthentication no\n\
              KbdInteractiveAuthentication no\nUsePAM no\nStrictModes no\n\
              PidFile {d}/sshd.pid\nSubsystem sftp internal-sftp\nAllowUsers {user}\n\
-             MaxSessions 50\nMaxStartups 50\nLogLevel ERROR\n",
+             MaxSessions 50\nMaxStartups 50\nLogLevel ERROR\n{extra}\n",
             port = self.port,
             d = d.display(),
             user = self.user,
+            extra = self.extra,
         );
         std::fs::write(d.join("sshd_config"), cfg).unwrap();
         let child = Command::new(SSHD)

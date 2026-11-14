@@ -80,26 +80,35 @@ use it on data that matters: RolidSCP is beta software.
 
 **Copying and moving (F5, F6)**
 - A file is written as `name.filepart` and renamed to its real name only when it is complete, so
-  an interrupted copy normally leaves the `.filepart`, not a truncated file under the real name.
-  When the target already exists, it is deleted just before that rename (SFTP version 3 cannot
-  rename over an existing file); if the connection drops exactly between the two steps, only the
-  `.filepart` remains.
+  an interrupted copy leaves the `.filepart`, never a truncated file under the real name.
+  An existing target is replaced in one atomic step where the server offers it
+  (`posix-rename@openssh.com`, OpenSSH; always on a local disk). Elsewhere (SFTP version 3 cannot
+  rename over an existing file) the old file is first renamed aside to `name.rolidscp-old`, the new
+  one takes its name and only then the old one is deleted; the target is never deleted first.
+  The step is written to a local journal (`~/.local/state/rolidscp/replace`), so if the connection or
+  the program breaks in between, the next connection to that server finishes it (the new file was
+  complete) or puts the original back, and tells you which files it concerned.
 - After a lost connection the transfer continues from the `.filepart` once the connection is back
   (to a production server only when you confirm it again). This works only while the program runs:
   the queue is not saved, so after a restart or a crash the `.filepart` files stay where they are
   and you have to start the copy again (the conflict choice *Resume* continues them).
-- *Resume* trusts an existing `.filepart`, or a shorter target file, that is not larger than the
-  source; it does not check that it really comes from the same source. Use it only when you know
-  the partial file is yours.
+- *Resume* continues only a `.filepart` of the same source: for files from 1 MiB on, the source path,
+  size and modification time are stored next to it (`name.filepart-info`) and must match. A
+  `.filepart` without that record (from another program or an older version) or of another source
+  is not resumed: it is left untouched and reported, and you start over with *Overwrite*. A smaller
+  one without a record is simply written again. Resuming never appends to the file under the real
+  name. The content of the part already transferred is not compared.
 - The permission bits (without setuid, setgid, sticky) and the modification time of files are
   copied; failures there are ignored. Folders get their permissions but not their times; the owner
   is not copied.
 - A move between different disks or servers is a copy followed by deleting the sources. The sources
-  are deleted only when the whole copy succeeded, and each file only when the source and the target
-  still have the size it had when copying started. The content is **not** compared (no checksum),
-  and a change of the source during the copy that keeps its size is not detected. Do not move files
-  that another program is writing to. When the copy fails, nothing is deleted; files already copied
-  stay in the target.
+  are deleted only when the whole copy succeeded, and each file only when its size and modification
+  time are still those it had when it was read, and the target has the same size. With *Verify by
+  checksum before deleting the source* (on by default when moving to a server, can be turned off in
+  the move dialog) both files are read again and their BLAKE3 checksums compared first. A file that
+  changed or whose copy differs stays in the source, and the end of the move says so. A change
+  within the same second that keeps the size is noticed only by the checksum. When the copy fails,
+  nothing is deleted; files already copied stay in the target.
 - Symbolic links: links to folders inside a copied folder are skipped (no loops, nothing from
   outside the tree); links to files are followed, so the file they point to is copied as an ordinary
   file. A move leaves links where they are. The result summary does not list skipped links yet.
@@ -115,26 +124,27 @@ use it on data that matters: RolidSCP is beta software.
 - Before each upload the file on the server is compared with the state when you opened it (size and
   modification time, not the content). If it changed, you choose: overwrite, save alongside under
   another name, or cancel. A change that keeps the size within the same second is not detected.
-- The upload goes to `name.filepart` first. With the `posix-rename@openssh.com` extension (OpenSSH)
-  the file is replaced in one atomic step. Without it the old file is renamed aside, the new one
-  put in place and the old one deleted; for a moment the name does not exist, and if the connection
-  drops just then, the old version stays as `name.rolidscp-old` on the server.
-- When the connection is lost, the upload waits and is tried again when it is back. The edited copy
-  is kept, and quitting asks first. "Edited files" and the status bar show "uploaded at HH:MM",
-  "uploading…" or the error, so you can see whether the last save arrived.
-- Local copies live in `$XDG_RUNTIME_DIR/rolidscp-edit` (private, mode 0700). After a crash of the
-  program, changed copies are offered for upload at the next start. That folder is in memory on most
-  systems, so a crash of the whole computer or a power loss loses edits that were not uploaded.
+- The upload goes to `name.filepart` first and replaces the file the same way as copying (atomic
+  with `posix-rename@openssh.com`, otherwise aside, in place, delete, with the journal). Without
+  the extension the name does not exist for a moment; a replacement cut off just then is repaired
+  at the next connection.
+- When the connection is lost, the upload waits and is tried again when it is back. An upload that
+  fails for another reason is tried again twice (after 3 and 10 s), then reported in a message. The
+  edited copy is kept, and quitting asks first. "Edited files" and the status bar show "uploaded at
+  HH:MM:SS", "uploading…" or the error, so you can see whether the last save arrived.
+- Local copies live on disk in `~/.local/state/rolidscp/edit` (folders 0700, files 0600) and are
+  deleted when editing ends. After a crash of the program or of the whole computer, changed copies
+  are offered for upload at the next start (also those left in `$XDG_RUNTIME_DIR/rolidscp-edit` by
+  0.8.13 and older, while that folder still exists).
 - Only the permission bits of the server file are kept (not the owner); a symbolic link on the
   server is replaced by a regular file.
 
 **Production servers** (a flag in the server manager)
-- Red stripe and a "⚠ PRODUCTION" label on the tab; Enter does not confirm: delete, move, rename,
-  permissions, pack and extract into it, upload of every F4 save. The terminal asks first.
-- Not yet as strict: copying (F5, also dragging between panels) into a production server shows the
-  warning, but Enter still confirms and the default for existing files is *Overwrite*; files dropped
-  from another application can also be confirmed with Enter (existing files are skipped by default).
-  Creating a folder is not marked at all.
+- Red stripe and a "⚠ PRODUCTION" label on the tab; Enter does not confirm: delete, copy into it
+  (F5, dragging between panels, files dropped from another application), move, rename, create a
+  folder, permissions, pack and extract into it, upload of every F4 save. The terminal asks first.
+- Copying or moving into a production server never starts with *Overwrite*: *Skip existing* is
+  preselected instead, whatever the default in the settings.
 - An interrupted transfer to a production server is not resumed by itself; you confirm it again.
 
 **Servers and keys**
@@ -172,8 +182,12 @@ missing tools), they fall back to SFTP:
 | File system type in the path row | `df -PT` or `stat -f` | not shown |
 | Terminal (Ctrl+P) | the system `ssh` with a login shell | not available |
 
-The fallback is chosen automatically. A server that accepts the command but never answers (an
-unusual wrapper waiting for input) can keep such a function waiting until you cancel it.
+The fallback is chosen automatically. Search, checksums and the search in the viewer first run a
+short check of what the server offers; a server that accepts commands but does not answer that check
+within 5 seconds (a login script waiting for input, a stuck profile) is treated as one without a
+shell, and the file system type is not shown after 5 seconds. Commands get no input (end of input at
+once). Folder sizes run `du` without a check, and a command that stalls after the check (e.g. on a
+hung network mount) waits until you cancel it.
 
 ## Features
 
@@ -270,8 +284,9 @@ unusual wrapper waiting for input) can keep such a function waiting until you ca
   case-insensitive file systems, production servers ask first. Tabs and files edited with F4 inside a
   renamed folder follow it.
 - Move (F6): a rename on the same disk or server; otherwise a copy through the transfer queue, and the
-  sources are deleted only after the whole copy succeeded and the target has the same size (the
-  content is not compared).
+  sources are deleted only after the whole copy succeeded, the target has the same size and the
+  source did not change meanwhile (size, modification time); moves to a server also compare BLAKE3
+  checksums first (can be turned off).
 - Permissions dialog (rwx / octal, recursive with separate file and folder modes).
 - Copy names, paths or `sftp://` URLs to the clipboard.
 - Search (Ctrl+F7): by name (mask, substring, regex) and content; locally with the ripgrep engine,
@@ -437,8 +452,9 @@ Machine translations can be wrong or clumsy. Corrections from native speakers ar
 - Log: `~/.local/state/rolidscp/rolidscp.log` (Help menu, open log). It never contains passwords.
   Log messages are always English.
   `ROLIDSCP_LOG_DIR` overrides the folder.
-- Temporary files: archives in `~/.cache/rolidscp/archive`, files edited with F4 in
-  `$XDG_RUNTIME_DIR/rolidscp-edit` (folders 0700).
+- Temporary files: archives in `~/.cache/rolidscp/archive`, files edited with F4 and files dragged
+  out to other applications in `~/.local/state/rolidscp/edit` (folders 0700). The journal of
+  unfinished replacements on servers is in `~/.local/state/rolidscp/replace`.
 
 ## Project layout
 

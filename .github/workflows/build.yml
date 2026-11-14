@@ -97,16 +97,12 @@ jobs:
       - name: Tests
         run: |
           set -o pipefail
-          # Three tests compare with system tools that behave differently on Ubuntu 22.04;
-          # they pass on Debian 13, where the program is developed:
-          # - du_quoting, local_size_with_a_link...: coreutils before 9.2 count directory
-          #   sizes in `du --apparent-size`, the program does not;
-          # - parallel_and_single_thread...: p7zip 16.02 reports an error for the zip packed
-          #   by several threads (7-Zip 25.01 accepts it).
+          # Two tests compare with `du`, which behaves differently on Ubuntu 22.04
+          # (they pass on Debian 13, where the program is developed): coreutils
+          # before 9.2 count directory sizes in `du --apparent-size`, the program does not.
           SKIP=(
             --skip dirsize::tests::du_quoting
             --skip dirsize::tests::local_size_with_a_link_and_an_unreadable_folder
-            --skip tests::parallel_and_single_thread_give_the_same_content
           )
           if ! cargo test --workspace --locked --no-fail-fast -- "${SKIP[@]}" 2>&1 | tee "$RUNNER_TEMP/test.log"; then
             # Each failing test as an annotation, shown on the run page without the full log.

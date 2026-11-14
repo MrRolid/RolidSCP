@@ -78,6 +78,13 @@ shortcuts is on the second page of this window.
   resume an interrupted transfer. The default choice can be set in the Settings menu.
 - Files are written under a temporary name and renamed when they are complete, so a broken
   transfer never leaves a half-written file under the real name.
+- Resuming continues only a part file (`.filepart`) of the same source file: its path, size and
+  modification time are kept next to it. A part file of another or an unknown source is left alone
+  and reported; choose **Overwrite** to start over.
+- Moving between disks or servers deletes a source file only when it did not change during the
+  transfer (size and modification time) and the copy has the same size. With **Verify by checksum
+  before deleting the source** (on by default when moving to a server) both are read again and
+  compared first; a difference is reported and the source stays.
 - **F2** or **Shift+F6** renames right in the list: the name without the extension is selected,
   **Enter** confirms, **Esc** cancels.
 - **F7** creates a folder, **F8** deletes (with a confirmation).
@@ -96,6 +103,8 @@ shortcuts is on the second page of this window.
   profile with a name and a tab color, and connect with **Enter**.
 - Mark a server as a **production server**: its tabs get a red header, and dangerous actions ask
   once more (deleting cannot be confirmed with Enter).
+- On a production server copying, uploading, moving and creating a folder cannot be confirmed with
+  Enter either, and copying never starts with Overwrite (Skip existing is preselected instead).
 - The server's key is checked against `~/.ssh/known_hosts`. A new key is added only after you
   confirm its fingerprint; a changed key is refused.
 - Login tries ssh-agent, your keys, then the password. Saved passwords are kept encrypted, protected
@@ -144,6 +153,12 @@ shortcuts is on the second page of this window.
 
 - **F4** opens the file in an external editor. A file from a server is uploaded back after every
   save; if it changed on the server in the meantime, you are asked what to do.
+- The local copy is kept in a private folder on disk (`~/.local/state/rolidscp/edit`, for you only)
+  and deleted when editing ends. An upload that fails for another reason than a lost connection is
+  tried again twice, then reported. The time of the last upload is shown with seconds.
+- A server without atomic rename gets a changed file in steps (the original is moved aside first).
+  If the connection or the program breaks in between, the step is finished or undone at the next
+  connection to that server, and you are told which files it concerned.
 - **Shift+F4** (also **File → New file…** and the context menu) creates a new file and opens it in the
   external editor. The name under the cursor is offered. On this computer the empty file is created at
   once; on a server it is created by the first save, so closing the editor without saving creates

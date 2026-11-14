@@ -9,6 +9,9 @@
 //! - otherwise (plain SFTPv3 `rename` does not overwrite) the original is first
 //!   renamed aside (`name.rolidscp-old`), the new file renamed into place and the
 //!   old one deleted; if the second rename fails the original is renamed back.
+//!   The step is written to a local journal first, so a replacement cut off by
+//!   a lost connection or a crash is finished or undone at the next connection
+//!   ([`rolid_core::replace::repair`]).
 //!
 //! At no point is there a truncated file under the real name.
 
@@ -22,7 +25,6 @@ use rolid_text::txt;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 const BUF: usize = 128 * 1024;
-const OLD_SUFFIX: &str = ".rolidscp-old";
 
 pub struct Ctl<'a> {
     pub limit: Option<Arc<RateLimit>>,
@@ -62,35 +64,9 @@ pub async fn download(src: &dyn Vfs, src_path: &str, local: &dyn Vfs, dst_path: 
 }
 
 /// Replace `target` with `part` on `fs` without ever leaving a truncated or missing
-/// file under the real name (see the module docs).
+/// file under the real name (see the module docs and [`rolid_core::replace`]).
 pub async fn safe_replace(fs: &dyn Vfs, part: &str, target: &str) -> VfsResult<()> {
-    // Atomic replace if possible. If the server offers it but refuses, the plain
-    // path below gives the real reason (permissions…) or works where it does not.
-    let old = format!("{target}{OLD_SUFFIX}");
-    if let Ok(true) = fs.rename_replace(part, target).await {
-        if fs.stat(&old).await.is_ok() {
-            let _ = fs.remove_file(&old).await; // leftover from an interrupted earlier upload
-        }
-        return Ok(());
-    }
-    if fs.stat(target).await.is_err() {
-        return fs.rename(part, target).await;
-    }
-    if fs.stat(&old).await.is_ok() {
-        fs.remove_file(&old).await?; // leftover from an interrupted earlier upload
-    }
-    fs.rename(target, &old).await?; // on failure nothing changed
-    match fs.rename(part, target).await {
-        Ok(()) => {
-            let _ = fs.remove_file(&old).await;
-            Ok(())
-        }
-        Err(e) => {
-            // Put the original back.
-            let _ = fs.rename(&old, target).await;
-            Err(e)
-        }
-    }
+    rolid_core::replace::safe_replace(fs, part, target).await
 }
 
 /// Upload `local_path` to `dst_path`, keeping permission bits `mode` (of the original).

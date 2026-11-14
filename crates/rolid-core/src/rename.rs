@@ -102,11 +102,19 @@ pub async fn rename_entry(fs: &dyn Vfs, dir: &str, from: &str, to: &str, overwri
     if only_case {
         let tmp = temp_name(&listing, from);
         let tmp = fs.join(dir, &tmp);
-        fs.rename(&src, &tmp).await?;
-        if let Err(e) = fs.rename(&tmp, &dst).await {
-            let _ = fs.rename(&tmp, &src).await;
+        // Journaled: a crash between the two renames is finished at the next connection.
+        let guard = crate::replace::RenameGuard::begin(fs, &src, &tmp, &dst);
+        if let Err(e) = fs.rename(&src, &tmp).await {
+            guard.done(); // nothing changed
             return Err(e);
         }
+        if let Err(e) = fs.rename(&tmp, &dst).await {
+            if fs.rename(&tmp, &src).await.is_ok() {
+                guard.done();
+            }
+            return Err(e);
+        }
+        guard.done();
         return Ok(RenameOutcome::Done);
     }
     fs.rename(&src, &dst).await?;
@@ -115,7 +123,7 @@ pub async fn rename_entry(fs: &dyn Vfs, dir: &str, from: &str, to: &str, overwri
 
 /// A free temporary name next to `name`.
 fn temp_name(listing: &[crate::Entry], name: &str) -> String {
-    let base = format!(".{name}.rolid-prejmenovani");
+    let base = format!(".{name}{}", crate::replace::RENAME_TMP_SUFFIX);
     let mut n = 0u32;
     loop {
         let cand = if n == 0 { base.clone() } else { format!("{base}-{n}") };
@@ -126,25 +134,10 @@ fn temp_name(listing: &[crate::Entry], name: &str) -> String {
     }
 }
 
-/// Put file `src` in place of file `dst`: atomically where the backend can
-/// (local rename(2), SFTP posix-rename@openssh.com), else by moving `dst`
-/// aside first and back if the rename fails.
+/// Put file `src` in place of file `dst` without ever losing `dst`
+/// ([`crate::replace::safe_replace`]: atomic where the backend can).
 pub async fn replace(fs: &dyn Vfs, src: &str, dst: &str) -> VfsResult<()> {
-    if fs.rename_replace(src, dst).await? {
-        return Ok(());
-    }
-    let aside = format!("{dst}.rolid-zaloha");
-    fs.rename(dst, &aside).await?;
-    match fs.rename(src, dst).await {
-        Ok(()) => {
-            let _ = fs.remove_file(&aside).await;
-            Ok(())
-        }
-        Err(e) => {
-            let _ = fs.rename(&aside, dst).await;
-            Err(e)
-        }
-    }
+    crate::replace::safe_replace(fs, src, dst).await
 }
 
 /// What a move by rename did with one item.

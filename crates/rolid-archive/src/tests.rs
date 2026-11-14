@@ -703,7 +703,7 @@ fn parallel_and_single_thread_give_the_same_content() {
             if pass.is_some() && !format.can_encrypt() {
                 continue;
             }
-            let out = t.path().join(format!("p{threads}{}", format.ext()));
+            let out = t.path().join(format!("p{threads}{}{}", if pass.is_some() { "-pw" } else { "" }, format.ext()));
             let o = PackOpts { threads, password: pass.map(pw), ..PackOpts::new(format, Level::Fast) };
             let rep = ctl_run(|c| pack_with(std::slice::from_ref(&src), &out, &o, c)).unwrap();
             assert_eq!(rep.files, 48, "{format:?}");
@@ -715,6 +715,11 @@ fn parallel_and_single_thread_give_the_same_content() {
             for i in 0..40 {
                 let f = format!("sub/f{i:02}.dat");
                 assert_eq!(fs::read(src.join(&f)).unwrap(), fs::read(dest.join("data").join(&f)).unwrap());
+            }
+            if format == Format::Zip {
+                // Stored like 7-Zip does (p7zip 16.02 rejects an encrypted
+                // empty entry that is deflated).
+                assert_eq!(zip_methods(&out)["data/empty.txt"], zip::CompressionMethod::Stored);
             }
             if let Some(pass) = pass {
                 external_ok("7z", &["t", &format!("-p{pass}")], &out);

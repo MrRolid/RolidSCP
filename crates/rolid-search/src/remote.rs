@@ -149,13 +149,14 @@ pub async fn probe(conn: &SshConnection, cancel: &std::sync::atomic::AtomicBool)
     let mut out = Vec::new();
     let cmd = "find / -maxdepth 0 -printf F 2>/dev/null; echo; grep --version 2>/dev/null | head -n 1";
     let r = conn
-        .exec_stream(cmd, cancel, &mut |d| {
+        .exec_probe(cmd, cancel, &mut |d| {
             out.extend_from_slice(d);
             out.len() < 4096
         })
         .await;
     if r.is_err() {
-        return Caps::default(); // no shell (e.g. SFTP-only account)
+        // No shell (e.g. SFTP-only account), or it did not answer in time.
+        return Caps::default();
     }
     let s = String::from_utf8_lossy(&out);
     let mut lines = s.lines();

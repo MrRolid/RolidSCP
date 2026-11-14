@@ -19,6 +19,9 @@ eframe = { version = "0.37.0", default-features = false, features = [
 # (wayland-csd-adwaita) and the other winit defaults. The same version eframe uses.
 winit = "0.30.13"
 egui_extras = "0.37.0"
+# System fonts for characters the built-in fonts lack (installed with a guard,
+# see fonts.rs; the same version eframe uses).
+egui_system_font_provider = "0.37.0"
 # Font file check (the parser egui uses; already in the build through epaint).
 skrifa = { version = "0.44.0", default-features = false, features = ["std"] }
 rolid-config = { path = "../rolid-config" }

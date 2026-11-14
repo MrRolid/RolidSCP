@@ -205,11 +205,62 @@ impl App {
         for at in panes {
             self.refresh(at);
         }
-        self.edits_link_restored(key);
+        // First put back what the loss cut off, then upload the edits again.
+        self.repair_replacements(key.to_string(), true);
         // An error caused by the loss is no longer true.
         if self.last_error.is_some() && self.last_error == self.links.error_during_loss {
             self.last_error = None;
             self.links.error_during_loss = None;
+        }
+    }
+
+    /// Finish or undo replacements of files on server `key` that a lost
+    /// connection or a crash cut off ([`rolid_core::replace`]); then, after a
+    /// restored connection (`restored`), upload the edits that were waiting.
+    pub(super) fn repair_replacements(&mut self, key: String, restored: bool) {
+        let Some(link) = self.link(&key) else { return };
+        let fs = rolid_ssh::RemoteFs::new(link);
+        self.spawn(async move {
+            let r = rolid_core::replace::repair(&fs).await;
+            super::Msg::Then { job: None, f: Box::new(move |a: &mut App| a.on_repaired(&key, r, restored)) }
+        });
+    }
+
+    fn on_repaired(&mut self, key: &str, r: rolid_core::replace::Repair, restored: bool) {
+        if !r.is_empty() {
+            let server = self.links.map.get(key).map(|e| e.link.label.clone()).unwrap_or_else(|| key.to_string());
+            let mut parts = Vec::new();
+            if !r.restored.is_empty() {
+                tracing::warn!("cut-off replacements on {key}: originals put back: {}", r.restored.join(", "));
+                parts.push(tr!(
+                    "Replacing a file on {server} was cut off (lost connection or crash). The original file was put back under its name; the new version did not arrive, copy or save it again:\n{files}",
+                    server = server.as_str(),
+                    files = r.restored.join("\n")
+                ));
+            }
+            if !r.completed.is_empty() {
+                tracing::info!("cut-off replacements on {key}: finished: {}", r.completed.join(", "));
+                parts.push(tr!(
+                    "Replacing a file on {server} was cut off (lost connection or crash). The new version had arrived complete and is now in place:\n{files}",
+                    server = server.as_str(),
+                    files = r.completed.join("\n")
+                ));
+            }
+            self.last_error = Some(parts.join("\n\n"));
+            let panes: Vec<PaneRef> = self
+                .all_panes()
+                .filter(|(_, p)| !p.offline && p.search.is_none() && p.remote.as_ref().is_some_and(|x| x.target.key() == key))
+                .map(|(r, _)| r)
+                .collect();
+            for at in panes {
+                self.refresh(at);
+            }
+        }
+        if r.pending > 0 {
+            tracing::info!("{} cut-off replacements on {key} wait for the next connection", r.pending);
+        }
+        if restored {
+            self.edits_link_restored(key);
         }
     }
 

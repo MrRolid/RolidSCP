@@ -79,6 +79,13 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
   eller genoptag en afbrudt overførsel. Standardvalget kan angives i menuen Indstillinger.
 - Filer skrives under et midlertidigt navn og omdøbes, når de er færdige, så en afbrudt overførsel
   aldrig efterlader en halvt skrevet fil under det rigtige navn.
+- Genoptagelse fortsætter kun en delfil (`.filepart`) fra den samme kildefil: dens sti, størrelse og
+  ændringstid gemmes ved siden af. En delfil fra en anden eller ukendt kilde bliver ikke rørt og
+  meldes; vælg **Overskriv** for at starte forfra.
+- Flytning mellem diske eller servere sletter kun en kildefil, når den ikke ændrede sig under
+  overførslen (størrelse og ændringstid), og kopien har samme størrelse. Med **Kontrollér med
+  kontrolsum før kilden slettes** (slået til som standard ved flytning til en server) læses begge
+  igen og sammenlignes først; en forskel meldes, og kilden bliver.
 - **F2** eller **Shift+F6** omdøber direkte i listen: navnet uden filendelse er markeret, **Enter**
   bekræfter, **Esc** annullerer.
 - **F7** opretter en mappe, **F8** sletter (med bekræftelse).
@@ -97,6 +104,9 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
   en profil med et navn og en fanebladsfarve, og forbind med **Enter**.
 - Markér en server som **produktionsserver**: dens faneblade får en rød overskrift, og farlige
   handlinger spørger en ekstra gang (sletning kan ikke bekræftes med Enter).
+- På en produktionsserver kan kopiering, upload, flytning og oprettelse af en mappe heller ikke
+  bekræftes med Enter, og kopiering starter aldrig med Overskriv (Spring eksisterende over er valgt
+  på forhånd).
 - Serverens nøgle kontrolleres mod `~/.ssh/known_hosts`. En ny nøgle tilføjes først, når du har
   bekræftet dens fingeraftryk; en ændret nøgle afvises.
 - Login prøver ssh-agent, dine nøgler og derefter adgangskoden. Gemte adgangskoder opbevares
@@ -144,6 +154,13 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
 
 - **F4** åbner filen i en ekstern editor. En fil fra en server uploades tilbage efter hver gemning;
   hvis den i mellemtiden er ændret på serveren, bliver du spurgt, hvad der skal ske.
+- Den lokale kopi ligger i en privat mappe på disken (`~/.local/state/rolidscp/edit`, kun for dig)
+  og slettes, når redigeringen slutter. En upload, der mislykkes af en anden grund end mistet
+  forbindelse, prøves igen to gange og meldes derefter. Tidspunktet for den seneste upload vises med
+  sekunder.
+- En server uden atomisk omdøbning får en ændret fil i trin (originalen flyttes først til side).
+  Hvis forbindelsen eller programmet afbrydes undervejs, gøres trinnet færdigt eller fortrydes ved
+  næste forbindelse til den server, og du får at vide, hvilke filer det gjaldt.
 - **Shift+F4** (også **Filer → Ny fil…** og genvejsmenuen) opretter en ny fil og åbner den i den eksterne
   editor. Navnet under markøren foreslås. På denne computer oprettes den tomme fil med det samme; på en
   server ved første gemning, så at lukke editoren uden at gemme opretter intet. Et eksisterende navn

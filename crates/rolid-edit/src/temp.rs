@@ -8,16 +8,30 @@ use std::path::{Path, PathBuf};
 use rolid_core::VfsError;
 use rolid_text::{txt, Text};
 
-/// Base directory: `$ROLIDSCP_EDIT_DIR`, else `$XDG_RUNTIME_DIR/rolidscp-edit`
-/// (private tmpfs on Linux), else `<cache>/rolidscp/edit`.
+/// Base directory: `$ROLIDSCP_EDIT_DIR`, else `~/.local/state/rolidscp/edit`
+/// (on disk, not in memory: a large file does not take RAM, and an unsaved
+/// edit survives a crash of the whole system).
 pub fn base_dir() -> PathBuf {
     if let Some(d) = std::env::var_os("ROLIDSCP_EDIT_DIR") {
         return PathBuf::from(d);
     }
-    if let Some(d) = std::env::var_os("XDG_RUNTIME_DIR").filter(|d| Path::new(d).is_dir()) {
-        return PathBuf::from(d).join("rolidscp-edit");
+    dirs::state_dir().or_else(dirs::cache_dir).unwrap_or_else(std::env::temp_dir).join("rolidscp").join("edit")
+}
+
+/// Where versions up to 0.8.13 kept the copies (`$XDG_RUNTIME_DIR/rolidscp-edit`,
+/// a tmpfs): still scanned for leftovers of a crash. `None` with
+/// `$ROLIDSCP_EDIT_DIR` set, or when it does not exist.
+pub fn legacy_base_dir() -> Option<PathBuf> {
+    if std::env::var_os("ROLIDSCP_EDIT_DIR").is_some() {
+        return None;
     }
-    dirs::cache_dir().unwrap_or_else(std::env::temp_dir).join("rolidscp").join("edit")
+    let d = PathBuf::from(std::env::var_os("XDG_RUNTIME_DIR")?).join("rolidscp-edit");
+    (d != base_dir() && d.is_dir()).then_some(d)
+}
+
+/// The edit copy lives under one of our temporary folders (new or old).
+pub fn is_temp(path: &Path) -> bool {
+    path.starts_with(base_dir()) || legacy_base_dir().is_some_and(|d| path.starts_with(d))
 }
 
 /// The local file name for a remote one: the same name, or an error if it could

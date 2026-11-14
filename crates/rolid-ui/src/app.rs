@@ -258,6 +258,9 @@ pub struct CopySpec {
     temp: Option<Arc<archive_ui::TempDir>>,
     /// A move (F6 between disks): the sources are deleted after the copy.
     moving: bool,
+    /// A move: compare the copy with the source by checksum before the source
+    /// is deleted.
+    verify: bool,
     /// The single item's name in the target, when it changes.
     target_name: Option<String>,
 }
@@ -306,6 +309,8 @@ enum Dialog {
         at: PaneRef,
         name: String,
         focus: bool,
+        /// On a production server: Enter does not create.
+        production: bool,
     },
     Delete {
         at: PaneRef,
@@ -485,6 +490,7 @@ pub(crate) fn blend(a: Color32, b: Color32, t: f32) -> Color32 {
 impl App {
     pub fn new(cc: &eframe::CreationContext<'_>, rt: tokio::runtime::Handle) -> Self {
         cc.egui_ctx.set_theme(egui::Theme::Light);
+        cc.egui_ctx.add_font_provider(Arc::new(crate::fonts::GuardedFontProvider::system()));
         crate::look::apply(&cc.egui_ctx);
         // The grammars of the viewer take a moment to load: not on the UI thread.
         std::thread::spawn(rolid_view::syntax::preload);
@@ -1268,13 +1274,14 @@ impl App {
         if items.is_empty() {
             return;
         }
+        let production = self.pane(to).and_then(|p| p.remote.as_ref()).is_some_and(|r| r.production);
         self.dialog = Dialog::Copy {
             from,
             to,
             dest,
             items,
             overwrite: 0,
-            conflict: preset_conflict(self.settings.copy_preset()),
+            conflict: initial_conflict(self.settings.copy_preset(), production),
         };
         self.recount_copy();
     }
@@ -1359,6 +1366,7 @@ impl App {
             then: None,
             temp: None,
             moving: false,
+            verify: false,
             target_name: None,
         });
     }
@@ -1459,7 +1467,7 @@ impl App {
                 job = job.keep_going();
             }
             if spec.moving {
-                job = job.moving().with_target_name(spec.target_name.clone());
+                job = job.moving().with_target_name(spec.target_name.clone()).verify_moved(spec.verify);
             }
             let items: Vec<(String, String)> = spec.items.iter().map(|t| (t.dir.clone(), t.name.clone())).collect();
             let max = if spec.auto_retry { MAX_AUTO_RETRIES } else { 0 };
@@ -1492,30 +1500,35 @@ impl App {
             let cleanup = if spec.moving && result.is_ok() { Some(job.delete_moved_sources().await) } else { None };
             let state = job.state().clone();
             let failures = drop_ui::merge_failures(spec.pre_failed.clone(), job.failures());
+            // Partial files that were not resumed (another or unknown source).
+            let not_resumed = job.not_resumed().to_vec();
             drop(job);
             let refresh = spec.refresh.clone();
             let mut spec = spec;
             let mut then = if result.is_ok() { spec.then.take() } else { None };
-            if let Some(c) = cleanup.filter(|c| !c.kept.is_empty() || c.kept_dirs > 0) {
+            if let Some(c) = cleanup.filter(|c| !c.kept.is_empty() || c.kept_dirs > 0 || !c.changed.is_empty() || !c.mismatch.is_empty()) {
+                let report: Then = Box::new(move |a: &mut App| a.last_error = Some(move_report(&c)));
+                then = Some(match then {
+                    Some(f) => Box::new(move |a: &mut App| {
+                        f(a);
+                        report(a);
+                    }),
+                    None => report,
+                });
+            }
+            if !not_resumed.is_empty() {
                 let report: Then = Box::new(move |a: &mut App| {
-                    let mut msg = if c.kept_dirs > 0 {
-                        tr!(
-                            "The move finished, but {files} and {dirs} stayed in the source (skipped by the choice for existing files, links, or files changed during the move).",
-                            files = rolid_i18n::rolid_text::txtn!("{n} file", "{n} files", c.kept.len()),
-                            dirs = rolid_i18n::rolid_text::txtn!("{n} folder", "{n} folders", c.kept_dirs)
-                        )
-                    } else {
-                        trn!(
-                            "The move finished, but {n} file stayed in the source (skipped by the choice for existing files, links, or files changed during the move).",
-                            "The move finished, but {n} files stayed in the source (skipped by the choice for existing files, links, or files changed during the move).",
-                            c.kept.len()
-                        )
-                    };
-                    if let Some(first) = c.kept.first() {
-                        msg += " ";
-                        msg += &tr!("E.g. {path}", path = first.as_str());
-                    }
-                    a.last_error = Some(msg);
+                    let mut msg = trn!(
+                        "{n} unfinished transfer (.filepart) in the target was not resumed: it cannot be confirmed that it belongs to the same source file (path, size, time). It was left untouched. To start over, copy again with “Overwrite”.",
+                        "{n} unfinished transfers (.filepart) in the target were not resumed: it cannot be confirmed that they belong to the same source files (path, size, time). They were left untouched. To start over, copy again with “Overwrite”.",
+                        not_resumed.len()
+                    );
+                    msg += " ";
+                    msg += &tr!("E.g. {path}", path = not_resumed[0].as_str());
+                    a.last_error = Some(match a.last_error.take() {
+                        Some(prev) => format!("{prev}\n\n{msg}"),
+                        None => msg,
+                    });
                 });
                 then = Some(match then {
                     Some(f) => Box::new(move |a: &mut App| {
@@ -1892,10 +1905,12 @@ impl App {
         if self.refuse_read_only(self.active_ref(), &tr!("Cannot create a folder in an archive")) {
             return;
         }
+        let production = self.pane(self.active_ref()).and_then(|p| p.remote.as_ref()).is_some_and(|r| r.production);
         self.dialog = Dialog::Mkdir {
             at: self.active_ref(),
             name: String::new(),
             focus: true,
+            production,
         }
     }
 
@@ -2611,7 +2626,7 @@ impl App {
                         }
                     });
                     if to_production {
-                        dialog::warn(ui, tr!("⚠ The target is a PRODUCTION server."), true);
+                        dialog::warn(ui, tr!("⚠ PRODUCTION SERVER: Enter is disabled, confirm with the button."), true);
                     }
                     let heading = tr!("Existing files");
                     dialog::group(ui, &heading, |ui| {
@@ -2642,8 +2657,9 @@ impl App {
                             dialog::help(ui, h);
                         });
                     });
+                    let label = if to_production { tr!("Copy to production") } else { trc!("verb", "Copy") };
                     let b = dialog::buttons(ui, [
-                        dialog::btn(Role::Copy, trc!("verb", "Copy")).default(true).enabled(conflict.is_some() && !dest.trim().is_empty()),
+                        dialog::confirm(Role::Copy, label, to_production).enabled(conflict.is_some() && !dest.trim().is_empty()),
                         dialog::cancel(),
                     ]);
                     if let (true, Some(c)) = (b[0], *conflict) {
@@ -2656,8 +2672,9 @@ impl App {
                     }
                 });
             }
-            Dialog::Mkdir { at, name, focus } => {
-                dialog::window("mkdir", tr!("New folder")).icon(Role::NewFolder).show(ctx, |ui| {
+            Dialog::Mkdir { at, name, focus, production } => {
+                let production = *production;
+                dialog::window("mkdir", tr!("New folder")).icon(Role::NewFolder).danger(production).show(ctx, |ui| {
                     dialog::form(ui, "mkdir-form", |ui| {
                         ui.label(tr!("Name:"));
                         let r = ui.add(egui::TextEdit::singleline(name).desired_width(dialog::width() - 80.0));
@@ -2667,8 +2684,12 @@ impl App {
                         }
                         ui.end_row();
                     });
+                    if production {
+                        dialog::warn(ui, tr!("⚠ PRODUCTION SERVER: Enter is disabled, confirm with the button."), true);
+                    }
+                    let label = if production { tr!("Create on production") } else { tr!("Create") };
                     let b = dialog::buttons(ui, [
-                        dialog::btn(Role::NewFolder, tr!("Create")).default(true).enabled(!name.trim().is_empty()),
+                        dialog::confirm(Role::NewFolder, label, production).enabled(!name.trim().is_empty()),
                         dialog::cancel(),
                     ]);
                     if b[0] {
@@ -2753,6 +2774,62 @@ fn with_pane(a: &mut App, f: impl FnOnce(&mut Pane)) {
 }
 
 
+/// What a move left in the source, and why (shown when it finished).
+fn move_report(c: &rolid_core::copy::MoveCleanup) -> String {
+    use rolid_i18n::rolid_text::txtn;
+    let mut parts = Vec::new();
+    if !c.mismatch.is_empty() {
+        let mut m = trn!(
+            "⚠ The copy of {n} file differs from the source (checksum): the source was NOT deleted. Check the copy in the target.",
+            "⚠ The copies of {n} files differ from the source (checksum): the sources were NOT deleted. Check the copies in the target.",
+            c.mismatch.len()
+        );
+        m += " ";
+        m += &tr!("E.g. {path}", path = c.mismatch[0].as_str());
+        parts.push(m);
+    }
+    if !c.changed.is_empty() {
+        let mut m = trn!(
+            "{n} file changed in the source while it was being moved (size or modification time): it stayed in the source, the target may hold an older version.",
+            "{n} files changed in the source while they were being moved (size or modification time): they stayed in the source, the target may hold older versions.",
+            c.changed.len()
+        );
+        m += " ";
+        m += &tr!("E.g. {path}", path = c.changed[0].as_str());
+        parts.push(m);
+    }
+    if !c.kept.is_empty() || c.kept_dirs > 0 {
+        let mut m = if c.kept_dirs > 0 {
+            tr!(
+                "The move finished, but {files} and {dirs} stayed in the source (skipped by the choice for existing files, links, or files changed during the move).",
+                files = txtn!("{n} file", "{n} files", c.kept.len()),
+                dirs = txtn!("{n} folder", "{n} folders", c.kept_dirs)
+            )
+        } else {
+            trn!(
+                "The move finished, but {n} file stayed in the source (skipped by the choice for existing files, links, or files changed during the move).",
+                "The move finished, but {n} files stayed in the source (skipped by the choice for existing files, links, or files changed during the move).",
+                c.kept.len()
+            )
+        };
+        if let Some(first) = c.kept.first() {
+            m += " ";
+            m += &tr!("E.g. {path}", path = first.as_str());
+        }
+        parts.push(m);
+    }
+    parts.join("\n\n")
+}
+
+/// The answer preselected in the Copy, Move and drop dialogs: the preset, but
+/// never "Overwrite" on a production server (there "Skip existing").
+pub(super) fn initial_conflict(p: rolid_config::ConflictPreset, production: bool) -> Option<Conflict> {
+    match preset_conflict(p) {
+        Some(Conflict::Overwrite) if production => Some(Conflict::Skip),
+        c => c,
+    }
+}
+
 /// The answer a conflict preset preselects (`None` = the user has to choose).
 fn preset_conflict(p: rolid_config::ConflictPreset) -> Option<Conflict> {
     use rolid_config::ConflictPreset as P;
@@ -2771,7 +2848,7 @@ fn conflict_choice(ui: &mut egui::Ui, conflict: &mut Option<Conflict>) {
         (Conflict::Skip, tr!("Skip existing")),
         (Conflict::Newer, tr!("Overwrite only older (by modification date)")),
         (Conflict::Overwrite, tr!("Overwrite")),
-        (Conflict::Resume, tr!("Resume an interrupted transfer (.filepart / shorter file)")),
+        (Conflict::Resume, tr!("Resume an interrupted transfer (.filepart of the same source file)")),
     ] {
         let selected = *conflict == Some(c);
         let text = if selected && c == Conflict::Overwrite {
@@ -2952,7 +3029,7 @@ fn speed_limit_combo(ui: &mut egui::Ui, id: &str, kib: &mut Option<u64>) -> bool
 }
 
 /// File system type of `path` on a server (`df -PT` / `stat -f` over SSH);
-/// `None` without a shell or when the command does not answer within 5 s.
+/// `None` without a shell or when the command does not answer in time.
 async fn remote_fs_type(link: &rolid_ssh::Link, path: &str) -> Option<String> {
     let (_, conn) = link.current()?;
     let cmd = rolid_disk::remote::fs_type_command(&rolid_search::remote::sh_quote(path));
@@ -2963,10 +3040,9 @@ async fn remote_fs_type(link: &rolid_ssh::Link, path: &str) -> Option<String> {
         out.len() < 16 * 1024
     };
     let cmd = rolid_search::remote::guarded(&cmd);
-    let run = conn.exec_stream(&cmd, &cancel, &mut take);
-    match tokio::time::timeout(Duration::from_secs(5), run).await {
-        Ok(Ok(_)) => rolid_disk::remote::parse_fs_type(&String::from_utf8_lossy(&out)),
-        _ => None,
+    match conn.exec_probe(&cmd, &cancel, &mut take).await {
+        Ok(_) => rolid_disk::remote::parse_fs_type(&String::from_utf8_lossy(&out)),
+        Err(_) => None,
     }
 }
 
@@ -2982,5 +3058,21 @@ mod preset_tests {
         assert_eq!(preset_conflict(s.copy_preset()), Some(Conflict::Overwrite));
         assert_eq!(preset_conflict(ConflictPreset::Newer), Some(Conflict::Newer));
         assert_eq!(preset_conflict(ConflictPreset::Ask), None, "nothing preselected");
+    }
+
+    #[test]
+    fn production_never_starts_with_overwrite() {
+        let s = Settings::default();
+        // F5 / F6 / drag and drop onto a production server.
+        assert_eq!(initial_conflict(s.copy_preset(), true), Some(Conflict::Skip));
+        assert_eq!(initial_conflict(s.drop_preset(), true), Some(Conflict::Skip));
+        assert_eq!(initial_conflict(ConflictPreset::Overwrite, true), Some(Conflict::Skip));
+        assert_eq!(initial_conflict(ConflictPreset::Ask, true), None);
+        assert_eq!(initial_conflict(ConflictPreset::Newer, true), Some(Conflict::Newer));
+        // Elsewhere the setting holds.
+        assert_eq!(initial_conflict(s.copy_preset(), false), Some(Conflict::Overwrite));
+        // Moves to a server compare checksums before deleting the source.
+        assert!(rename_ui::verify_by_default(true));
+        assert!(!rename_ui::verify_by_default(false));
     }
 }

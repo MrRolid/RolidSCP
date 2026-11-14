@@ -337,7 +337,8 @@ async fn the_source_stays_after_an_error_a_skip_or_a_change() {
     std::fs::write(d.join("src/a.bin"), "changed during the move").unwrap();
     let c = job.delete_moved_sources().await;
     assert_eq!(c.deleted, 1, "{c:?}"); // only c.txt
-    assert_eq!(c.kept, [s(&d.join("src/a.bin"))]);
+    assert_eq!(c.changed, [s(&d.join("src/a.bin"))]);
+    assert!(c.kept.is_empty(), "{c:?}");
     assert_eq!(c.kept_dirs, 1); // "folder" still holds b.txt; "nested" is gone
     assert_eq!(std::fs::read_to_string(d.join("src/folder/b.txt")).unwrap(), "b");
     assert!(!d.join("src/folder/nested").exists());
@@ -364,5 +365,151 @@ async fn links_are_not_moved_between_disks() {
     assert_eq!((c.deleted, c.kept_dirs), (2, 1));
     assert!(d.join("src/folder/link-a").symlink_metadata().is_ok());
     assert!(d.join("src/a.bin").exists());
+    std::fs::remove_dir_all(&d).unwrap();
+}
+
+/// Another disk whose file `name` is rewritten by "another program" while it
+/// is being read: the same size, other content, a later modification time
+/// (like a database file written in place).
+struct ChangedWhileRead {
+    name: &'static str,
+}
+
+struct RewriteAfterFirstRead {
+    inner: Reader,
+    path: String,
+    done: bool,
+}
+
+impl tokio::io::AsyncRead for RewriteAfterFirstRead {
+    fn poll_read(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &mut tokio::io::ReadBuf<'_>,
+    ) -> std::task::Poll<std::io::Result<()>> {
+        let r = std::pin::Pin::new(&mut self.inner).poll_read(cx, buf);
+        if !self.done && matches!(r, std::task::Poll::Ready(Ok(()))) {
+            self.done = true;
+            let len = std::fs::metadata(&self.path).unwrap().len() as usize;
+            std::fs::write(&self.path, vec![7u8; len]).unwrap();
+            let later = SystemTime::now() + std::time::Duration::from_secs(60);
+            std::fs::File::options().write(true).open(&self.path).unwrap().set_modified(later).unwrap();
+        }
+        r
+    }
+}
+
+#[async_trait]
+impl Vfs for ChangedWhileRead {
+    fn label(&self) -> String {
+        "changing".into()
+    }
+    fn is_remote(&self) -> bool {
+        false
+    }
+    fn join(&self, d: &str, n: &str) -> String {
+        LocalFs.join(d, n)
+    }
+    fn parent(&self, p: &str) -> Option<String> {
+        LocalFs.parent(p)
+    }
+    async fn home(&self) -> VfsResult<String> {
+        LocalFs.home().await
+    }
+    async fn canonicalize(&self, p: &str) -> VfsResult<String> {
+        LocalFs.canonicalize(p).await
+    }
+    async fn list(&self, p: &str) -> VfsResult<Vec<Entry>> {
+        LocalFs.list(p).await
+    }
+    async fn stat(&self, p: &str) -> VfsResult<Entry> {
+        LocalFs.stat(p).await
+    }
+    async fn mkdir(&self, p: &str) -> VfsResult<()> {
+        LocalFs.mkdir(p).await
+    }
+    async fn remove_file(&self, p: &str) -> VfsResult<()> {
+        LocalFs.remove_file(p).await
+    }
+    async fn remove_dir(&self, p: &str) -> VfsResult<()> {
+        LocalFs.remove_dir(p).await
+    }
+    async fn rename(&self, f: &str, t: &str) -> VfsResult<()> {
+        LocalFs.rename(f, t).await
+    }
+    async fn open_read_at(&self, p: &str, o: u64) -> VfsResult<Reader> {
+        let inner = LocalFs.open_read_at(p, o).await?;
+        if p.ends_with(self.name) {
+            return Ok(Box::new(RewriteAfterFirstRead { inner, path: p.to_owned(), done: false }));
+        }
+        Ok(inner)
+    }
+    async fn open_write_at(&self, p: &str, o: u64) -> VfsResult<Writer> {
+        LocalFs.open_write_at(p, o).await
+    }
+    async fn set_attrs(&self, p: &str, m: Option<u32>, t: Option<SystemTime>) -> VfsResult<()> {
+        LocalFs.set_attrs(p, m, t).await
+    }
+}
+
+#[tokio::test]
+async fn a_source_changed_during_the_move_with_the_same_size_stays() {
+    let d = scratch("samesize");
+    tree(&d);
+    let (src, dst) = (s(&d.join("src")), s(&d.join("dst")));
+    let original = std::fs::read(d.join("src/a.bin")).unwrap();
+    let cb = |_: &Progress| {};
+    // Bigger than one read buffer, so the change lands in the middle of the copy.
+    std::fs::write(d.join("src/a.bin"), vec![1u8; 1_000_000]).unwrap();
+    let fs = ChangedWhileRead { name: "a.bin" };
+    let mut job = CopyJob::new(&fs, &LocalFs, Arc::new(AtomicBool::new(false)), &cb).moving();
+    job.copy_items_retrying(&[(src.clone(), "a.bin".to_string())], &dst, 0, |_| async { false }).await.unwrap();
+    let c = job.delete_moved_sources().await;
+    // Same size as when read, but another modification time: the source stays.
+    assert_eq!(c.deleted, 0, "{c:?}");
+    assert_eq!(c.changed, [s(&d.join("src/a.bin"))]);
+    assert_eq!(std::fs::read(d.join("src/a.bin")).unwrap(), vec![7u8; 1_000_000], "the new content is kept");
+    drop(original);
+    std::fs::remove_dir_all(&d).unwrap();
+}
+
+#[tokio::test]
+async fn the_checksum_catches_a_bad_copy_before_the_source_is_deleted() {
+    for verify in [false, true] {
+        let d = scratch(&format!("verify-{verify}"));
+        tree(&d);
+        let (src, dst) = (s(&d.join("src")), s(&d.join("dst")));
+        let cb = |_: &Progress| {};
+        let fs = OtherDisk { broken: None };
+        let mut job = CopyJob::new(&fs, &LocalFs, Arc::new(AtomicBool::new(false)), &cb).moving().verify_moved(verify);
+        job.copy_items_retrying(&[(src.clone(), "a.bin".to_string())], &dst, 0, |_| async { false }).await.unwrap();
+        // The copy is damaged on the way (same size, time kept), the source is not touched.
+        let t = std::fs::metadata(d.join("dst/a.bin")).unwrap().modified().unwrap();
+        let mut bad = std::fs::read(d.join("dst/a.bin")).unwrap();
+        bad[1234] ^= 0x55;
+        std::fs::write(d.join("dst/a.bin"), &bad).unwrap();
+        std::fs::File::options().write(true).open(d.join("dst/a.bin")).unwrap().set_modified(t).unwrap();
+        let c = job.delete_moved_sources().await;
+        if verify {
+            assert_eq!(c.mismatch, [s(&d.join("src/a.bin"))], "{c:?}");
+            assert_eq!(c.deleted, 0);
+            assert!(d.join("src/a.bin").exists(), "the source stays when the copy differs");
+        } else {
+            // Without the check only size and time are compared.
+            assert_eq!(c.deleted, 1, "{c:?}");
+        }
+        std::fs::remove_dir_all(&d).unwrap();
+    }
+    // A good copy passes the check and the source goes.
+    let d = scratch("verify-ok");
+    tree(&d);
+    let (src, dst) = (s(&d.join("src")), s(&d.join("dst")));
+    let cb = |_: &Progress| {};
+    let fs = OtherDisk { broken: None };
+    let mut job = CopyJob::new(&fs, &LocalFs, Arc::new(AtomicBool::new(false)), &cb).moving().verify_moved(true);
+    job.copy_items_retrying(&[(src.clone(), "folder".to_string())], &dst, 0, |_| async { false }).await.unwrap();
+    let c = job.delete_moved_sources().await;
+    assert_eq!((c.deleted, c.verified), (2, 2), "{c:?}");
+    assert!(!d.join("src/folder").exists());
     std::fs::remove_dir_all(&d).unwrap();
 }

@@ -85,6 +85,14 @@ de teclado está en la segunda página de esta ventana.
   establecer en el menú Configuración.
 - Los archivos se escriben con un nombre temporal y se renombran cuando están completos, así que una
   transferencia interrumpida nunca deja un archivo a medias con el nombre real.
+- Reanudar continúa solo un archivo parcial (`.filepart`) del mismo archivo de origen: su ruta,
+  tamaño y fecha de modificación se guardan a su lado. Un archivo parcial de otro origen o de uno
+  desconocido se deja intacto y se avisa; elija **Sobrescribir** para empezar de nuevo.
+- Mover entre discos o servidores elimina un archivo de origen solo si no cambió durante la
+  transferencia (tamaño y fecha de modificación) y la copia tiene el mismo tamaño. Con **Verificar
+  con suma de comprobación antes de eliminar el origen** (activado por defecto al mover a un
+  servidor) ambos se vuelven a leer y se comparan antes; una diferencia se avisa y el origen se
+  queda.
 - **F2** o **Shift+F6** renombra directamente en la lista: se selecciona el nombre sin la extensión,
   **Enter** confirma, **Esc** cancela.
 - **F7** crea una carpeta, **F8** elimina (con confirmación).
@@ -106,6 +114,9 @@ de teclado está en la segunda página de esta ventana.
 - Marque un servidor como **servidor de producción**: sus pestañas tienen un encabezado rojo y las
   acciones peligrosas piden confirmación una vez más (la eliminación no se puede confirmar con
   Enter).
+- En un servidor de producción tampoco se pueden confirmar con Enter la copia, la subida, el
+  movimiento ni la creación de una carpeta, y la copia nunca empieza con Sobrescribir (está
+  preseleccionado Omitir existentes).
 - La clave del servidor se comprueba con `~/.ssh/known_hosts`. Una clave nueva solo se añade después
   de que usted confirme su huella; una clave cambiada se rechaza.
 - El inicio de sesión prueba ssh-agent, sus claves y después la contraseña. Las contraseñas
@@ -157,6 +168,13 @@ de teclado está en la segunda página de esta ventana.
 
 - **F4** abre el archivo en un editor externo. Un archivo de un servidor se vuelve a subir tras cada
   guardado; si mientras tanto ha cambiado en el servidor, se le pregunta qué hacer.
+- La copia local se guarda en una carpeta privada en el disco (`~/.local/state/rolidscp/edit`, solo
+  para usted) y se elimina al terminar la edición. Una subida que falla por otro motivo que una
+  conexión perdida se reintenta dos veces y luego se avisa. La hora de la última subida se muestra
+  con segundos.
+- Un servidor sin cambio de nombre atómico recibe un archivo modificado por pasos (el original se
+  aparta primero). Si la conexión o el programa se interrumpen entre medias, el paso se completa o
+  se deshace en la siguiente conexión a ese servidor, y se le indica a qué archivos afectó.
 - **Shift+F4** (también **Archivo → Archivo nuevo…** y el menú contextual) crea un archivo nuevo y lo
   abre en el editor externo. Se propone el nombre bajo el cursor. En este equipo el archivo vacío se crea
   enseguida; en un servidor se crea al guardarlo por primera vez, así que cerrar el editor sin guardar no

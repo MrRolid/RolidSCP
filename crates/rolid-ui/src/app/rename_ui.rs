@@ -18,7 +18,7 @@ use rolid_core::copy::Conflict;
 use rolid_core::rename::{self, MoveStep, RenameOutcome};
 use rolid_core::Vfs;
 
-use super::{conflict_choice, preset_conflict, App, CopySpec, Dialog, Msg, PaneRef};
+use super::{conflict_choice, initial_conflict, App, CopySpec, Dialog, Msg, PaneRef};
 use crate::dialog;
 use crate::look::{btn, Role};
 use crate::pane::{Pane, Target};
@@ -50,6 +50,10 @@ pub(super) struct MoveForm {
     pub(super) conflict: Option<Conflict>,
     pub(super) src_production: bool,
     pub(super) dst_production: bool,
+    /// Through the transfer queue (another disk or server), not a rename.
+    pub(super) by_copy: bool,
+    /// Compare the copy with the source by checksum before the source is deleted.
+    pub(super) verify: bool,
     pub(super) focus: bool,
     pub(super) error: Option<String>,
 }
@@ -283,14 +287,22 @@ impl App {
             return;
         }
         let target = if items.len() == 1 { dst.fs.join(&dest, &items[0].name) } else { dest };
+        let dst_production = dst.remote.as_ref().is_some_and(|r| r.production);
+        let by_copy = match (backend_key(src), backend_key(dst)) {
+            (Some(a), Some(b)) => a != b,
+            _ => true,
+        };
         let form = MoveForm {
             from,
             to,
             items,
             target,
-            conflict: preset_conflict(self.settings.copy_preset()),
+            conflict: initial_conflict(self.settings.copy_preset(), dst_production),
             src_production: src.remote.as_ref().is_some_and(|r| r.production),
-            dst_production: dst.remote.as_ref().is_some_and(|r| r.production),
+            dst_production,
+            by_copy,
+            // On a server the copy is checked before the source goes.
+            verify: verify_by_default(dst.fs.is_remote()),
             focus: true,
             error: None,
         };
@@ -360,7 +372,7 @@ impl App {
                 dialog::warn(ui, w, true);
             }
             if production {
-                dialog::note(ui, tr!("On a production server Enter does not confirm: click Move."));
+                dialog::warn(ui, tr!("⚠ PRODUCTION SERVER: Enter is disabled, confirm with the button."), true);
             }
             // Existing items (only known when the target is the panel's folder).
             let single = one.then(|| f.items[0].name.as_str());
@@ -390,8 +402,19 @@ impl App {
                 }
                 conflict_choice(ui, &mut f.conflict);
             });
+            if f.by_copy {
+                ui.horizontal(|ui| {
+                    ui.checkbox(&mut f.verify, tr!("Verify by checksum before deleting the source"));
+                    dialog::help(
+                        ui,
+                        tr!("After the copy, the source and the copy are read again and their checksums (BLAKE3) compared; the source is deleted only when they match. \
+                             Takes as long as reading both once more. On by default when moving to a server."),
+                    );
+                });
+            }
+            let label = if production { tr!("Move on production") } else { tr!("Move") };
             let b = dialog::buttons(ui, [
-                dialog::btn(Role::Move, tr!("Move")).default(!production).enabled(f.conflict.is_some()),
+                dialog::confirm(Role::Move, label, production).enabled(f.conflict.is_some()),
                 dialog::cancel(),
             ]);
             ok = b[0];
@@ -414,13 +437,14 @@ impl App {
             Ok((dir, name)) => {
                 let Dialog::Move(f) = std::mem::replace(&mut self.dialog, Dialog::None) else { return };
                 let conflict = f.conflict.unwrap_or_default();
-                self.start_move(f.from, f.to, f.items, dir, name, conflict);
+                self.start_move(f.from, f.to, f.items, dir, name, conflict, f.verify);
             }
         }
     }
 
     /// Move `items` into folder `dpath` of panel `to` (a single item may get `name`).
-    fn start_move(&mut self, from: PaneRef, to: PaneRef, items: Vec<Target>, dpath: String, name: Option<String>, conflict: Conflict) {
+    #[allow(clippy::too_many_arguments)]
+    fn start_move(&mut self, from: PaneRef, to: PaneRef, items: Vec<Target>, dpath: String, name: Option<String>, conflict: Conflict, verify: bool) {
         let (Some(src), Some(dst)) = (self.pane(from), self.pane(to)) else { return };
         let (sfs, dfs) = (src.fs.clone(), dst.fs.clone());
         // The same disk or server: a rename on the server side.
@@ -436,7 +460,7 @@ impl App {
             p.marked.clear();
         }
         if !same {
-            self.move_by_copy(from, to, items, dpath, name, conflict);
+            self.move_by_copy(from, to, items, dpath, name, conflict, verify);
             return;
         }
         self.spawn(async move {
@@ -471,7 +495,7 @@ impl App {
                         }
                     }
                     if !needs_copy.is_empty() {
-                        a.move_by_copy(from, to, needs_copy, dpath, name, conflict);
+                        a.move_by_copy(from, to, needs_copy, dpath, name, conflict, verify);
                     }
                 }),
             }
@@ -479,7 +503,8 @@ impl App {
     }
 
     /// Copy through the transfer queue, then delete the sources (see `MoveOpts`).
-    fn move_by_copy(&mut self, from: PaneRef, to: PaneRef, items: Vec<Target>, dpath: String, name: Option<String>, conflict: Conflict) {
+    #[allow(clippy::too_many_arguments)]
+    fn move_by_copy(&mut self, from: PaneRef, to: PaneRef, items: Vec<Target>, dpath: String, name: Option<String>, conflict: Conflict, verify: bool) {
         let (Some(src), Some(dst)) = (self.pane(from), self.pane(to)) else { return };
         let (sfs, dfs): (Arc<dyn Vfs>, Arc<dyn Vfs>) = (src.fs.clone(), dst.fs.clone());
         let dst_label = dst.display_label();
@@ -507,6 +532,13 @@ impl App {
             then: None,
             temp: None,
             moving: true,
+            verify,
         });
     }
+}
+
+/// "Verify by checksum before deleting the source" is on by default for moves
+/// to a server (from the disk or from another server).
+pub(super) fn verify_by_default(to_server: bool) -> bool {
+    to_server
 }

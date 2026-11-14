@@ -696,6 +696,16 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
             for news in [
                 trc!(
                     "news",
+                    "0.8.14 data protection: on a production server copying, uploading, moving and a new folder \
+                     never start with Overwrite and Enter does not confirm them; a move deletes the source only when \
+                     it did not change meanwhile, and to a server only after the checksums match; an interrupted \
+                     transfer is resumed only from a part file of the same source; a file replaced on a server \
+                     without atomic rename is repaired at the next connection after a cut-off; F4 copies are kept \
+                     on disk, a failed upload is tried again, the time of the upload has seconds; starts without \
+                     system fonts; slow server shells no longer hold up search and checksums."
+                ),
+                trc!(
+                    "news",
                     "0.8.13 listings refresh by themselves: local folders at once, server folders when you come \
                      back to them and every 30 s while the window is active (View → Automatic refresh), the cursor \
                      and the marks stay; thin lines between the columns, drag them to change the width (a double \

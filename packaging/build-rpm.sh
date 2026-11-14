@@ -55,11 +55,9 @@ Requires:       libwayland-egl.so.1()(64bit)
 Requires:       libEGL.so.1()(64bit)
 Requires:       libfontconfig.so.1()(64bit)
 Recommends:     libvulkan.so.1()(64bit)
-# At least one scalable system font: the program draws with its built-in fonts,
-# but the system font lookup at start-up ends the program when fontconfig finds
-# no usable font (seen in minimal openSUSE images, where a bitmap font alone is
-# not enough). Debian gets one through fontconfig-config.
-Requires:       (font(notosans) or font(dejavusans) or font(liberationsans))
+# A scalable system font for symbols and scripts the built-in fonts lack. The
+# program starts without one too (built-in fonts only).
+Recommends:     (font(notosans) or font(dejavusans) or font(liberationsans))
 
 %description
 Inspired by WinSCP and Total Commander. Color-coded tabs with SSH/SFTP

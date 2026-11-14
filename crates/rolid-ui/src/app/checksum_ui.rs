@@ -390,6 +390,7 @@ impl App {
             then: None,
             temp: Some(temp),
             moving: false,
+            verify: false,
             target_name: None,
         });
     }
@@ -475,7 +476,8 @@ async fn run_checksums(
     if !local {
         if let (Some(c), Some(probe)) = (&conn, checksum::probe_command(algo)) {
             let mut out = Vec::new();
-            if c.exec_stream(&probe, &cancel, &mut |d| {
+            // Without an answer in time: read the files over SFTP instead.
+            if c.exec_probe(&probe, &cancel, &mut |d| {
                 out.extend_from_slice(d);
                 out.len() < 256
             })

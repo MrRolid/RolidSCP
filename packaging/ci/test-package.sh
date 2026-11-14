@@ -45,7 +45,7 @@ else
     test -s /usr/share/licenses/rolidscp/LICENSE || { echo "FAIL: missing LICENSE" >&2; exit 1; }
 fi
 
-# The fonts fontconfig sees (the program needs at least one at start-up).
+# The fonts fontconfig sees (symbols and scripts the built-in fonts lack).
 if command -v fc-list >/dev/null; then
     echo "== fonts:"
     fc-list : family | sort -u | head -n 10
@@ -59,3 +59,11 @@ if command -v ldd >/dev/null && ldd /usr/bin/rolidscp | grep -q 'not found'; the
 fi
 
 bash packaging/ci/smoke-test.sh "$EXPECT" rolidscp
+
+# Once more without any system font (a fontconfig set-up with no font folders):
+# the built-in fonts must be enough to start.
+NOFONT=$(mktemp -d)
+printf '<?xml version="1.0"?>\n<fontconfig><cachedir>%s</cachedir></fontconfig>\n' "$NOFONT" >"$NOFONT/fonts.conf"
+echo "== start without system fonts"
+FONTCONFIG_FILE=$NOFONT/fonts.conf bash packaging/ci/smoke-test.sh "$EXPECT" rolidscp
+rm -rf "$NOFONT"

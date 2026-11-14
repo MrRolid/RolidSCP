@@ -76,22 +76,30 @@ o beta verzi.
 
 **Kopírování a přesun (F5, F6)**
 - Soubor se zapisuje jako `název.filepart` a na skutečný název se přejmenuje až celý, takže přerušené
-  kopírování obvykle nechá `.filepart`, ne useknutý soubor pod skutečným názvem. Když cíl už existuje,
-  smaže se těsně před tímto přejmenováním (SFTP verze 3 neumí přejmenovat přes existující soubor);
-  když spojení spadne přesně mezi těmito dvěma kroky, zůstane jen `.filepart`.
+  kopírování nechá `.filepart`, nikdy useknutý soubor pod skutečným názvem. Existující cíl se vymění
+  jedním atomickým krokem, kde to server umí (`posix-rename@openssh.com`, OpenSSH; na místním disku
+  vždy). Jinde (SFTP verze 3 neumí přejmenovat přes existující soubor) se starý soubor nejdřív
+  přejmenuje stranou na `název.rolidscp-old`, nový zaujme jeho název a teprve pak se starý smaže; cíl se
+  nikdy nemaže předem. Krok se zapíše do místního žurnálu (`~/.local/state/rolidscp/replace`), takže
+  když se mezitím přeruší spojení nebo program, další připojení k tomu serveru krok dokončí (nový soubor
+  byl celý) nebo vrátí originál a řekne, kterých souborů se to týkalo.
 - Po ztrátě spojení přenos po obnovení pokračuje od `.filepart` (na produkční server až po novém
   potvrzení). Funguje to jen, dokud program běží: fronta se neukládá, po restartu nebo pádu zůstanou
   soubory `.filepart` na místě a kopírování je potřeba spustit znovu (volba *Navázat* je dokončí).
-- *Navázat* věří existujícímu `.filepart` nebo kratšímu cílovému souboru, který není větší než zdroj;
-  neověřuje, že opravdu pochází ze stejného zdroje. Používej ho, jen když víš, že rozpracovaný soubor je
-  tvůj.
+- *Navázat* pokračuje jen v `.filepart` téhož zdroje: u souborů od 1 MiB se vedle něj ukládá cesta,
+  velikost a čas změny zdroje (`název.filepart-info`) a musí souhlasit. `.filepart` bez tohoto záznamu
+  (z jiného programu nebo starší verze) nebo z jiného zdroje se nenaváže: zůstane nedotčený, program to
+  ohlásí a začneš znovu volbou *Přepsat*. Menší bez záznamu se prostě zapíše znovu. Navázání nikdy
+  nepřipisuje do souboru pod skutečným názvem. Obsah už přenesené části se neporovnává.
 - Kopírují se práva (bez setuid, setgid, sticky) a čas změny souborů; chyby při jejich nastavení se
   ignorují. Složky dostanou práva, ale ne čas; vlastník se nekopíruje.
 - Přesun mezi různými disky nebo servery je kopie a následné smazání zdrojů. Zdroje se smažou jen po
-  úspěchu celé kopie a každý soubor jen tehdy, když zdroj i cíl mají pořád velikost z doby kopírování.
-  Obsah se **neporovnává** (žádný kontrolní součet) a změna zdroje během kopírování, která zachová
-  velikost, se nepozná. Nepřesouvej soubory, do kterých zrovna zapisuje jiný program. Když kopie selže,
-  nic se nesmaže; už zkopírované soubory v cíli zůstanou.
+  úspěchu celé kopie a každý soubor jen tehdy, když má pořád velikost a čas změny z doby čtení a cíl má
+  stejnou velikost. S volbou *Před smazáním zdroje ověřit kontrolním součtem* (při přesunu na server
+  výchozí zapnuto, v dialogu přesunu jde vypnout) se oba soubory nejdřív znovu přečtou a porovnají se
+  jejich součty BLAKE3. Soubor, který se změnil nebo jehož kopie se liší, zůstane ve zdroji a konec
+  přesunu to ohlásí. Změnu ve stejné sekundě, která zachová velikost, pozná jen kontrolní součet. Když
+  kopie selže, nic se nesmaže; už zkopírované soubory v cíli zůstanou.
 - Symbolické odkazy: odkazy na složky uvnitř kopírované složky se přeskočí (žádné smyčky, nic mimo
   strom); odkazy na soubory se následují, takže se zkopíruje soubor, na který ukazují, jako obyčejný
   soubor. Přesun nechá odkazy na místě. Souhrn po přenosu přeskočené odkazy zatím neuvádí.
@@ -107,26 +115,26 @@ o beta verzi.
 - Před každým nahráním se soubor na serveru porovná se stavem při otevření (velikost a čas změny, ne
   obsah). Když se změnil, vybíráš: přepsat, uložit vedle pod jiným názvem, nebo zrušit. Změna, která
   zachová velikost ve stejné sekundě, se nepozná.
-- Nahrává se nejdřív do `název.filepart`. S rozšířením `posix-rename@openssh.com` (OpenSSH) se soubor
-  vymění jedním atomickým krokem. Bez něj se starý soubor přejmenuje stranou, nový se dá na jeho místo
-  a starý se smaže; na okamžik soubor pod svým názvem neexistuje, a když spojení spadne právě tehdy,
-  zůstane stará verze na serveru jako `název.rolidscp-old`.
-- Při ztrátě spojení nahrávání počká a po obnovení se zopakuje. Upravená kopie zůstává a ukončení
-  aplikace se nejdřív zeptá. „Upravované soubory“ a stavový řádek ukazují „nahráno v HH:MM“,
+- Nahrává se nejdřív do `název.filepart` a soubor se vymění stejně jako při kopírování (atomicky přes
+  `posix-rename@openssh.com`, jinak stranou, na místo, smazat, se žurnálem). Bez rozšíření soubor pod
+  svým názvem na okamžik neexistuje; výměna přerušená právě tehdy se opraví při dalším připojení.
+- Při ztrátě spojení nahrávání počká a po obnovení se zopakuje. Nahrání, které selže z jiného důvodu,
+  se dvakrát zopakuje (po 3 a 10 s) a pak se ohlásí zprávou. Upravená kopie zůstává a ukončení
+  aplikace se nejdřív zeptá. „Upravované soubory“ a stavový řádek ukazují „nahráno v HH:MM:SS“,
   „Nahrávám…“ nebo chybu, takže je vidět, jestli poslední uložení dorazilo.
-- Lokální kopie jsou v `$XDG_RUNTIME_DIR/rolidscp-edit` (soukromá složka 0700). Po pádu programu se
-  změněné kopie při příštím spuštění nabídnou k nahrání. Ta složka je na většině systémů v paměti,
-  takže pád celého počítače nebo výpadek proudu nenahrané úpravy ztratí.
+- Lokální kopie jsou na disku v `~/.local/state/rolidscp/edit` (složky 0700, soubory 0600) a po skončení
+  úprav se smažou. Po pádu programu i celého počítače se změněné kopie při příštím spuštění nabídnou
+  k nahrání (i ty, které v `$XDG_RUNTIME_DIR/rolidscp-edit` nechala verze 0.8.13 a starší, dokud ta
+  složka existuje).
 - Ze souboru na serveru se zachovají jen práva (ne vlastník); symbolický odkaz na serveru se nahradí
   obyčejným souborem.
 
 **Produkční servery** (příznak ve správci serverů)
-- Červený pruh a „⚠ PRODUKCE“ v záložce; Enter nepotvrzuje: mazání, přesun, přejmenování, práva,
-  balení a rozbalení do něj, nahrání každého uložení přes F4. Terminál se nejdřív zeptá.
-- Zatím ne tak přísně: kopírování (F5, i tažení mezi panely) na produkční server ukáže varování, ale
-  Enter ho potvrdí a výchozí volba u existujících souborů je *Přepsat*; soubory přetažené z jiné
-  aplikace jde také potvrdit Enterem (existující se ve výchozím stavu přeskočí). Vytvoření složky se
-  nijak nevyznačuje.
+- Červený pruh a „⚠ PRODUKCE“ v záložce; Enter nepotvrzuje: mazání, kopírování na něj (F5, tažení mezi
+  panely, soubory přetažené z jiné aplikace), přesun, přejmenování, vytvoření složky, práva, balení
+  a rozbalení do něj, nahrání každého uložení přes F4. Terminál se nejdřív zeptá.
+- Kopírování ani přesun na produkční server nikdy nezačíná volbou *Přepsat*: předvybrané je *Přeskočit
+  existující*, ať je v nastavení jakákoli výchozí volba.
 - Přerušený přenos na produkční server se sám neobnoví; potvrzuješ ho znovu.
 
 **Servery a klíče**
@@ -162,8 +170,12 @@ na SFTP:
 | Typ souborového systému v řádku cesty | `df -PT` nebo `stat -f` | nezobrazí se |
 | Terminál (Ctrl+P) | systémové `ssh` s přihlašovacím shellem | není k dispozici |
 
-Náhradní cesta se volí sama. Server, který příkaz přijme, ale nikdy neodpoví (neobvyklý obal čekající na
-vstup), může takovou funkci držet, dokud ji nezrušíš.
+Náhradní cesta se volí sama. Hledání, kontrolní součty a hledání v prohlížeči nejdřív krátce
+vyzkouší, co server nabízí; server, který příkazy přijímá, ale na tuto zkoušku do 5 sekund neodpoví
+(přihlašovací skript čekající na vstup, zaseknutý profil), se bere jako server bez shellu, a typ
+souborového systému se po 5 sekundách nezobrazí. Příkazy nedostávají žádný vstup (konec vstupu hned).
+Velikost složek spouští `du` bez zkoušky a příkaz, který se zasekne až po zkoušce (např. na zaseknutém
+síťovém disku), čeká, dokud ho nezrušíš.
 
 ## Jazyky a překlady
 
@@ -298,11 +310,12 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   předvolby z Nastavení.
 - Na stejném disku nebo serveru se položky jen přejmenují (okamžitě, i velké soubory). Mezi disky nebo
   servery se zkopírují přes frontu přenosů a zdroj se smaže až po úspěšném dokončení celé kopie, a jen
-  soubory, které v cíli mají stejnou velikost (a velikost zdroje se mezitím nezměnila; obsah se
-  neporovnává). Při chybě nebo zrušení
-  zdroj zůstane. Soubor přeskočený podle volby u existujících souborů zůstane ve zdroji i se složkou;
+  soubory, které v cíli mají stejnou velikost a jejichž velikost ani čas změny se ve zdroji mezitím
+  nezměnily. Volba *Před smazáním zdroje ověřit kontrolním součtem* (při přesunu na server výchozí
+  zapnuto) navíc porovná kontrolní součty zdroje a kopie. Při chybě nebo zrušení zdroj zůstane. Soubor přeskočený podle volby u existujících souborů zůstane ve zdroji i se složkou;
   symbolické odkazy se mezi disky nepřesouvají.
-- Produkční zdroj nebo cíl se v dialogu vyznačí a Enter pak nepotvrzuje. Z archivu jde jen kopírovat
+- Produkční zdroj nebo cíl se v dialogu vyznačí a Enter pak nepotvrzuje; na produkční cíl se nikdy
+  nepředvybírá *Přepsat*. Z archivu jde jen kopírovat
   ven: F6 otevře kopírování.
 
 ## Prohlížeč (F3)
@@ -350,15 +363,17 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   editoru bez uložení nic nevytvoří. Existující jméno otevře ten soubor k úpravě s upozorněním. V archivu
   a ve výsledcích hledání nejde. Po vytvoření se panel obnoví s kurzorem na novém souboru.
 - **Lokální soubor** se otevře přímo (bez kopie).
-- **Soubor ze serveru** se stáhne do soukromé dočasné složky (`$XDG_RUNTIME_DIR/rolidscp-edit`, práva 0700,
+- **Soubor ze serveru** se stáhne do soukromé složky na disku (`~/.local/state/rolidscp/edit`, práva 0700,
   každý soubor ve vlastní podsložce, původní název i přípona) a otevře se v editoru. Aplikace hlídá
   složku (zachytí i „atomické“ uložení přes dočasný soubor a přejmenování) a po ~300 ms klidu porovná
   obsah. Při skutečné změně soubor nahraje přes frontu přenosů: zapíše `název.filepart`, ověří velikost,
   nastaví původní práva a teprve pak nahradí originál. Pokud server umí `posix-rename@openssh.com`
   (OpenSSH ano), výměna je jeden atomický krok. Jinak se originál nejdřív přejmenuje na
-  `název.rolidscp-old`, nový soubor zaujme jeho místo a starý se smaže (při chybě se originál vrátí).
+  `název.rolidscp-old`, nový soubor zaujme jeho místo a starý se smaže (při chybě se originál vrátí;
+  výměnu přerušenou ztrátou spojení nebo pádem dokončí nebo vrátí další připojení k serveru).
   Při chybě na serveru nezůstane useknutý soubor; bez `posix-rename` ale na okamžik soubor pod svým
-  názvem neexistuje (viz [Ochrana dat](#ochrana-dat-a-chování-při-chybách)).
+  názvem neexistuje (viz [Ochrana dat](#ochrana-dat-a-chování-při-chybách)). Nahrání, které selže
+  z jiného důvodu než ztráty spojení, se dvakrát zopakuje a pak se ohlásí.
 - **Po pádu aplikace:** každá běžící instance má v dočasné složce soubor se svým PID a ke každé
   rozpracované úpravě je metasoubor (server, cesta, původní velikost a čas, hash stažené verze).
   Při startu se kopie po instancích, které už neběží, bez změn tiše smažou. Kopie se změnou se nesmažou,
@@ -368,7 +383,7 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   obsah se neporovnává), zeptá se:
   Přepsat / Uložit vedle pod jiným názvem (`index (moje úprava 2026-11-07 1056).php`) / Zrušit.
 - **Produkční server:** každé nahrání se potvrzuje.
-- Stav je vidět ve stavovém řádku („Upravuje se: N souborů · nahráno v HH:MM“, „Nahrávám…“, chyba
+- Stav je vidět ve stavovém řádku („Upravuje se: N souborů · nahráno v HH:MM:SS“, „Nahrávám…“, chyba
   červeně); kliknutím se otevře seznam úprav (Nástroje → Upravované soubory) s tlačítky Otevřít
   v editoru / Nahrát znovu / Ukončit úpravu.
 - Při zavření záložky nebo aplikace s nenahranou změnou se aplikace zeptá, co s ní. Ukončení úpravy
@@ -439,7 +454,7 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   `XdndDirectSave0`), řekne, do které složky chce soubor, a stažení proběhne běžnou frontou přenosů
   (`.filepart`, průběh, obnovení po výpadku; existující soubory podle předvolby pro přetahování,
   „bez předvolby“ znamená přeskočit). Jinak se soubory nejdřív stáhnou do soukromé dočasné složky
-  (`$XDG_RUNTIME_DIR/rolidscp-edit/drag-…`, práva 0700) s průběhem a možností zrušit; nad 1 GiB se
+  (`~/.local/state/rolidscp/edit/drag-…`, práva 0700) s průběhem a možností zrušit; nad 1 GiB se
   aplikace nejdřív zeptá. Cílové aplikace na data čekají jen omezeně (GTK zhruba 30 s), velké stahování
   touto cestou proto nemusí projít.
 - Dočasné složky se smažou, když je po puštění 30 s žádný proces nemá otevřené, a vždy při ukončení;
