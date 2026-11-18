@@ -19,6 +19,10 @@ catch it again.
   **simulated** data source, not with real data: counters, time estimates, resuming and sparse files.
   Also a full disk, disk quotas and transfers running overnight. The program killed or the power
   lost in the middle of every operation: no data may be lost, and settings are written safely.
+  Also a finish of marking items as in other file managers: Shift+click marks a range from the last
+  item, Shift with the arrows, Page Up, Page Down, Home and End extends it, Ctrl+click adds or
+  removes one item, Ctrl+A marks all. Insert and Space stay as they are. The same in both panels, in
+  every view, in archives and on servers, without breaking dragging of the marked items.
 - **0.8.17 Bad connections:** high latency, jitter, packet loss, changing speed, repeated drop-outs
   and frozen connections. Every transfer in these tests is verified with a checksum. The computer
   going to sleep and waking up during a session.
@@ -45,6 +49,11 @@ catch it again.
 - Your own viewer, file comparison tool and terminal (your own editor already works).
 - Mouse and keyboard behavior.
 - `~/.ssh/config`.
+- Connecting through a jump host (ProxyJump): a connection can go through another saved
+  connection, with its own key or password; the keys of both servers are checked, the connection
+  is restored after a drop-out, and the terminal (Ctrl+P) goes the same way.
+- Duplicating a connection in the site manager: a copy with all settings; you choose whether the
+  saved password is copied too.
 - Trash for local deleting.
 - Custom keyboard shortcuts.
 - Custom columns: which columns, in which order.
@@ -58,7 +67,6 @@ and "Open with" associations per file type.
 
 - A Windows version from the same code, with the system-specific parts in separate modules.
 - File sharing in the local network, compatible with the LocalSend protocol.
-- Connecting through a jump host (ProxyJump).
 - A transfer queue that survives a restart of the program.
 - Comparing and synchronizing folders.
 - Renaming many files at once.
