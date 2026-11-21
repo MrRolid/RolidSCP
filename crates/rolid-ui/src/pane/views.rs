@@ -222,7 +222,7 @@ impl Pane {
         er
     }
 
-    /// Clicks, Ctrl+click, double click and the context menu of one item.
+    /// Clicks, Ctrl+click, Shift+click, double click and the context menu of one item.
     fn interact_item(&mut self, ui: &egui::Ui, resp: &Response, idx: usize, row: Row, events: &mut Vec<PaneEvent>) {
         // Dragging a row (not "..", not one being renamed): the app takes over.
         if resp.drag_started_by(egui::PointerButton::Primary) {
@@ -241,7 +241,7 @@ impl Pane {
         }
         if resp.clicked() || resp.secondary_clicked() {
             events.push(PaneEvent::Focus);
-            let m = ui.input(|i| i.modifiers);
+            let m = click_modifiers(ui);
             if resp.clicked() && m.shift {
                 // A range from the anchor (a click never moves files: whether a
                 // drag copies or moves is decided by Shift when it is dropped).
@@ -702,4 +702,20 @@ impl Pane {
         });
         self.scroll_offset = out.state.clamped_offset().y;
     }
+}
+
+/// The modifier keys when the primary button was released in this frame, not
+/// at the end of the frame: a quick Shift+click can let go of Shift in the
+/// same frame, and the click would then lose it.
+fn click_modifiers(ui: &egui::Ui) -> egui::Modifiers {
+    ui.input(|i| {
+        i.events
+            .iter()
+            .rev()
+            .find_map(|e| match e {
+                egui::Event::PointerButton { button: egui::PointerButton::Primary, pressed: false, modifiers, .. } => Some(*modifiers),
+                _ => None,
+            })
+            .unwrap_or(i.modifiers)
+    })
 }

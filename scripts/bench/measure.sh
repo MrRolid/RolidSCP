@@ -12,6 +12,7 @@
 # FILES    files in the big folder and in the copied tree (default 1000000).
 # STEPS    comma-separated subset of: list,sftp,size,search,copy,leak,deep,ref,gui
 #          (default: all).
+# SHOTS    (environment) a folder for screenshots of the window (gui step).
 #
 # Needs python3, OpenSSH (sshd, ssh, sftp, ssh-keygen); Xvfb, libX11 and libXtst
 # for the window. The SSH server is a throwaway one on 127.0.0.1 with its own
@@ -55,9 +56,10 @@ cleanup() {
 trap cleanup EXIT
 
 note "generating $N files"
-python3 "$HERE/gen-tree.py" flat "$BASE/flat" "$N"
-python3 "$HERE/gen-tree.py" tree "$BASE/tree" "$N" --size 1024 --per-dir 1000
-python3 "$HERE/gen-tree.py" deep "$BASE/deep" --depth 1000
+# Only the trees the chosen steps use (the tree of 1 KiB files takes ~5 GB).
+if has list || has sftp || has leak || has gui || has ref; then python3 "$HERE/gen-tree.py" flat "$BASE/flat" "$N"; fi
+if has size || has search || has copy || has ref; then python3 "$HERE/gen-tree.py" tree "$BASE/tree" "$N" --size 1024 --per-dir 1000; fi
+if has deep; then python3 "$HERE/gen-tree.py" deep "$BASE/deep" --depth 1000; fi
 mkdir -p "$BASE/work"
 
 note "building"
@@ -130,7 +132,7 @@ fi
 if has gui; then
   if command -v Xvfb >/dev/null; then
     note "frame times in the window"
-    "$HERE/gui-frames.sh" "$APP_BIN" "$BASE/flat" "$BASE/gui" | tee -a "$OUT"
+    "$HERE/gui-frames.sh" "$APP_BIN" "$BASE/flat" "$BASE/gui" ${SHOTS:+"$SHOTS"} | tee -a "$OUT"
   else
     note "Xvfb missing: frame times not measured"
   fi

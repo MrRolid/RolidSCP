@@ -1,7 +1,7 @@
 #!/bin/bash
 # Frame times of the real window with a big folder, on a private X server (Xvfb).
 #
-#   gui-frames.sh BINARY FOLDER WORKDIR
+#   gui-frames.sh BINARY FOLDER WORKDIR [SHOTS]
 #
 # Starts Xvfb and the program with a throwaway HOME and configuration in WORKDIR
 # (never the user's own), opens FOLDER in the left panel and waits until it is
@@ -10,9 +10,11 @@
 #   gui.list_shown_ms   when the folder was shown (from the program's log)
 #   gui.<step>.avg_ms / gui.<step>.max_ms   frame times during each step
 #   gui.rss_mb / gui.hwm_mb                  memory of the program
+# With SHOTS, screenshots of the window after the selection steps are saved
+# there (needs ImageMagick's import).
 # Needs Xvfb, python3, libX11 and libXtst. Processes are stopped by their PIDs.
 set -euo pipefail
-BIN=$(realpath "$1"); FOLDER=$(realpath "$2"); W=$(realpath -m "$3")
+BIN=$(realpath "$1"); FOLDER=$(realpath "$2"); W=$(realpath -m "$3"); SHOTS=${4:+$(realpath -m "$4")}
 HERE=$(dirname "$(realpath "$0")")
 mkdir -p "$W/home" "$W/cfg" "$W/log" "$W/run"
 chmod 700 "$W/run"
@@ -101,12 +103,33 @@ pgdn() { for _ in $(seq 60); do X key pgdn; done; }
 wheel() { X wheel down 150; }
 ends() { for _ in $(seq 5); do X key end sleep 0.3 key home sleep 0.3; done; }
 filter() { X type f12 sleep 0.5 key bs key bs key bs sleep 0.5 type f9 sleep 0.5 key esc; }
-mark() { X key ctrl+a sleep 1 key pgdn key pgdn key pgdn sleep 1 key ctrl+a; }
+# A screenshot of the whole screen (the window fills it) when SHOTS is set.
+shot() { [ -z "$SHOTS" ] || { mkdir -p "$SHOTS"; import -display ":$DISP" -window root "$SHOTS/$1.png"; }; }
+mark() { X key ctrl+a sleep 1; shot ctrl-a; X key pgdn key pgdn key pgdn sleep 1 key ctrl+a sleep 1; shot ctrl-a-again; }
+# Ranges from the anchor: Shift+End from the top marks all but "..",
+# Shift+Home goes back and unmarks them; the frame also makes the footer.
+shiftend() { X key home sleep 1 key shift+end sleep 1.5; shot shift-end; }
+shifthome() { X key shift+home sleep 1.5; shot shift-home-back; }
+# Shift+click: a click on the 3rd row, Shift+click on the 8th, Ctrl+click on
+# the 10th (it adds one), a plain click on the 12th (keeps the marks).
+clicks() {
+  X key home sleep 0.5 click none 300 $((ROW0 + 3 * ROWH)) sleep 0.5 click shift 300 $((ROW0 + 8 * ROWH)) sleep 0.5 \
+    click ctrl 300 $((ROW0 + 10 * ROWH)) sleep 0.5 click none 300 $((ROW0 + 12 * ROWH)) sleep 1
+  shot clicks
+  X key ctrl+a sleep 0.5 key ctrl+a sleep 0.5
+}
 step pgdn pgdn
 step wheel wheel
 step ends ends
 step filter filter
 step marked mark
+step shiftend shiftend
+step shifthome shifthome
+# Row positions for the clicks
+# (ROW0/ROWH can be given), otherwise the default theme and window size:
+# the centre of the ".." row and the row height.
+ROW0=${ROW0:-197} ROWH=${ROWH:-21}
+step clicks clicks
 step idle sleep 3
 echo -e "BENCH\tgui.rss_mb\t$(awk '/VmRSS/ {printf "%.1f", $2/1024}' "/proc/$APID/status")\tMB"
 echo -e "BENCH\tgui.hwm_mb\t$(awk '/VmHWM/ {printf "%.1f", $2/1024}' "/proc/$APID/status")\tMB"

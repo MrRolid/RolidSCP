@@ -186,6 +186,7 @@ fn pane_ops(prefix: &str, pane: &mut Pane) {
     });
     report(&format!("{prefix}.shift_end_ms"), ms(t), "ms");
     report(&format!("{prefix}.shift_end.marked"), pane.marked.len() as f64, "items");
+    report(&format!("{prefix}.shift_end.expected"), pane.entries.iter().filter(|e| e.name != "..").count() as f64, "items");
     let (_, t) = timed(|| {
         pane.shift_move(|p| p.cursor_home());
         pane.footer_text()
@@ -204,6 +205,7 @@ fn pane_ops(prefix: &str, pane: &mut Pane) {
     let sizes = crate::pane::Prepared::new(sizes, sort);
     let (_, t) = timed(|| pane.update_prepared(sizes));
     report(&format!("{prefix}.refresh_size_changed_all_marked_ms"), ms(t), "ms");
+    report(&format!("{prefix}.refresh_one_gone_all_marked.expected"), (pane.marked.len() - 1) as f64, "items");
     let mut fewer = pane.entries.clone();
     fewer.remove(fewer.len() / 3);
     let fewer = crate::pane::Prepared::new(fewer, sort);
