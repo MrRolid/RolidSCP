@@ -506,6 +506,10 @@ msgstr "Diskkvoten på målet er brukt opp ({error}). Frigjør plass der eller b
 msgid "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Måldisken er full ({error}). Frigjør plass der, og trykk så «Prøv igjen»: overføringen fortsetter der den stoppet."
 
+#: crates/rolid-core/src/copy.rs:930
+msgid "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped."
+msgstr "Serveren nektet å skrive ({error}). Disken kan være full, eller diskkvoten din er brukt opp: frigjør plass der, og trykk så «Prøv igjen»: overføringen fortsetter der den stoppet."
+
 #: crates/rolid-core/src/eta.rs:80
 msgid "remaining: calculating"
 msgstr "gjenstår: beregner"

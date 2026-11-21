@@ -511,6 +511,10 @@ msgstr "Limit dyskowy w miejscu docelowym jest wyczerpany ({error}). Zwolnij tam
 msgid "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Dysk docelowy jest pełny ({error}). Zwolnij tam miejsce, a potem naciśnij „Spróbuj ponownie”: transfer będzie kontynuowany tam, gdzie się zatrzymał."
 
+#: crates/rolid-core/src/copy.rs:930
+msgid "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped."
+msgstr "Serwer odmówił zapisu ({error}). Jego dysk może być pełny lub Twój limit dyskowy wyczerpany: zwolnij tam miejsce, a potem naciśnij „Spróbuj ponownie”: transfer będzie kontynuowany tam, gdzie się zatrzymał."
+
 #: crates/rolid-core/src/eta.rs:80
 msgid "remaining: calculating"
 msgstr "pozostało: obliczanie"

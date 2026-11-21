@@ -501,16 +501,15 @@ async fn a_full_disk_or_quota_is_named_and_try_again_continues() {
         (Fail::Quota, None, "The disk quota on the target is used up"),
         // A server that answers only "Failure" and has no room left.
         (Fail::Failure, Some(0), "The target disk is full"),
-        // "Failure" with plenty of room: not called a full disk.
-        (Fail::Failure, Some(50 * GIB), "Failure"),
-        (Fail::Failure, None, "Failure"),
+        // "Failure" with room (a quota does not show in the free space) or
+        // a server that cannot tell: maybe full, maybe a quota.
+        (Fail::Failure, Some(50 * GIB), "The server refused to write (Failure). Its disk may be full or your disk quota used up"),
+        (Fail::Failure, None, "The server refused to write (Failure)"),
     ];
     for (fail, avail, want) in cases {
         let (text, dst, seen) = full_then_try_again(fail, avail).await;
         assert!(text.starts_with(want), "{fail:?} {avail:?}: {text}");
-        if want != "Failure" {
-            assert!(text.contains("Try again"), "{text}");
-        }
+        assert!(text.contains("Try again"), "{text}");
         assert_eq!(dst.size("/dst/f.bin"), Some(100 * MIB), "{fail:?}: complete after trying again");
         assert_eq!(dst.wrong(), 0, "{fail:?}");
         let (done, resumed) = (seen.done.load(Ordering::Relaxed), seen.resumed.load(Ordering::Relaxed));

@@ -506,6 +506,10 @@ msgstr "Le quota disque de la cible est épuisé ({error}). Libérez de l’espa
 msgid "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Le disque cible est plein ({error}). Libérez de l’espace, puis appuyez sur « Réessayer » : le transfert reprend là où il s’est arrêté."
 
+#: crates/rolid-core/src/copy.rs:930
+msgid "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped."
+msgstr "Le serveur a refusé l’écriture ({error}). Son disque est peut-être plein ou votre quota disque épuisé : libérez de l’espace, puis appuyez sur « Réessayer » : le transfert reprend là où il s’est arrêté."
+
 #: crates/rolid-core/src/eta.rs:80
 msgid "remaining: calculating"
 msgstr "restant : calcul en cours"

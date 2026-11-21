@@ -508,6 +508,10 @@ msgstr "Disková kvóta na cíli je vyčerpaná ({error}). Uvolněte tam místo 
 msgid "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Cílový disk je plný ({error}). Uvolněte tam místo a pak stiskněte „Zkusit znovu“: přenos bude pokračovat tam, kde skončil."
 
+#: crates/rolid-core/src/copy.rs:930
+msgid "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped."
+msgstr "Server odmítl zápis ({error}). Jeho disk je možná plný nebo je vyčerpaná vaše disková kvóta: uvolněte tam místo a pak stiskněte „Zkusit znovu“: přenos bude pokračovat tam, kde skončil."
+
 #: crates/rolid-core/src/eta.rs:80
 msgid "remaining: calculating"
 msgstr "zbývá: počítám"

@@ -132,7 +132,13 @@ fn bench_full() {
             Err(e) => rolid_i18n::t(&e.text()),
             Ok(()) => String::new(),
         };
-        println!("FULLMSG\t{way}\t{text}");
+        println!("FULLMSG\t{way}\t{}", text.escape_debug());
+        // Also into the results file (stdout lines can be cut up by other output).
+        if let Some(out) = std::env::var_os("ROLIDSCP_BENCH_OUT") {
+            use std::io::Write;
+            let mut f = std::fs::OpenOptions::new().append(true).create(true).open(out).unwrap();
+            writeln!(f, "MESSAGE\tfull.{way}\t{}", text.escape_debug()).unwrap();
+        }
         report(&format!("full.{way}.failed"), r.is_err() as u8 as f64, "bool");
         report(&format!("full.{way}.message_names_full_disk"), text.starts_with("The target disk is full") as u8 as f64, "bool");
         report(&format!("full.{way}.failed_after_ms"), failed_after.as_secs_f64() * 1000.0, "ms");

@@ -506,6 +506,10 @@ msgstr "Das Speicherkontingent am Ziel ist aufgebraucht ({error}). Schaffen Sie 
 msgid "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Der Zieldatenträger ist voll ({error}). Schaffen Sie dort Platz, dann drücken Sie „Erneut versuchen“: Die Übertragung setzt dort fort, wo sie aufgehört hat."
 
+#: crates/rolid-core/src/copy.rs:930
+msgid "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped."
+msgstr "Der Server hat das Schreiben abgelehnt ({error}). Sein Datenträger ist vielleicht voll oder Ihr Speicherkontingent aufgebraucht: Schaffen Sie dort Platz, dann drücken Sie „Erneut versuchen“: Die Übertragung setzt dort fort, wo sie aufgehört hat."
+
 #: crates/rolid-core/src/eta.rs:80
 msgid "remaining: calculating"
 msgstr "verbleibend: wird berechnet"

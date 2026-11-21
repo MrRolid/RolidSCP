@@ -506,6 +506,10 @@ msgstr "La cuota de disco en el destino está agotada ({error}). Libere espacio 
 msgid "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "El disco de destino está lleno ({error}). Libere espacio allí y pulse «Reintentar»: la transferencia continúa donde se detuvo."
 
+#: crates/rolid-core/src/copy.rs:930
+msgid "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped."
+msgstr "El servidor rechazó la escritura ({error}). Puede que su disco esté lleno o que su cuota de disco esté agotada: libere espacio allí y pulse «Reintentar»: la transferencia continúa donde se detuvo."
+
 #: crates/rolid-core/src/eta.rs:80
 msgid "remaining: calculating"
 msgstr "restante: calculando"

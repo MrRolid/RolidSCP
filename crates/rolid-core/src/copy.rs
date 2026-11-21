@@ -924,6 +924,13 @@ impl CopyJob<'_> {
                 "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped.",
                 error = e.text()
             ))
+        } else if self.dst.is_remote() && e.text().to_string().starts_with("Failure") {
+            // SFTP has no code for a full disk or a quota: a server says only
+            // "Failure", and its free space does not show a quota.
+            VfsError::Backend(txt!(
+                "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped.",
+                error = e.text()
+            ))
         } else {
             e
         }
