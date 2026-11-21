@@ -81,7 +81,7 @@ pub fn local(path: &Path, cancel: &AtomicBool, on_bytes: &mut dyn FnMut(u64)) ->
             if m.is_dir() {
                 stack.push(e.path());
             } else {
-                r.bytes += m.len();
+                r.bytes = r.bytes.saturating_add(m.len());
             }
             n += 1;
             if n.is_multiple_of(4096) {
@@ -114,7 +114,7 @@ pub async fn walk(fs: &dyn Vfs, path: &str, cancel: &AtomicBool, on_bytes: &mut 
         for e in list {
             match e.kind {
                 EntryKind::Dir => stack.push(fs.join(&dir, &e.name)),
-                EntryKind::File => r.bytes += e.size,
+                EntryKind::File => r.bytes = r.bytes.saturating_add(e.size),
                 _ => {}
             }
         }

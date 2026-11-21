@@ -2361,9 +2361,9 @@ impl App {
                     let done = match p.read {
                         Some((d, t)) if t > 0 => tr!("archive read {done} of {total}", done = human_size(d), total = human_size(t)),
                         _ if tot.done && tot.bytes > 0 => {
-                            tr!("{done} of {total}", done = human_size(p.bytes_done + p.bytes_resumed), total = human_size(tot.bytes))
+                            tr!("{done} of {total}", done = human_size(p.bytes_done.saturating_add(p.bytes_resumed)), total = human_size(tot.bytes))
                         }
-                        _ => human_size(p.bytes_done + p.bytes_resumed),
+                        _ => human_size(p.bytes_done.saturating_add(p.bytes_resumed)),
                     };
                     let rate = match speed {
                         Some(s) => tr!("{size}/s", size = human_size(s as u64)),
@@ -2381,9 +2381,9 @@ impl App {
                 let frac = if let Some((d, t)) = p.read.filter(|r| r.1 > 0) {
                     (d as f32 / t as f32).min(1.0)
                 } else if tot.done && tot.bytes > 0 && job.count.is_none() {
-                    ((p.bytes_done + p.bytes_resumed) as f32 / tot.bytes as f32).min(1.0)
+                    ((p.bytes_done.saturating_add(p.bytes_resumed)) as f32 / tot.bytes as f32).min(1.0)
                 } else if job.total_bytes > 0 && job.count.is_none() {
-                    ((p.bytes_done + p.bytes_resumed) as f32 / job.total_bytes as f32).min(1.0)
+                    ((p.bytes_done.saturating_add(p.bytes_resumed)) as f32 / job.total_bytes as f32).min(1.0)
                 } else {
                     frac
                 };

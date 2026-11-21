@@ -45,6 +45,10 @@ const INFO_HEADER: &str = "rolidscp-filepart 1";
 /// connection breaks. Rewriting the tail makes the result correct either way.
 pub const RESUME_MARGIN: u64 = 4 * 1024 * 1024;
 
+/// Less free space than this after a failed write: the target disk is full
+/// (writes go in pieces of up to a few MiB, the last ones did not fit).
+const LOW_SPACE: u64 = 4 * 1024 * 1024;
+
 /// How many times one transfer is continued automatically after the connection
 /// was lost (then it fails and can be retried by hand).
 pub const MAX_AUTO_RETRIES: u32 = 5;
@@ -178,7 +182,7 @@ pub async fn measure(
             }
         } else {
             t.files += 1;
-            t.bytes += e.size;
+            t.bytes = t.bytes.saturating_add(e.size);
         }
         update(t);
     }
@@ -206,7 +210,7 @@ fn measure_dir<'a>(
                 EntryKind::Other => {}
                 _ => {
                     t.files += 1;
-                    t.bytes += e.size;
+                    t.bytes = t.bytes.saturating_add(e.size);
                 }
             }
         }
@@ -247,6 +251,8 @@ pub struct CopyJob<'a> {
     verify: bool,
     /// Part files not continued because they could not be matched to their source.
     not_resumed: Vec<String>,
+    /// Bytes of the file being written that `progress.bytes_done` counts.
+    in_flight_counted: u64,
 }
 
 enum Plan {
@@ -287,6 +293,7 @@ impl<'a> CopyJob<'a> {
             target_name: None,
             verify: false,
             not_resumed: Vec::new(),
+            in_flight_counted: 0,
         }
     }
 
@@ -683,7 +690,7 @@ impl<'a> CopyJob<'a> {
             match r {
                 Ok(true) => {
                     self.progress.files_done += 1;
-                    self.progress.bytes_done += e.size;
+                    self.progress.bytes_done = self.progress.bytes_done.saturating_add(e.size);
                     if self.moving {
                         self.state.moved_files.push(Moved { src: s, dst: d.clone(), size: e.size, modified: e.modified });
                     }
@@ -712,7 +719,8 @@ impl<'a> CopyJob<'a> {
         let part_path = crate::vfs::with_suffix(dst_path, PARTIAL_SUFFIX);
         let mut r = self.src.open_read(src_path).await?;
         let mut w = self.dst.open_write(&part_path).await?;
-        let mut buf = vec![0u8; (src.size as usize + 1).clamp(4096, BUF_SIZE)];
+        let mut buf = vec![0u8; (src.size.saturating_add(1)).clamp(4096, BUF_SIZE as u64) as usize];
+        let mut write_failed = false;
         let copied: VfsResult<()> = async {
             loop {
                 self.check_cancel()?;
@@ -720,15 +728,20 @@ impl<'a> CopyJob<'a> {
                 if n == 0 {
                     return Ok(());
                 }
-                w.write_all(&buf[..n]).await?;
+                if let Err(e) = w.write_all(&buf[..n]).await {
+                    write_failed = true;
+                    return Err(e.into());
+                }
             }
         }
         .await;
         if let Err(e) = copied {
             let _ = w.flush().await;
-            return Err(e);
+            return Err(if write_failed { self.write_error(e, dst_path).await } else { e });
         }
-        w.shutdown().await?;
+        if let Err(e) = w.shutdown().await {
+            return Err(self.write_error(e.into(), dst_path).await);
+        }
         drop(w);
         drop(r);
         let placed = self.put_new(&part_path, dst_path, src).await?;
@@ -785,6 +798,13 @@ impl<'a> CopyJob<'a> {
             Plan::Write { offset } => offset,
         };
 
+        // Continuing the file this job was writing when the connection broke:
+        // what was counted for it is counted again as resumed from the part
+        // file (the window showed 140 MB of a 100 MB file).
+        if self.state.in_flight.as_deref() == Some(dst_path) {
+            self.progress.bytes_done = self.progress.bytes_done.saturating_sub(self.in_flight_counted);
+        }
+        self.in_flight_counted = 0;
         self.state.in_flight = Some(dst_path.to_owned());
         let info = info_path(dst_path);
         let with_info = offset == 0 && src.size >= RESUME_INFO_MIN;
@@ -795,8 +815,9 @@ impl<'a> CopyJob<'a> {
         }
         let mut r = self.src.open_read_at(src_path, offset).await?;
         let mut w = self.dst.open_write_at(&part_path, offset).await?;
-        self.progress.bytes_resumed += offset;
+        self.progress.bytes_resumed = self.progress.bytes_resumed.saturating_add(offset);
         let mut buf = vec![0u8; BUF_SIZE];
+        let mut write_failed = false;
         let copied: VfsResult<()> = async {
             loop {
                 self.check_cancel()?;
@@ -805,8 +826,12 @@ impl<'a> CopyJob<'a> {
                 if n == 0 {
                     return Ok(());
                 }
-                w.write_all(&buf[..n]).await?;
+                if let Err(e) = w.write_all(&buf[..n]).await {
+                    write_failed = true;
+                    return Err(e.into());
+                }
                 self.progress.bytes_done += n as u64;
+                self.in_flight_counted += n as u64;
                 (self.on_progress)(&self.progress);
                 if let Some(l) = &self.limit {
                     l.consume(n as u64).await;
@@ -818,9 +843,11 @@ impl<'a> CopyJob<'a> {
             // Let writes still in flight land (tokio::fs::File writes in the
             // background): a retry measures the .filepart to resume from it.
             let _ = w.flush().await;
-            return Err(e);
+            return Err(if write_failed { self.write_error(e, dst_path).await } else { e });
         }
-        w.shutdown().await?;
+        if let Err(e) = w.shutdown().await {
+            return Err(self.write_error(e.into(), dst_path).await);
+        }
         drop(w);
         drop(r);
 
@@ -865,6 +892,43 @@ impl<'a> CopyJob<'a> {
 }
 
 impl CopyJob<'_> {
+    /// A write to the target failed. When its disk is full or the quota is
+    /// used up, say so and that "Try again" continues once there is room (the
+    /// written part is kept). A server often answers only "Failure": then its
+    /// free space tells. Anything else is passed on as it is.
+    async fn write_error(&self, e: VfsError, dst_path: &str) -> VfsError {
+        if e.is_connection_lost() || e.is_canceled() {
+            return e;
+        }
+        let kind = match &e {
+            VfsError::Io(io) => Some(io.kind()),
+            _ => None,
+        };
+        let quota = kind == Some(std::io::ErrorKind::QuotaExceeded);
+        let full = quota
+            || kind == Some(std::io::ErrorKind::StorageFull)
+            || match self.dst.parent(dst_path) {
+                Some(dir) => matches!(
+                    tokio::time::timeout(std::time::Duration::from_secs(5), self.dst.space(&dir)).await,
+                    Ok(Ok(Some(s))) if s.avail < LOW_SPACE
+                ),
+                None => false,
+            };
+        if quota {
+            VfsError::Backend(txt!(
+                "The disk quota on the target is used up ({error}). Free some space there or ask for a bigger quota, then press “Try again”: the transfer continues where it stopped.",
+                error = e.text()
+            ))
+        } else if full {
+            VfsError::Backend(txt!(
+                "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped.",
+                error = e.text()
+            ))
+        } else {
+            e
+        }
+    }
+
     /// Where to continue a partial file of `size` bytes (see [`RESUME_MARGIN`]).
     fn resume_offset(&self, size: u64) -> u64 {
         if self.dst.is_remote() {

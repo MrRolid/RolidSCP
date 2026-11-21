@@ -59,7 +59,8 @@ impl Window {
 
     /// Bytes per second over the window (`None` before the first full window).
     pub fn speed(&self) -> Option<f64> {
-        (self.deltas.len() >= WINDOW).then(|| self.deltas.iter().sum::<u64>() as f64 / WINDOW as f64)
+        // Summed as floats: ten huge jumps (a resumed part counted at once) must not overflow.
+        (self.deltas.len() >= WINDOW).then(|| self.deltas.iter().map(|&d| d as f64).sum::<f64>() / WINDOW as f64)
     }
 
     /// Remaining time for `remaining` bytes.
@@ -82,14 +83,23 @@ pub fn format_eta(e: Eta) -> Text {
     }
 }
 
-/// 45 → "45 s", 750 → "12 min 30 s", 3900 → "1 h 05 min".
+/// Beyond this many days the remaining time is not worth counting (a petabyte
+/// over a stalled connection would take thousands of years).
+pub const DAYS_MAX: u64 = 999;
+
+/// 45 → "45 s", 750 → "12 min 30 s", 3900 → "1 h 05 min", 400 000 →
+/// "4 d 15 h", more than [`DAYS_MAX`] days → "over 999 days".
 pub fn format_secs(s: u64) -> Text {
     if s < 60 {
         txtn!("{n} s", "{n} s", s)
     } else if s < 3600 {
         txt!("{min} min {sec} s", min = s / 60, sec = s % 60)
-    } else {
+    } else if s < 100 * 3600 {
         txt!("{h} h {min} min", h = s / 3600, min = format!("{:02}", (s % 3600) / 60))
+    } else if s / 86400 <= DAYS_MAX {
+        txt!("{d} d {h} h", d = s / 86400, h = (s % 86400) / 3600)
+    } else {
+        txtn!("over {n} day", "over {n} days", DAYS_MAX)
     }
 }
 
@@ -158,6 +168,27 @@ mod tests {
     }
 
     #[test]
+    fn a_petabyte_at_a_byte_a_second_is_not_an_overflow() {
+        let mut w = Window::default();
+        for t in 0..=10 {
+            w.sample(secs(t), t);
+        }
+        assert_eq!(w.eta(u64::MAX), Eta::Secs(u64::MAX));
+        assert_eq!(format_eta(w.eta(u64::MAX)).to_string(), "remaining: over 999 days");
+        let mut w = Window::default();
+        for t in 0..=10 {
+            w.sample(secs(t), t * (u64::MAX / 20));
+        }
+        assert!(matches!(w.eta(u64::MAX / 2), Eta::Secs(10 | 11)), "{:?}", w.eta(u64::MAX / 2));
+        // A count that jumps to the top of u64 within two seconds.
+        let mut w = Window::default();
+        for t in 0..=10 {
+            w.sample(secs(t), t.saturating_mul(1 << 63));
+        }
+        assert!(w.speed().is_some());
+    }
+
+    #[test]
     fn zero_speed_is_unknown() {
         let mut w = Window::default();
         w.sample(secs(0), 0);
@@ -183,6 +214,11 @@ mod tests {
         assert_eq!(f(3600), "1 h 00 min");
         assert_eq!(f(3900), "1 h 05 min");
         assert_eq!(f(26 * 3600 + 59 * 60 + 59), "26 h 59 min");
+        assert_eq!(f(99 * 3600 + 3599), "99 h 59 min");
+        assert_eq!(f(100 * 3600), "4 d 4 h");
+        assert_eq!(f(999 * 86400 + 86399), "999 d 23 h");
+        assert_eq!(f(1000 * 86400), "over 999 days");
+        assert_eq!(f(u64::MAX), "over 999 days");
         assert_eq!(format_eta(Eta::Secs(45)).to_string(), "remaining: 45 s");
     }
 }
