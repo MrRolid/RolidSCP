@@ -149,8 +149,15 @@ fn write_private(path: &Path, data: &[u8]) -> std::io::Result<()> {
     }
     let mut f = opts.open(&tmp)?;
     f.write_all(data)?;
+    // On the disk before it replaces the old file (a power cut leaves the old
+    // or the new one, never an empty one).
+    f.sync_all()?;
     drop(f);
-    std::fs::rename(&tmp, path)
+    std::fs::rename(&tmp, path)?;
+    if let Some(dir) = path.parent() {
+        let _ = std::fs::File::open(dir).and_then(|d| d.sync_all());
+    }
+    Ok(())
 }
 
 /// While alive, `<base>/instance-<pid>` says this instance is running.

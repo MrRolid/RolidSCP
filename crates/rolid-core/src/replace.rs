@@ -124,9 +124,17 @@ fn begin(dir: Option<&Path>, fs: &dyn Vfs, step: &Step) -> Option<JournalEntry> 
     let name = format!("{}-{nanos}-{}.{JOURNAL_EXT}", std::process::id(), SEQ.fetch_add(1, Ordering::Relaxed));
     let path = dir.join(name);
     let tmp = path.with_extension("tmp");
-    // Written completely before it counts (renamed into place).
-    let ok = std::fs::write(&tmp, encode(&key, step)).and_then(|_| std::fs::rename(&tmp, &path)).is_ok();
-    ok.then_some(JournalEntry(path))
+    // Written completely before it counts (renamed into place), and on the
+    // disk before the server is touched: after a power cut the entry is there.
+    let write = || -> std::io::Result<()> {
+        use std::io::Write;
+        let mut f = std::fs::File::create(&tmp)?;
+        f.write_all(encode(&key, step).as_bytes())?;
+        f.sync_all()?;
+        std::fs::rename(&tmp, &path)?;
+        std::fs::File::open(dir)?.sync_all()
+    };
+    write().is_ok().then_some(JournalEntry(path))
 }
 
 /// Replace `target` with `part` (see the module docs), journaled in the
