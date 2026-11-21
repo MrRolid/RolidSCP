@@ -24,6 +24,8 @@ mod bench;
 mod bench_big;
 #[cfg(test)]
 mod bench_kill;
+#[cfg(test)]
+mod bench_space;
 
 /// Log to `rolid_config::log_path()` (and stderr). Default level: info for our
 /// crates, warnings for libraries; `RUST_LOG` overrides. Secrets are never logged.
