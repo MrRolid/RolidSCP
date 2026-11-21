@@ -27,8 +27,25 @@ pub struct Sshd {
     extra: String,
 }
 
+/// A free port below the range the system hands out for outgoing connections
+/// and for binding to port 0 (`ip_local_port_range`). A port from that range,
+/// free when checked, can be taken by any other socket before sshd binds it
+/// (tests run at the same time open many); the server is then not ours.
 fn free_port() -> u16 {
-    std::net::TcpListener::bind("127.0.0.1:0").unwrap().local_addr().unwrap().port()
+    use std::hash::{BuildHasher, Hasher};
+    let low: u16 = std::fs::read_to_string("/proc/sys/net/ipv4/ip_local_port_range")
+        .ok()
+        .and_then(|r| r.split_whitespace().next()?.parse().ok())
+        .unwrap_or(32768);
+    let (from, to) = if low > 12_000 { (low - 10_000, low) } else { (49_152, 65_535) };
+    loop {
+        let mut h = std::collections::hash_map::RandomState::new().build_hasher();
+        h.write_u128(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos());
+        let port = from + (h.finish() % u64::from(to - from)) as u16;
+        if std::net::TcpListener::bind(("127.0.0.1", port)).is_ok() {
+            return port;
+        }
+    }
 }
 
 fn keygen(path: &Path) {
@@ -78,19 +95,40 @@ impl Sshd {
             dir,
         };
         s.port = free_port();
-        s.spawn();
         s.add_known_port(s.port);
+        s.spawn_or_move(true);
         Some(s)
     }
 
-    fn spawn(&mut self) {
+    /// Start sshd; when its port was taken meanwhile, on another port (when
+    /// `move_ok`, else it panics). Returns whether the port changed.
+    fn spawn_or_move(&mut self, move_ok: bool) -> bool {
+        let mut moved = false;
+        for _ in 0..20 {
+            match self.try_spawn() {
+                Ok(()) => return moved,
+                // sshd's own words (not the system's error text, which may be translated).
+                Err(log) if move_ok && log.contains("Cannot bind any address") => {
+                    self.port = free_port();
+                    self.add_known_port(self.port);
+                    moved = true;
+                }
+                Err(log) => panic!("sshd did not start: {log}"),
+            }
+        }
+        panic!("sshd did not start: no free port");
+    }
+
+    /// Start sshd and wait until it says it listens. Not by connecting to the
+    /// port: something else listening there would answer just the same.
+    fn try_spawn(&mut self) -> Result<(), String> {
         let d = &self.dir;
         let cfg = format!(
             "Port {port}\nListenAddress 127.0.0.1\nHostKey {d}/host_key\n\
              AuthorizedKeysFile {d}/authorized_keys\nPasswordAuthentication no\n\
              KbdInteractiveAuthentication no\nUsePAM no\nStrictModes no\n\
              PidFile {d}/sshd.pid\nSubsystem sftp internal-sftp\nAllowUsers {user}\n\
-             MaxSessions 50\nMaxStartups 50\nLogLevel ERROR\n{extra}\n",
+             MaxSessions 50\nMaxStartups 50\nLogLevel INFO\n{extra}\n",
             port = self.port,
             d = d.display(),
             user = self.user,
@@ -104,15 +142,23 @@ impl Sshd {
             .stderr(std::fs::File::create(d.join("sshd.log")).unwrap())
             .spawn()
             .expect("sshd start");
-        self.child = Some(child);
-        // Wait until it listens.
-        for _ in 0..100 {
-            if std::net::TcpStream::connect(("127.0.0.1", self.port)).is_ok() {
-                return;
+        let mut child = child;
+        let ready = format!("Server listening on 127.0.0.1 port {}.", self.port);
+        let log = || std::fs::read_to_string(d.join("sshd.log")).unwrap_or_default();
+        let until = std::time::Instant::now() + Duration::from_secs(20);
+        while std::time::Instant::now() < until {
+            if log().contains(&ready) {
+                self.child = Some(child);
+                return Ok(());
             }
-            std::thread::sleep(Duration::from_millis(50));
+            if let Ok(Some(_)) = child.try_wait() {
+                return Err(log());
+            }
+            std::thread::sleep(Duration::from_millis(20));
         }
-        panic!("sshd did not start: {}", std::fs::read_to_string(d.join("sshd.log")).unwrap_or_default());
+        let _ = child.kill();
+        let _ = child.wait();
+        Err(format!("not listening after 20 s: {}", log()))
     }
 
     /// Stop the listening server and every connection it serves (server restart / crash).
@@ -133,10 +179,21 @@ impl Sshd {
         }
     }
 
-    /// Start again on the same port (after [`Sshd::kill`]).
-    pub fn restart(&mut self) {
+    /// Start again (after [`Sshd::kill`]) on the same port, or on another
+    /// one when the old one was taken meanwhile. Returns the port.
+    pub fn restart(&mut self) -> u16 {
         self.kill();
-        self.spawn();
+        self.spawn_or_move(true);
+        self.port
+    }
+
+    /// [`Sshd::start`] on a given port (`None` = sshd did not start there).
+    pub fn start_on(name: &str, port: u16) -> Option<Result<Sshd, String>> {
+        let mut s = Self::start(name)?;
+        s.kill();
+        s.port = port;
+        s.add_known_port(port);
+        Some(s.try_spawn().map(|()| s))
     }
 
     /// Trust the host key also under `port` (connections through a proxy).
@@ -181,6 +238,8 @@ impl Drop for Sshd {
 #[derive(Clone)]
 pub struct Proxy {
     pub port: u16,
+    /// Where it forwards to (the server may move to another port on restart).
+    upstream: Arc<std::sync::atomic::AtomicU16>,
     conns: Arc<Mutex<Vec<tokio::task::AbortHandle>>>,
     /// Bytes forwarded server → client so far.
     pub down: Arc<AtomicU64>,
@@ -196,6 +255,7 @@ impl Proxy {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let p = Proxy {
             port: listener.local_addr().unwrap().port(),
+            upstream: Arc::new(std::sync::atomic::AtomicU16::new(upstream)),
             conns: Arc::default(),
             down: Arc::default(),
             cut_at: Arc::new(AtomicU64::new(u64::MAX)),
@@ -212,7 +272,7 @@ impl Proxy {
                     continue;
                 }
                 me.accepted.fetch_add(1, Ordering::SeqCst);
-                let Ok(server) = tokio::net::TcpStream::connect(("127.0.0.1", upstream)).await else {
+                let Ok(server) = tokio::net::TcpStream::connect(("127.0.0.1", me.upstream.load(Ordering::SeqCst))).await else {
                     continue;
                 };
                 let m = me.clone();
@@ -264,6 +324,11 @@ impl Proxy {
             }
         };
         tokio::select! { _ = up => {}, _ = dn => {} }
+    }
+
+    /// Forward new connections to `port` (the server was restarted there).
+    pub fn set_upstream(&self, port: u16) {
+        self.upstream.store(port, Ordering::SeqCst);
     }
 
     /// Drop every open connection now.

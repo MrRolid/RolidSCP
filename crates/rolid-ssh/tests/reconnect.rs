@@ -241,7 +241,9 @@ async fn server_restart_is_survived() {
         assert!(t.elapsed() < Duration::from_secs(10), "loss not noticed");
         tokio::time::sleep(Duration::from_millis(50)).await;
     }
-    e.srv.restart();
+    // On the same port, or on another one if the port was taken meanwhile.
+    let port = e.srv.restart();
+    e.proxy.set_upstream(port);
     wait_up(&e.link, 30).await;
     assert_eq!(e.fs.home().await.unwrap(), home);
 }
