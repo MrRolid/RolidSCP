@@ -93,6 +93,10 @@ step() {
   local from; from=$(wc -l <"$LOG")
   "$@"
   sleep 2.5
+  # The statistics of a 2 s window are written with the first frame after
+  # it: one cheap frame (a mouse move) writes them now, so the frames of this
+  # step are not counted in the next one.
+  X move 402 500 sleep 0.3 move 400 500 sleep 0.3
   # No frames (nothing changed on screen) is a result too, not an error.
   { tail -n +"$((from + 1))" "$LOG" | grep -o "frames: [0-9]* in 2 s, average [0-9.]* ms, longest [0-9.]* ms" || true; } |
     awk -v n="$name" '{f+=$2; t+=$2*$7; if ($10>m) m=$10} END {
@@ -104,7 +108,10 @@ wheel() { X wheel down 150; }
 ends() { for _ in $(seq 5); do X key end sleep 0.3 key home sleep 0.3; done; }
 filter() { X type f12 sleep 0.5 key bs key bs key bs sleep 0.5 type f9 sleep 0.5 key esc; }
 # A screenshot of the whole screen (the window fills it) when SHOTS is set.
-shot() { [ -z "$SHOTS" ] || { mkdir -p "$SHOTS"; import -display ":$DISP" -window root "$SHOTS/$1.png"; }; }
+# Taken only in a pass of its own after the measured steps (grabbing the
+# screen holds up the program's frames).
+SHOOT=0
+shot() { [ -z "$SHOTS" ] || [ "$SHOOT" = 0 ] || { mkdir -p "$SHOTS"; import -display ":$DISP" -window root "$SHOTS/$1.png"; }; }
 mark() { X key ctrl+a sleep 1; shot ctrl-a; X key pgdn key pgdn key pgdn sleep 1 key ctrl+a sleep 1; shot ctrl-a-again; }
 # Ranges from the anchor: Shift+End from the top marks all but "..",
 # Shift+Home goes back and unmarks them; the frame also makes the footer.
@@ -131,6 +138,10 @@ step shifthome shifthome
 ROW0=${ROW0:-197} ROWH=${ROWH:-21}
 step clicks clicks
 step idle sleep 3
+if [ -n "$SHOTS" ]; then
+  SHOOT=1
+  mark; shiftend; shifthome; clicks
+fi
 echo -e "BENCH\tgui.rss_mb\t$(awk '/VmRSS/ {printf "%.1f", $2/1024}' "/proc/$APID/status")\tMB"
 echo -e "BENCH\tgui.hwm_mb\t$(awk '/VmHWM/ {printf "%.1f", $2/1024}' "/proc/$APID/status")\tMB"
 { grep -c "slow frame" "$LOG" || true; } | awk '{printf "BENCH\tgui.slow_frames\t%d\tframes\n", $1}'

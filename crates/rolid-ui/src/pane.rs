@@ -775,9 +775,14 @@ impl Pane {
             self.marked.touch();
             return;
         }
-        let names: HashSet<&str> = self.marked.indices().filter_map(|i| old.get(i)).map(|e| e.name.as_str()).collect();
-        let idx: Vec<usize> = (0..new.len()).collect();
-        let bits = par_filter_map(&idx, &|i| Some(names.contains(new[i].name.as_str())));
+        let bits = match carry_in_order(old, &self.marked, new) {
+            Some(bits) => bits,
+            None => {
+                let names: HashSet<&str> = self.marked.indices().filter_map(|i| old.get(i)).map(|e| e.name.as_str()).collect();
+                let idx: Vec<usize> = (0..new.len()).collect();
+                par_filter_map(&idx, &|i| Some(names.contains(new[i].name.as_str())))
+            }
+        };
         self.marked.replace(bits);
     }
 
@@ -1201,36 +1206,64 @@ impl Pane {
         };
         let (lo, hi) = (from.min(to), from.max(to));
         let mut st = stroke;
-        self.change_marks(|p, changed| {
+        let base = self.mark_sums().filter(|_| self.dir_sizes.is_empty());
+        // The entries whose mark changed: (position, marked now).
+        let mut changes: Vec<(u32, bool)> = Vec::new();
+        {
+            let Pane { view, marked, .. } = self;
             let inside = |r: usize, a: usize, b: usize, empty: bool| !empty && r >= a && r <= b;
             // Rows that leave the range: unmark what this range marked.
             if !st.empty {
-                for r in st.lo..=st.hi {
+                for (r, row) in view.iter().enumerate().take(st.hi + 1).skip(st.lo) {
                     if inside(r, lo, hi, false) {
                         continue;
                     }
-                    if let Row::Entry(i) = p.view[r] {
+                    if let Row::Entry(i) = *row {
                         if st.added[i] {
                             st.added[i] = false;
-                            p.marked.set(i, false);
-                            changed(i, false);
+                            marked.set(i, false);
+                            changes.push((i as u32, false));
                         }
                     }
                 }
             }
             // Rows that come into it: mark them.
-            for r in lo..=hi {
+            for (r, row) in view.iter().enumerate().take(hi + 1).skip(lo) {
                 if inside(r, st.lo, st.hi, st.empty) {
                     continue;
                 }
-                if let Row::Entry(i) = p.view[r] {
-                    if p.marked.set(i, true) {
+                if let Row::Entry(i) = *row {
+                    if marked.set(i, true) {
                         st.added[i] = true;
-                        changed(i, true);
+                        changes.push((i as u32, true));
                     }
                 }
             }
-        });
+        }
+        // The sums of the marked items follow: known at once when all or none
+        // are marked (Shift+End from the top, Shift+Home back), otherwise from
+        // the changes.
+        if let Some(mut m) = base {
+            let all = match self.all_sums {
+                Some((k, a)) if k == (self.entries_gen, self.sizes_gen) => Some(a),
+                _ => None,
+            };
+            if self.marked.is_empty() {
+                m = Sums::default();
+            } else if let (Some(a), true) = (all, self.marked.len() == self.entries.len()) {
+                m = a;
+            } else {
+                for (i, on) in changes {
+                    let e = &self.entries[i as usize];
+                    if on {
+                        m.add(e);
+                    } else {
+                        m.sub(e);
+                    }
+                }
+            }
+            self.marks_sums = Some(((self.entries_gen, self.marked.generation(), self.sizes_gen), m));
+        }
         st.lo = lo;
         st.hi = hi;
         st.empty = false;
@@ -1730,12 +1763,63 @@ pub fn selection_summary(entries: &[Entry], marked: &Marks, dir_sizes: &HashMap<
     summary_text(&all, &m)
 }
 
+/// The marks of `old` carried to `new` by walking both lists in order: a
+/// refresh mostly adds or drops a few items and keeps the order, so names are
+/// compared pair by pair (a million names in a hash set took ~0.9 s). Where
+/// the step is lost, a few names ahead in both lists are tried; items passed
+/// over on either side are matched by name at the end. `None` when the
+/// order changed too much (a hash of all names is then quicker).
+fn carry_in_order(old: &[Entry], marked: &Marks, new: &[Entry]) -> Option<Vec<bool>> {
+    const AHEAD: usize = 32;
+    const LOST_MAX: usize = 1000;
+    let mut bits = vec![false; new.len()];
+    // Marked names passed over in `old`, positions passed over in `new`.
+    let mut gone: HashSet<&str> = HashSet::new();
+    let mut added: Vec<usize> = Vec::new();
+    let (mut i, mut j, mut lost) = (0, 0, 0);
+    while i < old.len() && j < new.len() {
+        if old[i].name == new[j].name {
+            bits[j] = marked.has(i);
+            i += 1;
+            j += 1;
+            continue;
+        }
+        lost += 1;
+        if lost > LOST_MAX {
+            return None;
+        }
+        if let Some(k) = (1..=AHEAD).find(|&k| new.get(j + k).is_some_and(|e| e.name == old[i].name)) {
+            added.extend(j..j + k);
+            j += k;
+        } else if let Some(k) = (1..=AHEAD).find(|&k| old.get(i + k).is_some_and(|e| e.name == new[j].name)) {
+            gone.extend((i..i + k).filter(|&x| marked.has(x)).map(|x| old[x].name.as_str()));
+            i += k;
+        } else {
+            if marked.has(i) {
+                gone.insert(old[i].name.as_str());
+            }
+            added.push(j);
+            i += 1;
+            j += 1;
+        }
+    }
+    gone.extend((i..old.len()).filter(|&x| marked.has(x)).map(|x| old[x].name.as_str()));
+    if !gone.is_empty() {
+        for x in added.into_iter().chain(j..new.len()) {
+            bits[x] = gone.contains(new[x].name.as_str());
+        }
+    }
+    Some(bits)
+}
+
 /// Counts and sizes of items for the footer.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Sums {
     files: usize,
     dirs: usize,
-    bytes: u64,
+    /// Wider than a file size: sizes reported by a server (or sparse files)
+    /// can add up to more than u64 holds.
+    bytes: u128,
     /// Computed folder sizes are counted in; `ge`: one of them is incomplete.
     sized: bool,
     ge: bool,
@@ -1748,7 +1832,7 @@ impl Sums {
             self.dirs += 1;
         } else {
             self.files += 1;
-            self.bytes += e.size;
+            self.bytes += e.size as u128;
         }
     }
 
@@ -1758,7 +1842,7 @@ impl Sums {
             self.dirs -= 1;
         } else {
             self.files -= 1;
-            self.bytes -= e.size;
+            self.bytes -= e.size as u128;
         }
     }
 
@@ -1779,7 +1863,7 @@ fn sums(entries: &[Entry], marked: &Marks, dir_sizes: &HashMap<String, crate::di
         if e.is_dir_like() {
             if let Some(d) = dir_sizes.get(&e.name) {
                 for s in [Some(&mut all), marked.then_some(&mut m)].into_iter().flatten() {
-                    s.bytes += d.bytes;
+                    s.bytes += d.bytes as u128;
                     s.sized = true;
                     s.ge |= d.unreadable > 0;
                 }
@@ -1793,7 +1877,10 @@ fn sums(entries: &[Entry], marked: &Marks, dir_sizes: &HashMap<String, crate::di
 fn summary_text(all: &Sums, m: &Sums) -> String {
     let Sums { files, dirs, bytes: size, sized, ge } = *all;
     let Sums { files: mf, dirs: md, bytes: msize, sized: msized, ge: mge } = *m;
-    let size_of = |n: u64, ge: bool| if ge { format!("≥ {}", human_size(n)) } else { human_size(n) };
+    let size_of = |n: u128, ge: bool| {
+        let shown = human_size(u64::try_from(n).unwrap_or(u64::MAX));
+        if ge || n > u64::MAX as u128 { format!("≥ {shown}") } else { shown }
+    };
     // "1 of 3 files", "1 of 1 folder" (the noun goes with the total).
     let of_files = || txtn!("{sel} of {n} file", "{sel} of {n} files", files, sel = mf);
     let of_dirs = || txtn!("{sel} of {n} folder", "{sel} of {n} folders", dirs, sel = md);
@@ -1850,7 +1937,6 @@ impl Marks {
     }
 
     /// How many items are marked.
-    #[cfg(test)]
     pub fn len(&self) -> usize {
         self.count
     }
@@ -2254,6 +2340,53 @@ mod tests {
         let mut p = Pane::new(Arc::new(rolid_local::LocalFs), "/a".into());
         p.set_listing("/a".into(), names.iter().map(|(n, d)| ent(n, *d)).collect(), None);
         p
+    }
+
+    #[test]
+    fn marks_carried_in_order_match_marks_carried_by_name() {
+        // A small xorshift: the same cases on every run.
+        let mut seed = 0x2545_f491_4f6c_dd1du64;
+        let mut rnd = |n: usize| {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            (seed % n as u64) as usize
+        };
+        for case in 0..400 {
+            let n = 1 + rnd(300);
+            let old: Vec<Entry> = (0..n).map(|i| ent(&format!("f{i:04}"), false)).collect();
+            let mut marked = Marks::default();
+            for i in 0..n {
+                if rnd(3) == 0 {
+                    marked.set(i, true);
+                }
+            }
+            // Items gone, new ones, some moved far (a size changed under a
+            // sort by size), now and then the whole order turned around.
+            let mut new = old.clone();
+            for _ in 0..rnd(6) {
+                if !new.is_empty() {
+                    new.remove(rnd(new.len()));
+                }
+            }
+            for k in 0..rnd(6) {
+                new.insert(rnd(new.len() + 1), ent(&format!("new{case}-{k}"), false));
+            }
+            for _ in 0..rnd(4) {
+                if new.len() > 1 {
+                    let e = new.remove(rnd(new.len()));
+                    new.insert(rnd(new.len() + 1), e);
+                }
+            }
+            if case % 50 == 0 {
+                new.reverse();
+            }
+            let names: HashSet<&str> = marked.indices().map(|i| old[i].name.as_str()).collect();
+            let want: Vec<bool> = new.iter().map(|e| names.contains(e.name.as_str())).collect();
+            if let Some(got) = carry_in_order(&old, &marked, &new) {
+                assert_eq!(got, want, "case {case}");
+            }
+        }
     }
 
     /// Rows: ".." then f0..f9 (names sort as listed).
