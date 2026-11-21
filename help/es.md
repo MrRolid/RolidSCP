@@ -65,6 +65,14 @@ de teclado está en la segunda página de esta ventana.
 ## Seleccionar archivos
 
 - **Insert**, **Space** o **Ctrl+clic** marca un elemento; **Ctrl+A** marca todo o nada.
+- **Shift+clic** marca los elementos desde el último pulsado o marcado hasta el que pulsa.
+  **Shift** con **↑ ↓ PgUp PgDn Home End** marca desde allí hasta el cursor mientras se mueve;
+  al volver atrás solo se desmarca lo que marcó este rango. **Herramientas → Seleccionar hasta el
+  principio / Seleccionar hasta el final** hace lo mismo que **Shift+Home** y **Shift+End**. Un
+  clic sin tecla mueve el cursor y conserva las marcas. El inicio del rango se vuelve a encontrar por
+  su nombre tras una actualización, una ordenación o el filtro rápido; `..` nunca se marca. Arrastrar
+  sigue copiando, y **Shift** pulsada al soltar los archivos los mueve (Shift+clic por sí solo nunca
+  mueve nada).
 - **Num+** marca un grupo según una máscara como `*.jpg;*.png`, **Alt+−** lo desmarca, **Alt+I**
   invierte la selección.
 - La línea bajo la lista muestra cuántos elementos están marcados y su tamaño.
@@ -88,6 +96,11 @@ de teclado está en la segunda página de esta ventana.
 - Reanudar continúa solo un archivo parcial (`.filepart`) del mismo archivo de origen: su ruta,
   tamaño y fecha de modificación se guardan a su lado. Un archivo parcial de otro origen o de uno
   desconocido se deja intacto y se avisa; elija **Sobrescribir** para empezar de nuevo.
+- Cuando el disco de destino se llena o se agota la cuota de disco, la transferencia se detiene y lo
+  indica; un archivo anterior con el mismo nombre queda como estaba y se conserva la parte escrita.
+  Libere espacio y pulse **Reintentar** en la cola de transferencias: la transferencia continúa donde
+  se detuvo. Un servidor a menudo solo informa "Failure"; el programa consulta entonces el espacio
+  libre en el servidor.
 - Mover entre discos o servidores elimina un archivo de origen solo si no cambió durante la
   transferencia (tamaño y fecha de modificación) y la copia tiene el mismo tamaño. Con **Verificar
   con suma de comprobación antes de eliminar el origen** (activado por defecto al mover a un

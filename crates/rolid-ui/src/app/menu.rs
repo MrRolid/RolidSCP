@@ -418,6 +418,22 @@ impl App {
                         }
                     }));
                 }
+                if keyed(ui, tr!("Select to the top"), "Shift+Home") {
+                    set(Box::new(|a| {
+                        let at = a.active_ref();
+                        if let Some(p) = a.pane_mut(at) {
+                            p.shift_move(|p| p.cursor_home());
+                        }
+                    }));
+                }
+                if keyed(ui, tr!("Select to the bottom"), "Shift+End") {
+                    set(Box::new(|a| {
+                        let at = a.active_ref();
+                        if let Some(p) = a.pane_mut(at) {
+                            p.shift_move(|p| p.cursor_end());
+                        }
+                    }));
+                }
             });
 
             ui.menu_button(trc!("menu", "Help"), |ui| {
@@ -467,6 +483,10 @@ const SHORTCUTS: &[(&str, &[(&str, &str)])] = &[
             (nc!("keys", "typing"), n!("quick filter (Esc clears it)")),
             (nc!("keys", "Insert / Space / Ctrl+click"), n!("select an item (Space only selects; folder size is Alt+Space)")),
             ("Ctrl+A", n!("select all / none")),
+            (
+                nc!("keys", "Shift+click / Shift+↑ ↓ PgUp PgDn Home End"),
+                n!("select a range from the last clicked or selected item; going back deselects only what the range selected"),
+            ),
             ("Num+ / Alt+=", n!("select a group by mask (*.jpg;*.png)")),
             ("Alt+−", n!("deselect a group (Num− and Num* cannot be told apart from the regular keys)")),
             ("Alt+I", n!("invert the file selection (folders too, depending on Settings)")),
@@ -694,6 +714,18 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
         egui::ScrollArea::vertical().max_height(crate::fonts::fs(36.0)).id_salt("about-news").show(ui, |ui| {
             ui.weak(RichText::new(tr!("What's new")).strong());
             for news in [
+                trc!(
+                    "news",
+                    "0.8.16 big files and marking: Shift+click and Shift with the arrows, PgUp, PgDn, Home and End \
+                     mark a range from the last clicked item and going back unmarks only that range, a click without \
+                     a key keeps the marks, Ctrl+A marks all and a second press unmarks (Tools → Select to the top / \
+                     to the bottom); marking stays fast in a folder of a million files and survives a refresh, \
+                     sorting and the filter; a full disk or a used-up quota is named and “Try again” continues where \
+                     the transfer stopped; after a lost connection the progress no longer counts the resumed part \
+                     twice; the remaining time shows days; sizes of petabytes and more are added up without \
+                     overflowing; the journal of replaced files and the records of F4 copies are flushed to the \
+                     disk."
+                ),
                 trc!(
                     "news",
                     "0.8.15 many files: copying many small files to and from a server is several times faster \

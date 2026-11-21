@@ -59,6 +59,13 @@ hurtigtaster står på den andre siden i dette vinduet.
 ## Merke filer
 
 - **Insert**, **Space** eller **Ctrl+klikk** merker et element; **Ctrl+A** merker alt eller ingenting.
+- **Shift+klikk** merker elementene fra det sist klikkede eller merkede til det du klikker på.
+  **Shift** med **↑ ↓ PgUp PgDn Home End** merker derfra til markøren mens den flytter seg; går du
+  tilbake, fjernes bare det dette området merket. **Verktøy → Merk til toppen / Merk til bunnen**
+  gjør det samme som **Shift+Home** og **Shift+End**. Et klikk uten tast flytter markøren og beholder
+  merkingen. Starten på området finnes igjen ved navn etter en oppdatering, en sortering eller
+  hurtigfilteret; `..` merkes aldri. Dra kopierer fortsatt, og **Shift** holdt nede når filene
+  slippes, flytter dem (Shift+klikk alene flytter aldri noe).
 - **Num+** merker en gruppe etter en maske som `*.jpg;*.png`, **Alt+−** fjerner merkingen av en gruppe,
   **Alt+I** inverterer merkingen.
 - Linjen under listen viser hvor mange elementer som er merket, og størrelsen deres.
@@ -81,6 +88,10 @@ hurtigtaster står på den andre siden i dette vinduet.
 - Gjenopptak fortsetter bare en delfil (`.filepart`) fra den samme kildefilen: stien, størrelsen og
   endringstiden lagres ved siden av. En delfil fra en annen eller ukjent kilde blir ikke rørt og
   meldes; velg **Overskriv** for å starte forfra.
+- Når måldisken blir full eller diskkvoten er brukt opp, stopper overføringen og sier fra; en eldre
+  fil med samme navn forblir uendret, og den skrevne delen beholdes. Frigjør plass og trykk **Prøv
+  igjen** i overføringskøen: overføringen fortsetter der den stoppet. En server melder ofte bare
+  "Failure"; programmet ser da på den ledige plassen på serveren.
 - Flytting mellom disker eller servere sletter en kildefil bare når den ikke ble endret under
   overføringen (størrelse og endringstid) og kopien har samme størrelse. Med **Kontroller med
   kontrollsum før kilden slettes** (slått på som standard ved flytting til en server) leses begge på

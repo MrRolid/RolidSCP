@@ -60,6 +60,13 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
 ## Markering af filer
 
 - **Insert**, **Space** eller **Ctrl+klik** markerer et element; **Ctrl+A** markerer alle eller ingen.
+- **Shift+klik** markerer elementerne fra det sidst klikkede eller markerede til det, du klikker på.
+  **Shift** med **↑ ↓ PgUp PgDn Home End** markerer derfra til markøren, mens den flytter sig; går du
+  tilbage, fjernes kun det, dette område markerede. **Værktøjer → Markér til toppen / Markér til
+  bunden** gør det samme som **Shift+Home** og **Shift+End**. Et klik uden tast flytter markøren og
+  beholder markeringerne. Områdets start findes igen ved navn efter en opdatering, en sortering eller
+  hurtigfilteret; `..` markeres aldrig. Træk kopierer stadig, og **Shift** holdt nede, når filerne
+  slippes, flytter dem (Shift+klik alene flytter aldrig noget).
 - **Num+** markerer en gruppe efter en maske som `*.jpg;*.png`, **Alt+−** fjerner markeringen af en
   gruppe, **Alt+I** inverterer markeringen.
 - Linjen under listen viser, hvor mange elementer der er markeret, og deres størrelse.
@@ -82,6 +89,10 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
 - Genoptagelse fortsætter kun en delfil (`.filepart`) fra den samme kildefil: dens sti, størrelse og
   ændringstid gemmes ved siden af. En delfil fra en anden eller ukendt kilde bliver ikke rørt og
   meldes; vælg **Overskriv** for at starte forfra.
+- Når destinationsdisken bliver fuld, eller diskkvoten er brugt op, stopper overførslen og siger det;
+  en ældre fil med samme navn forbliver uændret, og den skrevne del beholdes. Frigør plads, og tryk
+  på **Prøv igen** i overførselskøen: overførslen fortsætter, hvor den stoppede. En server melder
+  ofte kun "Failure"; programmet ser så på den ledige plads på serveren.
 - Flytning mellem diske eller servere sletter kun en kildefil, når den ikke ændrede sig under
   overførslen (størrelse og ændringstid), og kopien har samme størrelse. Med **Kontrollér med
   kontrolsum før kilden slettes** (slået til som standard ved flytning til en server) læses begge

@@ -62,6 +62,13 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
 ## Zaznaczanie plików
 
 - **Insert**, **Space** lub **Ctrl+klik** zaznacza element; **Ctrl+A** zaznacza wszystko lub nic.
+- **Shift+klik** zaznacza elementy od ostatnio klikniętego lub zaznaczonego do klikniętego.
+  **Shift** ze **↑ ↓ PgUp PgDn Home End** zaznacza stamtąd do kursora, gdy się przesuwa; powrót
+  odznacza tylko to, co zaznaczył ten zakres. **Narzędzia → Zaznacz do początku / Zaznacz do końca**
+  działa jak **Shift+Home** i **Shift+End**. Kliknięcie bez klawisza przesuwa kursor i zachowuje
+  zaznaczenie. Początek zakresu jest odnajdywany po nazwie po odświeżeniu, sortowaniu lub szybkim
+  filtrze; `..` nigdy nie jest zaznaczane. Przeciąganie nadal kopiuje, a **Shift** przytrzymany przy
+  upuszczaniu plików je przenosi (sam Shift+klik nigdy niczego nie przenosi).
 - **Num+** zaznacza grupę wg maski, np. `*.jpg;*.png`, **Alt+−** odznacza grupę, **Alt+I**
   odwraca zaznaczenie.
 - Wiersz pod listą pokazuje, ile elementów jest zaznaczonych i jaki mają rozmiar.
@@ -84,6 +91,11 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
 - Wznawiany jest tylko plik częściowy (`.filepart`) tego samego pliku źródłowego: obok niego
   zapisywane są jego ścieżka, rozmiar i czas modyfikacji. Plik częściowy z innego lub nieznanego
   źródła zostaje nietknięty i jest zgłaszany; aby zacząć od nowa, wybierz **Nadpisz**.
+- Gdy dysk docelowy się zapełni lub skończy się limit dyskowy, transfer zatrzymuje się i to mówi;
+  starszy plik o tej samej nazwie zostaje bez zmian, a zapisana część jest zachowana. Zwolnij
+  miejsce i naciśnij **Spróbuj ponownie** w kolejce transferów: transfer będzie kontynuowany tam,
+  gdzie się zatrzymał. Serwer często zgłasza tylko „Failure”; program sprawdza wtedy wolne miejsce
+  na serwerze.
 - Przenoszenie między dyskami lub serwerami usuwa plik źródłowy tylko wtedy, gdy nie zmienił się
   podczas transferu (rozmiar i czas modyfikacji), a kopia ma ten sam rozmiar. Z opcją **Sprawdź sumą
   kontrolną przed usunięciem źródła** (domyślnie włączona przy przenoszeniu na serwer) oba pliki są

@@ -64,6 +64,14 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
 ## Dateien auswählen
 
 - **Insert**, **Space** oder **Ctrl+Klick** wählt ein Element aus; **Ctrl+A** wählt alle oder keine aus.
+- **Shift+Klick** wählt die Elemente vom zuletzt angeklickten oder ausgewählten bis zum angeklickten
+  aus. **Shift** mit **↑ ↓ PgUp PgDn Home End** wählt von dort bis zum Cursor aus, während er sich
+  bewegt; zurück wird nur abgewählt, was dieser Bereich ausgewählt hat. **Werkzeuge → Bis zum Anfang
+  auswählen / Bis zum Ende auswählen** tut dasselbe wie **Shift+Home** und **Shift+End**. Ein Klick
+  ohne Taste bewegt den Cursor und behält die Auswahl. Der Anfang des Bereichs wird nach einer
+  Aktualisierung, einer Sortierung oder dem Schnellfilter über seinen Namen wiedergefunden; `..` wird
+  nie ausgewählt. Ziehen kopiert weiterhin, und **Shift** beim Loslassen der Dateien verschiebt sie
+  (Shift+Klick allein verschiebt nie etwas).
 - **Num+** wählt eine Gruppe per Maske wie `*.jpg;*.png` aus, **Alt+−** wählt eine ab, **Alt+I**
   kehrt die Auswahl um.
 - Die Zeile unter der Liste zeigt, wie viele Elemente ausgewählt sind und wie groß sie sind.
@@ -88,6 +96,11 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
 - Fortgesetzt wird nur eine Teildatei (`.filepart`) derselben Quelldatei: Ihr Pfad, ihre Größe und
   Änderungszeit werden daneben gespeichert. Eine Teildatei einer anderen oder unbekannten Quelle
   bleibt unangetastet und wird gemeldet; wählen Sie **Überschreiben**, um neu zu beginnen.
+- Wenn der Zieldatenträger voll wird oder das Speicherkontingent aufgebraucht ist, hält die
+  Übertragung an und sagt das; eine ältere Datei gleichen Namens bleibt unverändert, und der
+  geschriebene Teil bleibt erhalten. Schaffen Sie Platz und drücken Sie in der
+  Übertragungswarteschlange **Erneut versuchen**: Die Übertragung setzt dort fort, wo sie aufgehört
+  hat. Ein Server meldet oft nur „Failure“; das Programm prüft dann den freien Platz auf dem Server.
 - Verschieben zwischen Datenträgern oder Servern löscht eine Quelldatei nur, wenn sie sich während
   der Übertragung nicht geändert hat (Größe und Änderungszeit) und die Kopie dieselbe Größe hat. Mit
   **Vor dem Löschen der Quelle per Prüfsumme prüfen** (beim Verschieben auf einen Server

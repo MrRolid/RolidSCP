@@ -68,6 +68,14 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
 ## Sélection des fichiers
 
 - **Insert**, **Space** ou **Ctrl+clic** sélectionne un élément ; **Ctrl+A** sélectionne tout ou rien.
+- **Shift+clic** sélectionne les éléments du dernier cliqué ou sélectionné jusqu’à celui que vous
+  cliquez. **Shift** avec **↑ ↓ PgUp PgDn Home End** sélectionne de là jusqu’au curseur pendant qu’il
+  se déplace ; en revenant, seul ce que cette plage a sélectionné est désélectionné. **Outils →
+  Sélectionner jusqu’au début / Sélectionner jusqu’à la fin** fait la même chose que **Shift+Home** et
+  **Shift+End**. Un clic sans touche déplace le curseur et garde la sélection. Le début de la plage est
+  retrouvé par son nom après une actualisation, un tri ou le filtre rapide ; `..` n’est jamais
+  sélectionné. Le glisser copie toujours, et **Shift** maintenue au moment de déposer les fichiers les
+  déplace (Shift+clic seul ne déplace jamais rien).
 - **Num+** sélectionne un groupe par un masque comme `*.jpg;*.png`, **Alt+−** désélectionne un
   groupe, **Alt+I** inverse la sélection.
 - La ligne sous la liste indique le nombre d'éléments sélectionnés et leur taille.
@@ -92,6 +100,11 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
 - La reprise ne continue qu’un fichier partiel (`.filepart`) du même fichier source : son chemin, sa
   taille et sa date de modification sont gardés à côté. Un fichier partiel d’une autre source ou
   d’une source inconnue n’est pas touché et est signalé ; choisissez **Écraser** pour recommencer.
+- Quand le disque cible est plein ou que le quota disque est épuisé, le transfert s’arrête et le dit ;
+  un fichier plus ancien du même nom reste tel quel et la partie écrite est conservée. Libérez de
+  l’espace et appuyez sur **Réessayer** dans la file des transferts : le transfert reprend là où il
+  s’est arrêté. Un serveur ne signale souvent que « Failure » ; le programme regarde alors l’espace
+  libre sur le serveur.
 - Un déplacement entre disques ou serveurs ne supprime un fichier source que s’il n’a pas changé
   pendant le transfert (taille et date de modification) et que la copie a la même taille. Avec
   **Vérifier par somme de contrôle avant de supprimer la source** (activé par défaut lors d’un

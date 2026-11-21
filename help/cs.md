@@ -56,6 +56,13 @@ klávesových zkratek je na druhé stránce tohoto okna.
 ## Označování souborů
 
 - **Insert**, **mezerník** nebo **Ctrl+klik** označí položku; **Ctrl+A** označí vše nebo nic.
+- **Shift+klik** označí položky od naposledy kliknuté nebo označené až po tu, na kterou klikáte.
+  **Shift** se **↑ ↓ PgUp PgDn Home End** označuje odtud až po kurzor, jak se pohybuje; návrat zpět
+  odznačí jen to, co označil tento rozsah. **Nástroje → Označit k začátku / Označit ke konci** dělá
+  totéž co **Shift+Home** a **Shift+End**. Klik bez klávesy posune kurzor a označení ponechá. Začátek
+  rozsahu se po obnovení, seřazení nebo rychlém filtru najde znovu podle názvu; `..` se nikdy
+  neoznačí. Tažení dál kopíruje a **Shift** držený při puštění souborů je přesune (samotný Shift+klik
+  nikdy nic nepřesouvá).
 - **Num+** označí skupinu podle masky, např. `*.jpg;*.png`, **Alt+−** označení skupiny zruší,
   **Alt+I** obrátí výběr.
 - Řádek pod seznamem ukazuje počet označených položek a jejich velikost.
@@ -78,6 +85,10 @@ klávesových zkratek je na druhé stránce tohoto okna.
 - Navazuje se jen rozpracovaný soubor (`.filepart`) téhož zdrojového souboru: vedle něj se ukládá
   jeho cesta, velikost a čas změny. Rozpracovaný soubor jiného nebo neznámého zdroje zůstane
   nedotčený a program to ohlásí; pro nový začátek zvolte **Přepsat**.
+- Když se cílový disk zaplní nebo dojde disková kvóta, přenos se zastaví a řekne to; starší soubor
+  stejného jména zůstane, jak byl, a zapsaná část se ponechá. Uvolněte místo a ve frontě přenosů
+  stiskněte **Zkusit znovu**: přenos pokračuje tam, kde skončil. Server často hlásí jen „Failure“;
+  program se pak podívá na volné místo na serveru.
 - Přesun mezi disky nebo servery smaže zdrojový soubor, jen když se během přenosu nezměnil (velikost
   a čas změny) a kopie má stejnou velikost. S volbou **Před smazáním zdroje ověřit kontrolním
   součtem** (při přesunu na server výchozí zapnuto) se navíc oba znovu přečtou a porovnají; při

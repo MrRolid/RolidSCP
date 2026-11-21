@@ -59,6 +59,13 @@ shortcuts is on the second page of this window.
 ## Selecting files
 
 - **Insert**, **Space** or **Ctrl+click** marks an item; **Ctrl+A** marks all or nothing.
+- **Shift+click** marks the items from the last clicked or marked one to the clicked one. **Shift**
+  with **↑ ↓ PgUp PgDn Home End** marks from there to the cursor as it moves; going back unmarks only
+  what this range marked. **Tools → Select to the top / Select to the bottom** does the same as
+  **Shift+Home** and **Shift+End**. A click without a key moves the cursor and keeps the marks.
+  The start of the range is found again by its name after a refresh, a sort or the quick filter;
+  `..` is never marked. Dragging still copies, and **Shift** held when the files are dropped moves
+  them (Shift+click alone never moves anything).
 - **Num+** marks a group by a mask such as `*.jpg;*.png`, **Alt+−** unmarks one, **Alt+I**
   inverts the selection.
 - The line under the list shows how many items are marked and their size.
@@ -81,6 +88,10 @@ shortcuts is on the second page of this window.
 - Resuming continues only a part file (`.filepart`) of the same source file: its path, size and
   modification time are kept next to it. A part file of another or an unknown source is left alone
   and reported; choose **Overwrite** to start over.
+- When the target disk fills up or the disk quota is used up, the transfer stops and says so; an
+  older file of the same name stays as it was and the written part is kept. Free some space and press
+  **Try again** in the transfer queue: the transfer continues where it stopped. A server often
+  reports only "Failure"; the program then looks at the free space on the server to tell.
 - Moving between disks or servers deletes a source file only when it did not change during the
   transfer (size and modification time) and the copy has the same size. With **Verify by checksum
   before deleting the source** (on by default when moving to a server) both are read again and
