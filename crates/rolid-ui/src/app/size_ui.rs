@@ -34,7 +34,7 @@ impl App {
         let real_dir = |e: &&rolid_core::Entry| e.kind == EntryKind::Dir;
         let names: Vec<String> = if selected {
             let marked: Vec<String> =
-                p.entries.iter().filter(real_dir).filter(|e| p.marked.contains(&e.name)).map(|e| e.name.clone()).collect();
+                p.marked.indices().filter_map(|i| p.entries.get(i)).filter(real_dir).map(|e| e.name.clone()).collect();
             if marked.is_empty() {
                 p.current_entry().filter(|e| e.kind == EntryKind::Dir).map(|e| vec![e.name.clone()]).unwrap_or_default()
             } else {

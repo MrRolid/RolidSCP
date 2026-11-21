@@ -1816,31 +1816,34 @@ impl App {
                 on!(Modifiers::NONE, k, |a: &mut Self| a.ask_delete());
             }
             on!(Modifiers::NONE, Key::Tab, |a: &mut Self| a.switch_pane());
-            on!(Modifiers::NONE, Key::ArrowUp, |a: &mut Self| with_pane(a, |p| p.move_vert(-1)));
-            on!(Modifiers::NONE, Key::ArrowDown, |a: &mut Self| with_pane(a, |p| p.move_vert(1)));
-            // ← / → move between columns (brief) or tiles (thumbnails).
-            on!(Modifiers::NONE, Key::ArrowLeft, |a: &mut Self| with_pane(a, |p| {
+            // Shift with a cursor key marks a range from the anchor (before the
+            // plain keys: egui ignores an extra Shift when matching).
+            on!(Modifiers::SHIFT, Key::ArrowUp, |a: &mut Self| with_pane(a, |p| p.shift_move(|p| p.move_vert(-1))));
+            on!(Modifiers::SHIFT, Key::ArrowDown, |a: &mut Self| with_pane(a, |p| p.shift_move(|p| p.move_vert(1))));
+            on!(Modifiers::SHIFT, Key::ArrowLeft, |a: &mut Self| with_pane(a, |p| p.shift_move(|p| {
                 p.move_horiz(-1);
-            }));
-            on!(Modifiers::NONE, Key::ArrowRight, |a: &mut Self| with_pane(a, |p| {
+            })));
+            on!(Modifiers::SHIFT, Key::ArrowRight, |a: &mut Self| with_pane(a, |p| p.shift_move(|p| {
                 p.move_horiz(1);
-            }));
-            on!(Modifiers::NONE, Key::PageUp, |a: &mut Self| with_pane(
-                a,
-                |p| p.move_cursor(-(p.page_rows() as isize))
-            ));
-            on!(Modifiers::NONE, Key::PageDown, |a: &mut Self| with_pane(
-                a,
-                |p| p.move_cursor(p.page_rows() as isize)
-            ));
-            on!(Modifiers::NONE, Key::Home, |a: &mut Self| with_pane(
-                a,
-                |p| p.cursor_home()
-            ));
-            on!(Modifiers::NONE, Key::End, |a: &mut Self| with_pane(
-                a,
-                |p| p.cursor_end()
-            ));
+            })));
+            on!(Modifiers::SHIFT, Key::PageUp, |a: &mut Self| with_pane(a, |p| p.shift_move(|p| p.move_cursor(-(p.page_rows() as isize)))));
+            on!(Modifiers::SHIFT, Key::PageDown, |a: &mut Self| with_pane(a, |p| p.shift_move(|p| p.move_cursor(p.page_rows() as isize))));
+            on!(Modifiers::SHIFT, Key::Home, |a: &mut Self| with_pane(a, |p| p.shift_move(|p| p.cursor_home())));
+            on!(Modifiers::SHIFT, Key::End, |a: &mut Self| with_pane(a, |p| p.shift_move(|p| p.cursor_end())));
+            // Without Shift the cursor's new item becomes the anchor.
+            on!(Modifiers::NONE, Key::ArrowUp, |a: &mut Self| with_pane(a, |p| p.plain_move(|p| p.move_vert(-1))));
+            on!(Modifiers::NONE, Key::ArrowDown, |a: &mut Self| with_pane(a, |p| p.plain_move(|p| p.move_vert(1))));
+            // ← / → move between columns (brief) or tiles (thumbnails).
+            on!(Modifiers::NONE, Key::ArrowLeft, |a: &mut Self| with_pane(a, |p| p.plain_move(|p| {
+                p.move_horiz(-1);
+            })));
+            on!(Modifiers::NONE, Key::ArrowRight, |a: &mut Self| with_pane(a, |p| p.plain_move(|p| {
+                p.move_horiz(1);
+            })));
+            on!(Modifiers::NONE, Key::PageUp, |a: &mut Self| with_pane(a, |p| p.plain_move(|p| p.move_cursor(-(p.page_rows() as isize)))));
+            on!(Modifiers::NONE, Key::PageDown, |a: &mut Self| with_pane(a, |p| p.plain_move(|p| p.move_cursor(p.page_rows() as isize))));
+            on!(Modifiers::NONE, Key::Home, |a: &mut Self| with_pane(a, |p| p.plain_move(|p| p.cursor_home())));
+            on!(Modifiers::NONE, Key::End, |a: &mut Self| with_pane(a, |p| p.plain_move(|p| p.cursor_end())));
             on!(Modifiers::NONE, Key::Insert, |a: &mut Self| with_pane(
                 a,
                 |p| p.toggle_mark_current()

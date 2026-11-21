@@ -128,9 +128,7 @@ impl App {
     /// files inside a renamed folder follow it.
     fn after_rename(&mut self, at: PaneRef, dir: &str, from: &str, to: &str) {
         let Some(p) = self.pane_mut(at) else { return };
-        if p.marked.remove(from) {
-            p.marked.insert(to.to_string());
-        }
+        p.rename_entry(from, to);
         let (old, new) = (p.fs.join(dir, from), p.fs.join(dir, to));
         let key = backend_key(p);
         let path = p.path.clone();
@@ -138,9 +136,7 @@ impl App {
         self.load(at, path, Some(to.to_string()));
         for r in same {
             if let Some(q) = self.pane_mut(r) {
-                if q.marked.remove(from) {
-                    q.marked.insert(to.to_string());
-                }
+                q.rename_entry(from, to);
             }
             self.refresh(r);
         }

@@ -151,7 +151,7 @@ impl Pane {
             }
             Row::Entry(i) => {
                 let Some(e) = self.entries.get(i) else { return (Rect::NOTHING, false) };
-                let marked = self.marked.contains(&e.name);
+                let marked = self.marked.has(i);
                 let kind = FileKind::of(e);
                 let kc = c.of(kind);
                 let color = if marked { c.marked } else { kc };
@@ -230,7 +230,7 @@ impl Pane {
                 if !self.renaming_entry(i) {
                     if let Some(e) = self.entries.get(i) {
                         let name = e.name.clone();
-                        if !self.marked.contains(&name) {
+                        if !self.marked.has(i) {
                             self.cursor = idx;
                         }
                         events.push(PaneEvent::Focus);
@@ -240,11 +240,19 @@ impl Pane {
             }
         }
         if resp.clicked() || resp.secondary_clicked() {
-            self.cursor = idx;
             events.push(PaneEvent::Focus);
-            if resp.clicked() && ui.input(|i| i.modifiers.ctrl) {
-                if let Row::Entry(i) = row {
-                    self.toggle_mark(i);
+            let m = ui.input(|i| i.modifiers);
+            if resp.clicked() && m.shift {
+                // A range from the anchor (a click never moves files: whether a
+                // drag copies or moves is decided by Shift when it is dropped).
+                self.extend_range(idx);
+            } else {
+                self.cursor = idx;
+                self.set_anchor(idx);
+                if resp.clicked() && m.ctrl {
+                    if let Row::Entry(i) = row {
+                        self.toggle_mark(i);
+                    }
                 }
             }
         }
@@ -253,7 +261,7 @@ impl Pane {
         }
         if let Row::Entry(i) = row {
             let is_file = self.entries.get(i).is_some_and(|e| !e.is_dir_like());
-            let marked = self.entries.get(i).is_some_and(|e| self.marked.contains(&e.name));
+            let marked = self.marked.has(i);
             let name = self.entries.get(i).map(|e| e.name.clone()).unwrap_or_default();
             let remote = self.fs.is_remote();
             let is_archive = is_file && rolid_archive::Format::from_name(&name).is_some();
@@ -423,7 +431,7 @@ impl Pane {
                     }
                     Row::Entry(i) => {
                         let Some(e) = self.entries.get(i) else { continue };
-                        let color = if self.marked.contains(&e.name) { c.marked } else { c.text };
+                        let color = if self.marked.has(i) { c.marked } else { c.text };
                         // Content search: show the first matching line after the name.
                         if let Some((ln, text)) = self.hit(&e.name).and_then(|h| h.line.as_ref()) {
                             np.text(
@@ -636,7 +644,7 @@ impl Pane {
                         Row::Up => ("⮪", "..".to_string(), false),
                         Row::Entry(i) => {
                             let e = &self.entries[i];
-                            let marked = self.marked.contains(&e.name);
+                            let marked = self.marked.has(i);
                             let mut drawn = false;
                             let path = match self.hit(&e.name) {
                                 Some(h) => fs.join(&h.dir, &h.entry.name),

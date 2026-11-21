@@ -53,6 +53,13 @@ pub struct Pane {
     pub view: Vec<Row>,
     pub cursor: usize,
     pub marked: Marks,
+    /// Shift+click / Shift+arrows: the item a range starts at (by name, found
+    /// again after a refresh, sort or filter) and the row it was last seen in.
+    anchor: Option<(String, usize)>,
+    /// The range being extended with Shift now (going back unmarks only what it marked).
+    stroke: Option<Stroke>,
+    /// Counted up whenever `view` is made again.
+    view_gen: u64,
     pub filter: String,
     /// The filter `view` was made with while `entries` did not change since:
     /// a longer filter only needs to look at those rows.
@@ -310,6 +317,9 @@ impl Pane {
             view: Vec::new(),
             cursor: 0,
             marked: Marks::default(),
+            anchor: None,
+            stroke: None,
+            view_gen: 0,
             filter: String::new(),
             narrow: None,
             listed_print: None,
@@ -531,9 +541,16 @@ impl Pane {
         let Some(sv) = &mut self.search else { return };
         for n in names {
             sv.hits.remove(n);
-            self.marked.remove(n);
         }
-        self.entries.retain(|e| !names.contains(&e.name));
+        let old = std::mem::take(&mut self.entries);
+        let mut bits = Vec::with_capacity(old.len());
+        for (i, e) in old.into_iter().enumerate() {
+            if !names.contains(&e.name) {
+                bits.push(self.marked.has(i));
+                self.entries.push(e);
+            }
+        }
+        self.marked.replace(bits);
         self.entries_changed();
         self.listed_print = None;
         self.rebuild_view();
@@ -560,7 +577,7 @@ impl Pane {
     /// What a drag of the row `name` takes: all marked items when the row is
     /// marked, otherwise that one item.
     pub fn drag_items(&self, name: &str) -> Vec<Target> {
-        if self.marked.contains(name) {
+        if self.is_marked_name(name) {
             return self.target_items();
         }
         let size = self.entries.iter().find(|e| e.name == name).map(|e| e.size).unwrap_or(0);
@@ -599,7 +616,9 @@ impl Pane {
             }
         }
         self.path = path;
-        drop_later(std::mem::replace(&mut self.entries, entries));
+        let old = std::mem::replace(&mut self.entries, entries);
+        self.carry_marks(&old);
+        drop_later(old);
         self.listed_print = Some(print);
         self.loading = false;
         self.error = None;
@@ -652,7 +671,9 @@ impl Pane {
         let keep = self.current_name();
         let old_cursor = self.cursor;
         let scroll = self.scroll_to_cursor;
-        drop_later(std::mem::replace(&mut self.entries, entries));
+        let old = std::mem::replace(&mut self.entries, entries);
+        self.carry_marks(&old);
+        drop_later(old);
         self.listed_print = Some(print);
         self.error = None;
         self.forget_missing();
@@ -736,13 +757,36 @@ impl Pane {
         self.mark_sums().is_some_and(|m| m.count() == self.entries.len() && !self.entries.is_empty())
     }
 
-    /// Marks and folder sizes of items that are gone are dropped.
+    /// The marks of a listing replaced by `entries`: the same items stay
+    /// marked (found by name; the marks themselves go by position).
+    fn carry_marks(&mut self, old: &[Entry]) {
+        self.stroke = None;
+        if self.marked.is_empty() {
+            self.marked.clear();
+            return;
+        }
+        let new = &self.entries;
+        // Mostly the same names in the same places (sizes or times changed).
+        let same = old.len() == new.len() && {
+            let idx: Vec<usize> = (0..new.len()).collect();
+            par_filter_map(&idx, &|i| (old[i].name != new[i].name).then_some(())).is_empty()
+        };
+        if same {
+            self.marked.touch();
+            return;
+        }
+        let names: HashSet<&str> = self.marked.indices().filter_map(|i| old.get(i)).map(|e| e.name.as_str()).collect();
+        let idx: Vec<usize> = (0..new.len()).collect();
+        let bits = par_filter_map(&idx, &|i| Some(names.contains(new[i].name.as_str())));
+        self.marked.replace(bits);
+    }
+
+    /// Folder sizes of items that are gone are dropped.
     fn forget_missing(&mut self) {
-        if self.marked.is_empty() && self.dir_sizes.is_empty() && self.dir_pending.is_empty() {
+        if self.dir_sizes.is_empty() && self.dir_pending.is_empty() {
             return;
         }
         let names: HashSet<&str> = self.entries.iter().map(|e| e.name.as_str()).collect();
-        self.marked.retain(|m| names.contains(m.as_str()));
         self.dir_sizes.retain(|m, _| names.contains(m.as_str()));
         self.dir_pending.retain(|m| names.contains(m.as_str()));
         self.sizes_gen += 1;
@@ -801,7 +845,19 @@ impl Pane {
             HashMap::new()
         };
         let (all, marks) = (self.all_sums.filter(|(k, _)| *k == (self.entries_gen, self.sizes_gen)), self.mark_sums());
-        self.entries = sorted(std::mem::take(&mut self.entries), self.sort, self.sort_asc, &sizes);
+        let entries = std::mem::take(&mut self.entries);
+        if self.marked.is_empty() {
+            self.entries = sorted(entries, &itself, self.sort, self.sort_asc, &sizes);
+        } else {
+            // The marks go with their items.
+            let bits = self.marked.bits(entries.len());
+            let pairs: Vec<(Entry, bool)> = entries.into_iter().zip(bits).collect();
+            let (entries, bits): (Vec<Entry>, Vec<bool>) =
+                sorted(pairs, &first, self.sort, self.sort_asc, &sizes).into_iter().unzip();
+            self.entries = entries;
+            self.marked.replace(bits);
+        }
+        self.stroke = None;
         self.entries_changed();
         // Sorting changes the order, not the sums.
         self.all_sums = all.map(|(_, a)| ((self.entries_gen, self.sizes_gen), a));
@@ -824,8 +880,11 @@ impl Pane {
     }
 
     pub fn rebuild_view(&mut self) {
-        // Rows move: an edit in the list ends (it never jumps to another item).
+        // Rows move: an edit in the list ends (it never jumps to another item),
+        // and so does a range being extended with Shift.
         self.rename = None;
+        self.stroke = None;
+        self.view_gen += 1;
         let keep = self.current_name();
         let prev_view = std::mem::take(&mut self.view);
         if self.filter.is_empty() {
@@ -914,13 +973,7 @@ impl Pane {
     /// Names to operate on: marked entries, or the entry under the cursor.
     pub fn targets(&self) -> Vec<String> {
         if !self.marked.is_empty() {
-            let all = self.all_marked_known();
-            let v: Vec<String> = self
-                .entries
-                .iter()
-                .filter(|e| all || self.marked.contains(&e.name))
-                .map(|e| e.name.clone())
-                .collect();
+            let v: Vec<String> = self.marked.indices().filter_map(|i| self.entries.get(i)).map(|e| e.name.clone()).collect();
             par_sort_by(v, &|a: &String, b: &String| a.cmp(b))
         } else {
             self.current_name().into_iter().collect()
@@ -983,8 +1036,7 @@ impl Pane {
                 if (e.is_dir_like() && !dirs) || !marks::matches(masks, &e.name) {
                     continue;
                 }
-                let done = if mark { marked.insert(e.name.clone()) } else { marked.remove(&e.name) };
-                if done {
+                if marked.set(*i, mark) {
                     changed(*i, mark);
                     n += 1;
                 }
@@ -1004,10 +1056,8 @@ impl Pane {
                 if e.is_dir_like() && !dirs {
                     continue;
                 }
-                let now = !marked.remove(&e.name);
-                if now {
-                    marked.insert(e.name.clone());
-                }
+                let now = !marked.has(*i);
+                marked.set(*i, now);
                 changed(*i, now);
             }
         });
@@ -1038,7 +1088,10 @@ impl Pane {
         self.scroll_to_cursor = true;
     }
 
+    /// Insert, Space: mark or unmark the item under the cursor (it becomes the
+    /// anchor of Shift ranges) and go to the next one.
     pub fn toggle_mark_current(&mut self) {
+        self.set_anchor(self.cursor);
         if let Some(Row::Entry(i)) = self.current_row() {
             self.toggle_mark(i);
         }
@@ -1047,43 +1100,195 @@ impl Pane {
 
     /// Mark or unmark entry `i` (Insert, Space, Ctrl+click).
     pub fn toggle_mark(&mut self, i: usize) {
+        self.stroke = None;
         self.change_marks(|p, changed| {
-            let name = &p.entries[i].name;
-            let marked = !p.marked.remove(name);
-            if marked {
-                p.marked.insert(name.clone());
-            }
+            let marked = !p.marked.has(i);
+            p.marked.set(i, marked);
             changed(i, marked);
         });
     }
 
+    /// Ctrl+A: mark every shown item; when all of them are marked, unmark them.
     pub fn mark_all(&mut self) {
+        self.stroke = None;
         let all_marked = if self.filter.is_empty() && self.all_marked_known() {
             true
         } else {
-            self.view
-                .iter()
-                .filter_map(|r| match r {
-                    Row::Entry(i) => Some(&self.entries[*i].name),
-                    Row::Up => None,
-                })
-                .all(|n| self.marked.contains(n))
+            self.view.iter().all(|r| match r {
+                Row::Entry(i) => self.marked.has(*i),
+                Row::Up => true,
+            })
         };
         if all_marked {
             self.marked.clear();
             return;
         }
+        if self.filter.is_empty() && self.dir_sizes.is_empty() {
+            // Everything: the sums of the marked items are the sums of all.
+            let all = match self.all_sums {
+                Some((k, a)) if k == (self.entries_gen, self.sizes_gen) => Some(a),
+                _ => None,
+            };
+            self.marked.set_all(self.entries.len());
+            if let Some(a) = all {
+                self.marks_sums = Some(((self.entries_gen, self.marked.generation(), self.sizes_gen), a));
+            }
+            return;
+        }
         self.change_marks(|p, changed| {
-            p.marked.reserve(p.view.len());
-            let Pane { view, entries, marked, .. } = p;
+            let Pane { view, marked, .. } = p;
             for r in view.iter() {
                 if let Row::Entry(i) = r {
-                    if marked.insert(entries[*i].name.clone()) {
+                    if marked.set(*i, true) {
                         changed(*i, true);
                     }
                 }
             }
         });
+    }
+
+    /// A click or a move without Shift: row `row` becomes the anchor of Shift ranges.
+    pub fn set_anchor(&mut self, row: usize) {
+        self.stroke = None;
+        self.anchor = match self.view.get(row) {
+            Some(Row::Entry(i)) => Some((self.entries[*i].name.clone(), row)),
+            Some(Row::Up) => Some((UP.to_string(), row)),
+            None => None,
+        };
+    }
+
+    /// The row the anchor item is in now (looked for by name when the rows
+    /// moved); without one, the cursor's row.
+    fn anchor_row(&mut self) -> usize {
+        let Some((name, row)) = self.anchor.clone() else { return self.cursor };
+        let at = |r: usize| match self.view.get(r) {
+            Some(Row::Entry(i)) => self.entries[*i].name == name,
+            Some(Row::Up) => name == UP,
+            None => false,
+        };
+        if at(row) {
+            return row;
+        }
+        let found = if name == UP { (self.view.first() == Some(&Row::Up)).then_some(0) } else { self.find_row(&name, row) };
+        match found {
+            Some(r) => {
+                self.anchor = Some((name, r));
+                r
+            }
+            None => {
+                self.anchor = None;
+                self.cursor
+            }
+        }
+    }
+
+    /// Shift+click, Shift+arrows…: the items from the anchor to row `to` are
+    /// marked and the cursor goes to `to`. While the same range is extended,
+    /// items it leaves are unmarked again – only those it marked itself.
+    pub fn extend_range(&mut self, to: usize) {
+        if self.view.is_empty() {
+            return;
+        }
+        let to = to.min(self.view.len() - 1);
+        let from = self.anchor_row().min(self.view.len() - 1);
+        if self.anchor.is_none() {
+            self.set_anchor(from);
+        }
+        let key = (self.entries_gen, self.view_gen);
+        let stroke = match self.stroke.take() {
+            Some(st) if st.key == key && st.from == from && st.marks_gen == self.marked.generation() => st,
+            _ => Stroke { key, from, lo: from, hi: from, empty: true, added: vec![false; self.entries.len()], marks_gen: 0 },
+        };
+        let (lo, hi) = (from.min(to), from.max(to));
+        let mut st = stroke;
+        self.change_marks(|p, changed| {
+            let inside = |r: usize, a: usize, b: usize, empty: bool| !empty && r >= a && r <= b;
+            // Rows that leave the range: unmark what this range marked.
+            if !st.empty {
+                for r in st.lo..=st.hi {
+                    if inside(r, lo, hi, false) {
+                        continue;
+                    }
+                    if let Row::Entry(i) = p.view[r] {
+                        if st.added[i] {
+                            st.added[i] = false;
+                            p.marked.set(i, false);
+                            changed(i, false);
+                        }
+                    }
+                }
+            }
+            // Rows that come into it: mark them.
+            for r in lo..=hi {
+                if inside(r, st.lo, st.hi, st.empty) {
+                    continue;
+                }
+                if let Row::Entry(i) = p.view[r] {
+                    if p.marked.set(i, true) {
+                        st.added[i] = true;
+                        changed(i, true);
+                    }
+                }
+            }
+        });
+        st.lo = lo;
+        st.hi = hi;
+        st.empty = false;
+        st.marks_gen = self.marked.generation();
+        self.stroke = Some(st);
+        self.cursor = to;
+        self.scroll_to_cursor = true;
+    }
+
+    /// A cursor move with Shift held: `step` moves the cursor, the range from
+    /// the anchor follows it.
+    pub fn shift_move(&mut self, step: impl FnOnce(&mut Self)) {
+        if self.anchor.is_none() {
+            self.set_anchor(self.cursor);
+        }
+        step(self);
+        let to = self.cursor;
+        self.extend_range(to);
+    }
+
+    /// A cursor move without Shift: `step` moves the cursor, which becomes the anchor.
+    pub fn plain_move(&mut self, step: impl FnOnce(&mut Self)) {
+        step(self);
+        self.set_anchor(self.cursor);
+    }
+
+    /// Mark the item `name` (tests).
+    #[cfg(test)]
+    pub fn mark_name(&mut self, name: &str) {
+        let i = self.entries.iter().position(|e| e.name == name).expect("no such item");
+        self.marked.set(i, true);
+    }
+
+    #[cfg(test)]
+    pub fn unmark_name(&mut self, name: &str) {
+        let i = self.entries.iter().position(|e| e.name == name).expect("no such item");
+        self.marked.set(i, false);
+    }
+
+    /// Names of the marked items, sorted (tests).
+    #[cfg(test)]
+    pub fn marked_names(&self) -> Vec<String> {
+        let mut v: Vec<String> = self.marked.indices().map(|i| self.entries[i].name.clone()).collect();
+        v.sort();
+        v
+    }
+
+    /// Whether the item `name` is marked.
+    pub fn is_marked_name(&self, name: &str) -> bool {
+        !self.marked.is_empty() && self.entries.iter().position(|e| e.name == name).is_some_and(|i| self.marked.has(i))
+    }
+
+    /// The item `from` was renamed to `to`: it keeps its mark (until the
+    /// listing is read again, which finds it by its new name).
+    pub fn rename_entry(&mut self, from: &str, to: &str) {
+        if let Some(e) = self.entries.iter_mut().find(|e| e.name == from) {
+            e.name = to.to_string();
+        }
     }
 
     /// "/" (root), ".." (up), "~" (home) and "*" (favorite and recent folders) at the
@@ -1520,7 +1725,7 @@ pub fn fs_label(fs: &dyn rolid_core::vfs::Vfs) -> String {
 /// Status line of a panel: "Selected: 3 of 95 files, 12.4 MB of 850 MB"
 /// (folders are counted separately when some are selected); without a
 /// selection the total count and size.
-pub fn selection_summary(entries: &[Entry], marked: &HashSet<String>, dir_sizes: &HashMap<String, crate::dirsize::DirSize>) -> String {
+pub fn selection_summary(entries: &[Entry], marked: &Marks, dir_sizes: &HashMap<String, crate::dirsize::DirSize>) -> String {
     let (all, m) = sums(entries, marked, dir_sizes);
     summary_text(&all, &m)
 }
@@ -1563,11 +1768,10 @@ impl Sums {
 }
 
 /// [`Sums`] of all items and of the marked ones.
-fn sums(entries: &[Entry], marked: &HashSet<String>, dir_sizes: &HashMap<String, crate::dirsize::DirSize>) -> (Sums, Sums) {
+fn sums(entries: &[Entry], marked: &Marks, dir_sizes: &HashMap<String, crate::dirsize::DirSize>) -> (Sums, Sums) {
     let (mut all, mut m) = (Sums::default(), Sums::default());
-    let any_marked = !marked.is_empty();
-    for e in entries {
-        let marked = any_marked && marked.contains(&e.name);
+    for (i, e) in entries.iter().enumerate() {
+        let marked = marked.has(i);
         all.add(e);
         if marked {
             m.add(e);
@@ -1631,28 +1835,106 @@ pub fn text_on(bg: Color32) -> Color32 {
 /// generation up, so that what is computed from the marks can be kept.
 #[derive(Default, Debug)]
 pub struct Marks {
-    set: HashSet<String>,
+    /// One flag per entry, by its position in the panel's `entries` (names
+    /// looked up in a set made Ctrl+A in a million items take 0.7 s). The
+    /// panel keeps them in step when the entries are sorted or read again.
+    bits: Vec<bool>,
+    count: usize,
     generation: u64,
 }
 
 impl Marks {
+    /// Counted up with every change.
     pub fn generation(&self) -> u64 {
         self.generation
     }
-}
 
-impl std::ops::Deref for Marks {
-    type Target = HashSet<String>;
-    fn deref(&self) -> &HashSet<String> {
-        &self.set
+    /// How many items are marked.
+    #[cfg(test)]
+    pub fn len(&self) -> usize {
+        self.count
     }
-}
 
-impl std::ops::DerefMut for Marks {
-    fn deref_mut(&mut self) -> &mut HashSet<String> {
+    pub fn is_empty(&self) -> bool {
+        self.count == 0
+    }
+
+    /// Whether entry `i` is marked.
+    pub fn has(&self, i: usize) -> bool {
+        self.count > 0 && self.bits.get(i).copied().unwrap_or(false)
+    }
+
+    /// Mark or unmark entry `i`; returns whether that changed anything.
+    pub fn set(&mut self, i: usize, on: bool) -> bool {
+        if self.has(i) == on {
+            return false;
+        }
+        if i >= self.bits.len() {
+            self.bits.resize(i + 1, false);
+        }
+        self.bits[i] = on;
+        if on {
+            self.count += 1;
+        } else {
+            self.count -= 1;
+        }
         self.generation += 1;
-        &mut self.set
+        true
     }
+
+    /// Mark the entries `0..n`.
+    pub fn set_all(&mut self, n: usize) {
+        self.bits.clear();
+        self.bits.resize(n, true);
+        self.count = n;
+        self.generation += 1;
+    }
+
+    pub fn clear(&mut self) {
+        self.bits = Vec::new();
+        if self.count > 0 {
+            self.count = 0;
+            self.generation += 1;
+        }
+    }
+
+    /// Positions of the marked entries, in order.
+    pub fn indices(&self) -> impl Iterator<Item = usize> + '_ {
+        self.bits.iter().enumerate().filter(|(_, b)| **b).map(|(i, _)| i).take(self.count)
+    }
+
+    /// The flags of entries `0..n`.
+    fn bits(&self, n: usize) -> Vec<bool> {
+        let mut b = self.bits.clone();
+        b.resize(n, false);
+        b
+    }
+
+    fn replace(&mut self, bits: Vec<bool>) {
+        self.count = bits.iter().filter(|b| **b).count();
+        self.bits = bits;
+        self.generation += 1;
+    }
+
+    /// The same items at new positions or in a new listing.
+    fn touch(&mut self) {
+        self.generation += 1;
+    }
+}
+
+/// A range being extended with Shift from the anchor's row `from`.
+struct Stroke {
+    /// (entries generation, view generation) it belongs to.
+    key: (u64, u64),
+    from: usize,
+    /// The rows it covers now (none yet when `empty`).
+    lo: usize,
+    hi: usize,
+    empty: bool,
+    /// Entries it marked itself (by position).
+    added: Vec<bool>,
+    /// The marks' generation after its last change (other changes end it).
+    marks_gen: u64,
 }
 
 /// A listing made ready for a panel off the UI thread (sorting a million
@@ -1670,7 +1952,7 @@ impl Prepared {
     pub fn new(entries: Vec<Entry>, sort: Option<(SortKey, bool)>) -> Self {
         let print = fingerprint(&entries);
         let entries = match sort {
-            Some((key, asc)) => sorted(entries, key, asc, &HashMap::new()),
+            Some((key, asc)) => sorted(entries, &itself, key, asc, &HashMap::new()),
             None => entries,
         };
         Prepared { entries, sorted: sort, print }
@@ -1695,21 +1977,33 @@ fn drop_later(entries: Vec<Entry>) {
     }
 }
 
+fn itself(e: &Entry) -> &Entry {
+    e
+}
+
+fn first(p: &(Entry, bool)) -> &Entry {
+    &p.0
+}
+
 /// `entries` sorted the panel's way: folders first, then by `key`; `sizes` =
 /// computed folder sizes (by name) for sorting by size.
-fn sorted(entries: Vec<Entry>, key: SortKey, asc: bool, sizes: &HashMap<String, u64>) -> Vec<Entry> {
+fn sorted<T: Send>(entries: Vec<T>, ent: &(impl Fn(&T) -> &Entry + Sync), key: SortKey, asc: bool, sizes: &HashMap<String, u64>) -> Vec<T> {
     let size_of = |e: &Entry| if e.is_dir_like() { sizes.get(&e.name).copied().unwrap_or(0) } else { e.size };
     // Text keys computed once (not in every comparison: 3 000 names would
     // build ~70 000 strings and make a refresh frame take ~20 ms).
     // Runs of digits are padded to the longest run of this listing (not to
     // 20 digits: shorter keys sort a million names faster, in the same order).
-    let width = if key == SortKey::Name { entries.iter().map(|e| longest_number(&e.name)).max().unwrap_or(0).max(1) } else { 0 };
-    let text_key = |e: &Entry| match key {
+    let width = if key == SortKey::Name { entries.iter().map(|e| longest_number(&ent(e).name)).max().unwrap_or(0).max(1) } else { 0 };
+    let text_key = |t: &T| {
+        let e = ent(t);
+        match key {
         SortKey::Name => natural_key(&e.name, width),
         SortKey::Ext => ext_of(&e.name).to_lowercase(),
         SortKey::Size | SortKey::Modified => String::new(),
+        }
     };
-    par_sort_by_key(entries, &text_key, &|(ka, a): &(String, Entry), (kb, b): &(String, Entry)| {
+    par_sort_by_key(entries, &text_key, &|(ka, a): &(String, T), (kb, b): &(String, T)| {
+        let (a, b) = (ent(a), ent(b));
         // Directories always first, like in Total Commander.
         let ord = b.is_dir_like().cmp(&a.is_dir_like());
         if ord.is_ne() {
@@ -1962,11 +2256,159 @@ mod tests {
         p
     }
 
+    /// Rows: ".." then f0..f9 (names sort as listed).
+    fn ten() -> Pane {
+        let names: Vec<String> = (0..10).map(|i| format!("f{i}")).collect();
+        let list: Vec<(&str, bool)> = names.iter().map(|n| (n.as_str(), false)).collect();
+        pane_with(&list)
+    }
+
+    #[test]
+    fn shift_marks_a_range_from_the_anchor_and_going_back_unmarks_only_it() {
+        let mut p = ten();
+        // A click on f2 (row 3), Shift+click on f5: f2..f5.
+        p.cursor = 3;
+        p.set_anchor(3);
+        p.extend_range(6);
+        assert_eq!(p.marked_names(), ["f2", "f3", "f4", "f5"]);
+        assert_eq!(p.cursor, 6);
+        // f3 was marked before this range: going back keeps it.
+        let mut p = ten();
+        p.mark_name("f3");
+        p.cursor = 2;
+        p.set_anchor(2); // f1
+        p.shift_move(|p| p.move_cursor(1));
+        p.shift_move(|p| p.move_cursor(1));
+        p.shift_move(|p| p.move_cursor(1));
+        assert_eq!(p.marked_names(), ["f1", "f2", "f3", "f4"]);
+        p.shift_move(|p| p.move_cursor(-1));
+        p.shift_move(|p| p.move_cursor(-1));
+        p.shift_move(|p| p.move_cursor(-1));
+        assert_eq!(p.marked_names(), ["f1", "f3"], "only what this range marked is unmarked");
+        // Over the anchor to the other side.
+        p.shift_move(|p| p.move_cursor(-1));
+        assert_eq!(p.marked_names(), ["f0", "f1", "f3"]);
+        // The footer follows.
+        assert_eq!(p.footer_text(), selection_summary(&p.entries, &p.marked, &p.dir_sizes));
+    }
+
+    #[test]
+    fn the_parent_row_is_never_marked() {
+        let mut p = ten();
+        p.cursor = 3;
+        p.set_anchor(3);
+        p.shift_move(|p| p.cursor_home());
+        assert_eq!(p.cursor, 0);
+        assert_eq!(p.marked_names(), ["f0", "f1", "f2"]);
+        p.cursor = 0;
+        p.toggle_mark_current();
+        assert_eq!(p.marked.len(), 3, "Insert on .. marks nothing");
+        // From ".." as the anchor.
+        let mut p = ten();
+        p.set_anchor(0);
+        p.extend_range(2);
+        assert_eq!(p.marked_names(), ["f0", "f1"]);
+    }
+
+    #[test]
+    fn the_anchor_is_the_last_clicked_or_toggled_item_and_moves_with_it() {
+        let mut p = ten();
+        p.cursor = 5;
+        p.toggle_mark_current(); // f4 marked, cursor on f5
+        p.shift_move(|p| p.move_cursor(1)); // anchor f4 .. f6
+        assert_eq!(p.marked_names(), ["f4", "f5", "f6"]);
+        // Sorting the other way round: the anchor is found by name.
+        p.set_sort(SortKey::Name);
+        assert_eq!(p.marked_names(), ["f4", "f5", "f6"], "marks survive sorting");
+        let row = |p: &Pane, n: &str| p.view.iter().position(|r| matches!(r, Row::Entry(i) if p.entries[*i].name == n)).unwrap();
+        let to = row(&p, "f1");
+        p.extend_range(to);
+        assert_eq!(p.marked_names(), ["f1", "f2", "f3", "f4", "f5", "f6"]);
+        // No anchor yet: the cursor is the anchor.
+        let mut p = ten();
+        p.cursor = 8;
+        p.shift_move(|p| p.move_cursor(1));
+        assert_eq!(p.marked_names(), ["f7", "f8"]);
+        // A plain move makes the new cursor item the anchor.
+        p.plain_move(|p| p.move_cursor(-5));
+        p.shift_move(|p| p.move_cursor(-1));
+        assert_eq!(p.marked_names(), ["f2", "f3", "f7", "f8"]);
+    }
+
+    #[test]
+    fn marks_survive_a_refresh_sorting_and_the_filter() {
+        let mut p = ten();
+        p.set_anchor(1);
+        p.extend_range(4); // f0..f3
+        p.mark_name("f9");
+        // Filter: other rows, the same marks; a range in the filtered rows.
+        p.filter = "f9".into();
+        p.rebuild_view();
+        assert_eq!(p.marked_names(), ["f0", "f1", "f2", "f3", "f9"]);
+        p.filter.clear();
+        p.rebuild_view();
+        // Refresh: f1 deleted, "e" added in front, sizes changed.
+        let mut list: Vec<Entry> = (0..10).filter(|i| *i != 1).map(|i| ent(&format!("f{i}"), false)).collect();
+        list.insert(0, ent("e", false));
+        list[3].size = 99;
+        assert!(p.update_listing(list));
+        assert_eq!(p.marked_names(), ["f0", "f2", "f3", "f9"]);
+        // The same names, other sizes: the marks stay where they are.
+        let mut list = p.entries.clone();
+        list[1].size = 7;
+        assert!(p.update_listing(list));
+        assert_eq!(p.marked_names(), ["f0", "f2", "f3", "f9"]);
+        p.set_sort(SortKey::Size);
+        assert_eq!(p.marked_names(), ["f0", "f2", "f3", "f9"]);
+        assert_eq!(p.targets(), ["f0", "f2", "f3", "f9"]);
+        assert_eq!(p.footer_text(), selection_summary(&p.entries, &p.marked, &p.dir_sizes));
+        // A rename keeps the mark (the listing read again finds the new name).
+        p.rename_entry("f2", "g2");
+        let mut list = p.entries.clone();
+        list.reverse();
+        p.update_listing(list);
+        assert_eq!(p.marked_names(), ["f0", "f3", "f9", "g2"]);
+        // Another folder: no marks.
+        p.set_listing("/b".into(), vec![ent("f0", false)], None);
+        assert!(p.marked.is_empty());
+    }
+
+    #[test]
+    fn ctrl_a_marks_all_shown_and_the_second_unmarks() {
+        let mut p = ten();
+        p.mark_all();
+        assert_eq!(p.marked.len(), 10);
+        assert_eq!(p.footer_text(), selection_summary(&p.entries, &p.marked, &p.dir_sizes));
+        p.mark_all();
+        assert!(p.marked.is_empty());
+        p.filter = "f1".into();
+        p.rebuild_view();
+        p.mark_all();
+        assert_eq!(p.marked_names(), ["f1"], "with a filter only the shown items");
+        p.mark_all();
+        assert!(p.marked.is_empty());
+    }
+
+    #[test]
+    fn marks_in_search_results_follow_new_hits() {
+        let mut p = ten();
+        let cancel = Arc::new(AtomicBool::new(false));
+        let q = rolid_search::Query { root: "/a".into(), ..Default::default() };
+        let buf = p.begin_search(1, q, cancel);
+        let hit = |n: &str| rolid_search::Hit { dir: "/a".into(), rel: n.into(), entry: ent(n, false), line: None };
+        buf.lock().unwrap().extend([hit("m"), hit("x")]);
+        p.drain_search();
+        p.mark_name("x");
+        buf.lock().unwrap().extend([hit("a"), hit("n")]);
+        p.drain_search();
+        assert_eq!(p.marked_names(), ["x"]);
+    }
+
     #[test]
     fn a_drag_takes_the_marked_items_or_the_one_row() {
         let mut p = pane_with(&[("d", true), ("a.txt", false), ("b.txt", false), ("c.txt", false)]);
-        p.marked.insert("a.txt".into());
-        p.marked.insert("c.txt".into());
+        p.mark_name("a.txt");
+        p.mark_name("c.txt");
         let names = |v: Vec<Target>| v.into_iter().map(|t| (t.dir, t.name)).collect::<Vec<_>>();
         let mut marked = names(p.drag_items("c.txt"));
         marked.sort();
@@ -2002,8 +2444,8 @@ mod tests {
     fn a_refresh_keeps_the_cursor_marks_and_sizes() {
         let mut p = pane_with(&[("folder", true), ("b.txt", false), ("c.txt", false), ("d.txt", false)]);
         p.select_name("c.txt");
-        p.marked.insert("b.txt".into());
-        p.marked.insert("d.txt".into());
+        p.mark_name("b.txt");
+        p.mark_name("d.txt");
         p.dir_sizes.insert("folder".into(), crate::dirsize::DirSize::default());
         p.scroll_offset = 40.0;
         p.scroll_to_cursor = false;
@@ -2017,7 +2459,7 @@ mod tests {
         // Another program added an item above the cursor and removed a marked one.
         assert!(p.update_listing(list(&[("folder", true), ("a.txt", false), ("c.txt", false), ("d.txt", false)])));
         assert_eq!(p.current_name().as_deref(), Some("c.txt"), "the cursor stays on its item");
-        assert_eq!(p.marked.iter().map(String::as_str).collect::<Vec<_>>(), ["d.txt"], "marks of the remaining items stay");
+        assert_eq!(p.marked_names(), ["d.txt"], "marks of the remaining items stay");
         assert!(p.dir_sizes.contains_key("folder"), "computed sizes stay");
         assert_eq!(p.scroll_offset, 40.0);
         assert!(!p.scroll_to_cursor, "the view does not jump");
@@ -2186,7 +2628,7 @@ mod tests {
         }
         for key in [SortKey::Name, SortKey::Ext, SortKey::Size, SortKey::Modified] {
             for asc in [true, false] {
-                let got = sorted(list.clone(), key, asc, &HashMap::new());
+                let got = sorted(list.clone(), &itself, key, asc, &HashMap::new());
                 // The same comparison on one thread.
                 let mut want = list.clone();
                 let text = |e: &Entry| match key {
@@ -2286,7 +2728,7 @@ mod tests {
         p.mark_all();
         assert!(p.marked.is_empty(), "the second Ctrl+A unmarks");
         // A change of the marks from elsewhere is counted in full.
-        p.marked.insert(p.entries[3].name.clone());
+        p.marked.set(3, true);
         assert!(p.mark_sums().is_none());
         assert_eq!(p.footer_text(), fresh(&p));
     }
@@ -2303,13 +2745,13 @@ mod tests {
         let fresh = |p: &Pane| selection_summary(&p.entries, &p.marked, &p.dir_sizes);
         let first = p.footer_text();
         assert_eq!(first, fresh(&p));
-        p.marked.insert("f00001".into());
+        p.mark_name("f00001");
         let one = p.footer_text();
         assert_ne!(one, first);
         assert_eq!(one, fresh(&p));
         // The same number of marks, another (bigger) file.
-        p.marked.remove("f00001");
-        p.marked.insert("f00000".into());
+        p.unmark_name("f00001");
+        p.mark_name("f00000");
         assert_eq!(p.footer_text(), fresh(&p));
         assert_ne!(p.footer_text(), one);
         p.set_dir_size("dir", Some(crate::dirsize::DirSize { bytes: 5_000_000, unreadable: 0 }));
@@ -2372,26 +2814,24 @@ mod tests {
     fn group_marks_and_invert() {
         let mut p = pane_with(&[("photos", true), ("A.JPG", false), ("b.png", false), ("c.txt", false)]);
         assert_eq!(p.mark_group("*.jpg;*.png", true, false), 2);
-        assert!(p.marked.contains("A.JPG") && p.marked.contains("b.png"));
+        assert!(p.is_marked_name("A.JPG") && p.is_marked_name("b.png"));
         assert_eq!(p.mark_group("*", true, true), 2, "folder and c.txt added");
         assert_eq!(p.mark_group("*.png", false, false), 1);
         p.marked.clear();
-        p.marked.insert("c.txt".into());
+        p.mark_name("c.txt");
         p.invert_selection(false);
-        let mut m: Vec<_> = p.marked.iter().cloned().collect();
-        m.sort();
+        let m = p.marked_names();
         assert_eq!(m, ["A.JPG", "b.png"], "folders are not touched");
         // With folders (the setting): the folder flips too.
         p.invert_selection(true);
-        let mut m: Vec<_> = p.marked.iter().cloned().collect();
-        m.sort();
+        let m = p.marked_names();
         assert_eq!(m, ["c.txt", "photos"]);
         // Mask without / with folders: a folder matching the mask.
         let mut p = pane_with(&[("photo.jpg", true), ("x.jpg", false)]);
         assert_eq!(p.mark_group("*.jpg", true, false), 1);
-        assert!(!p.marked.contains("photo.jpg"));
+        assert!(!p.is_marked_name("photo.jpg"));
         assert_eq!(p.mark_group("*.jpg", true, true), 1);
-        assert!(p.marked.contains("photo.jpg"));
+        assert!(p.is_marked_name("photo.jpg"));
     }
 
     /// Odd names are painted on one readable line (roadmap 0.8.15), and the
@@ -2487,30 +2927,30 @@ mod tests {
         let mut small = ent("a.jpg", false);
         small.size = 12 * 1024 * 1024 + 400 * 1024;
         let entries = vec![ent("photos", true), big, small, ent("b.txt", false)];
-        let mut marked = HashSet::new();
+        let mut marked = Marks::default();
         assert_eq!(selection_summary(&entries, &marked, &HashMap::new()), "3 files, 862.4 MB, 1 folder");
-        marked.insert("a.jpg".to_string());
+        marked.set(2, true);
         assert_eq!(selection_summary(&entries, &marked, &HashMap::new()), "Selected: 1 of 3 files, 12.4 MB of 862.4 MB");
-        marked.insert("photos".to_string());
+        marked.set(0, true);
         assert_eq!(
             selection_summary(&entries, &marked, &HashMap::new()),
             "Selected: 1 of 3 files, 12.4 MB of 862.4 MB and 1 of 1 folder"
         );
         let one = vec![ent("x", false)];
-        assert_eq!(selection_summary(&one, &HashSet::new(), &HashMap::new()), "1 file, 10 B");
+        assert_eq!(selection_summary(&one, &Marks::default(), &HashMap::new()), "1 file, 10 B");
         let many: Vec<Entry> = (0..95).map(|i| ent(&format!("f{i}"), false)).collect();
-        assert!(selection_summary(&many, &HashSet::new(), &HashMap::new()).starts_with("95 files"));
+        assert!(selection_summary(&many, &Marks::default(), &HashMap::new()).starts_with("95 files"));
         marked.clear();
-        marked.insert("photos".to_string());
+        marked.set(0, true);
         assert_eq!(selection_summary(&entries, &marked, &HashMap::new()), "Selected: 1 of 1 folder");
         // Computed folder sizes count in (with ≥ when incomplete).
         let mut sizes = HashMap::new();
         sizes.insert("photos".to_string(), crate::dirsize::DirSize { bytes: 1024 * 1024, unreadable: 0 });
         assert_eq!(selection_summary(&entries, &marked, &sizes), "Selected: 1 of 1 folder, 1.0 MB");
-        marked.insert("b.txt".to_string());
+        marked.set(3, true);
         assert_eq!(selection_summary(&entries, &marked, &sizes), "Selected: 1 of 3 files, 1.0 MB of 863.4 MB and 1 of 1 folder");
         sizes.insert("photos".to_string(), crate::dirsize::DirSize { bytes: 1024 * 1024, unreadable: 2 });
-        assert_eq!(selection_summary(&entries, &HashSet::new(), &sizes), "3 files, ≥ 863.4 MB, 1 folder (with folder sizes)");
+        assert_eq!(selection_summary(&entries, &Marks::default(), &sizes), "3 files, ≥ 863.4 MB, 1 folder (with folder sizes)");
         assert_eq!(ext_of("archive.tar.gz"), "gz");
         assert_eq!(ext_of(".bashrc"), "");
     }

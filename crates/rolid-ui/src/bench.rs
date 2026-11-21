@@ -32,7 +32,7 @@ use crate::pane::{Pane, SortKey};
 #[allow(clippy::all, unused)]
 mod sshd;
 
-fn env_dir(var: &str) -> Option<PathBuf> {
+pub(crate) fn env_dir(var: &str) -> Option<PathBuf> {
     match std::env::var_os(var) {
         Some(v) => Some(PathBuf::from(v)),
         None => {
@@ -43,7 +43,7 @@ fn env_dir(var: &str) -> Option<PathBuf> {
 }
 
 /// One measured value (stdout and, with ROLIDSCP_BENCH_OUT, that file).
-fn report(name: &str, value: f64, unit: &str) {
+pub(crate) fn report(name: &str, value: f64, unit: &str) {
     let line = format!("BENCH\t{name}\t{value:.3}\t{unit}");
     println!("{line}");
     if let Some(out) = std::env::var_os("ROLIDSCP_BENCH_OUT") {
@@ -54,28 +54,28 @@ fn report(name: &str, value: f64, unit: &str) {
     }
 }
 
-fn ms(d: Duration) -> f64 {
+pub(crate) fn ms(d: Duration) -> f64 {
     d.as_secs_f64() * 1000.0
 }
 
 /// A value from /proc/self/status in kB (VmRSS, VmHWM).
-fn status_kb(key: &str) -> u64 {
+pub(crate) fn status_kb(key: &str) -> u64 {
     let s = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
     s.lines()
         .find_map(|l| l.strip_prefix(key)?.strip_prefix(':').map(|v| v.trim().trim_end_matches(" kB").parse().unwrap_or(0)))
         .unwrap_or(0)
 }
 
-fn open_fds() -> usize {
+pub(crate) fn open_fds() -> usize {
     std::fs::read_dir("/proc/self/fd").map(|d| d.count()).unwrap_or(0)
 }
 
 /// The program's own background runtime (with its thread stack size).
-fn rt() -> tokio::runtime::Runtime {
+pub(crate) fn rt() -> tokio::runtime::Runtime {
     crate::runtime()
 }
 
-fn s(p: &Path) -> String {
+pub(crate) fn s(p: &Path) -> String {
     p.to_string_lossy().into_owned()
 }
 
@@ -177,6 +177,40 @@ fn pane_ops(prefix: &str, pane: &mut Pane) {
     }
     let (_, t) = timed(|| pane.cursor_end());
     report(&format!("{prefix}.cursor_end_ms"), ms(t), "ms");
+    // Shift+End from the top (the footer is made in the same frame), Shift+Home back.
+    pane.marked.clear();
+    pane.plain_move(|p| p.cursor_home());
+    let (_, t) = timed(|| {
+        pane.shift_move(|p| p.cursor_end());
+        pane.footer_text()
+    });
+    report(&format!("{prefix}.shift_end_ms"), ms(t), "ms");
+    report(&format!("{prefix}.shift_end.marked"), pane.marked.len() as f64, "items");
+    let (_, t) = timed(|| {
+        pane.shift_move(|p| p.cursor_home());
+        pane.footer_text()
+    });
+    report(&format!("{prefix}.shift_home_back_ms"), ms(t), "ms");
+    report(&format!("{prefix}.shift_home_back.marked"), pane.marked.len() as f64, "items");
+    // With everything marked: sorting, refreshes (the marks go with their items).
+    pane.marked.clear();
+    pane.mark_all();
+    let (_, t) = timed(|| pane.set_sort(SortKey::Size));
+    report(&format!("{prefix}.sort_all_marked_ms"), ms(t), "ms");
+    pane.set_sort(SortKey::Name);
+    let sort = Some((pane.sort, pane.sort_asc));
+    let mut sizes = pane.entries.clone();
+    sizes[0].size += 1;
+    let sizes = crate::pane::Prepared::new(sizes, sort);
+    let (_, t) = timed(|| pane.update_prepared(sizes));
+    report(&format!("{prefix}.refresh_size_changed_all_marked_ms"), ms(t), "ms");
+    let mut fewer = pane.entries.clone();
+    fewer.remove(fewer.len() / 3);
+    let fewer = crate::pane::Prepared::new(fewer, sort);
+    let (_, t) = timed(|| pane.update_prepared(fewer));
+    report(&format!("{prefix}.refresh_one_gone_all_marked_ms"), ms(t), "ms");
+    report(&format!("{prefix}.refresh_one_gone_all_marked.marked"), pane.marked.len() as f64, "items");
+    pane.marked.clear();
 }
 
 /// The same folder over SFTP.
