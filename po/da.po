@@ -3621,87 +3621,87 @@ msgstr "Nyheder"
 #: crates/rolid-ui/src/app/menu.rs:717
 msgctxt "news"
 msgid "0.8.16 big files and marking: Shift+click and Shift with the arrows, PgUp, PgDn, Home and End mark a range from the last clicked item and going back unmarks only that range, a click without a key keeps the marks, Ctrl+A marks all and a second press unmarks (Tools → Select to the top / to the bottom); marking stays fast in a folder of a million files and survives a refresh, sorting and the filter; a full disk or a used-up quota is named and “Try again” continues where the transfer stopped; a move continued after the program was killed finishes and leaves no helper files; after a lost connection the progress no longer counts the resumed part twice; the remaining time shows days; sizes of petabytes and more are added up without overflowing; the journal of replaced files and the records of F4 copies are flushed to the disk."
-msgstr ""
+msgstr "0.8.16 store filer og markering: Shift+klik og Shift med pilene, PgUp, PgDn, Home og End markerer et område fra det sidst klikkede element, og går man tilbage, fjernes markeringen kun fra det område, et klik uden tast bevarer markeringerne, Ctrl+A markerer alt og et andet tryk fjerner markeringen (Værktøjer → Markér til toppen / Markér til bunden); markering forbliver hurtig i en mappe med en million filer og overlever en opdatering, sortering og filteret; en fuld disk eller en opbrugt kvote nævnes ved navn, og »Prøv igen« fortsætter, hvor overførslen stoppede; en flytning, der fortsættes efter at programmet blev dræbt, gøres færdig og efterlader ingen hjælpefiler; efter en mistet forbindelse tæller fremskridtet ikke længere den genoptagne del to gange; den resterende tid vises i dage; størrelser på petabyte og mere lægges sammen uden overløb; journalen over erstattede filer og registreringerne af F4-kopier skrives ud til disken."
 
 #: crates/rolid-ui/src/app/menu.rs:730
 msgctxt "news"
 msgid "0.8.15 many files: copying many small files to and from a server is several times faster (the target folder is listed once, several files go at a time), deleting is a job in the queue with progress and Cancel, big folders are listed, sorted and filtered several times faster and refresh without stalling the window, folder listings over SFTP are much faster; pipes, sockets, devices and broken links are skipped with a message instead of hanging or stopping the copy; names with invalid UTF-8, backslashes, line breaks or 255 bytes are copied exactly and shown readably; very deep folder trees no longer crash the program; search, folder sizes and checksums use commands on the server again instead of the slow walk over SFTP."
-msgstr ""
+msgstr "0.8.15 mange filer: kopiering af mange små filer til og fra en server er flere gange hurtigere (målmappen listes én gang, flere filer overføres ad gangen), sletning er et job i køen med fremskridt og Annullér, store mapper listes, sorteres og filtreres flere gange hurtigere og opdateres uden at vinduet hænger, mappelister over SFTP er meget hurtigere; pipes, sockets, enheder og brudte links springes over med en besked i stedet for at hænge eller stoppe kopieringen; navne med ugyldig UTF-8, omvendte skråstreger, linjeskift eller 255 byte kopieres nøjagtigt og vises læseligt; meget dybe mappetræer får ikke længere programmet til at gå ned; søgning, mappestørrelser og kontrolsummer bruger igen kommandoer på serveren i stedet for den langsomme gennemgang over SFTP."
 
 #: crates/rolid-ui/src/app/menu.rs:741
 msgctxt "news"
 msgid "0.8.14 data protection: on a production server copying, uploading, moving and a new folder never start with Overwrite and Enter does not confirm them; a move deletes the source only when it did not change meanwhile, and to a server only after the checksums match; an interrupted transfer is resumed only from a part file of the same source; a file replaced on a server without atomic rename is repaired at the next connection after a cut-off; F4 copies are kept on disk, a failed upload is tried again, the time of the upload has seconds; starts without system fonts; slow server shells no longer hold up search and checksums."
-msgstr ""
+msgstr "0.8.14 databeskyttelse: på en produktionsserver starter kopiering, upload, flytning og ny mappe aldrig med Overskriv, og Enter bekræfter dem ikke; en flytning sletter kun kilden, hvis den ikke er ændret i mellemtiden, og til en server først når kontrolsummerne stemmer; en afbrudt overførsel genoptages kun fra en delfil af samme kilde; en fil, der erstattes på en server uden atomisk omdøbning, repareres ved næste forbindelse efter en afbrydelse; F4-kopier gemmes på disken, en mislykket upload forsøges igen, tidspunktet for upload har sekunder; starter uden systemskrifttyper; langsomme server-shells forsinker ikke længere søgning og kontrolsummer."
 
 #: crates/rolid-ui/src/app/menu.rs:751
 msgctxt "news"
 msgid "0.8.13 listings refresh by themselves: local folders at once, server folders when you come back to them and every 30 s while the window is active (View → Automatic refresh), the cursor and the marks stay; thin lines between the columns, drag them to change the width (a double click fits the content), kept for each panel; names that do not fit end with “…”; the disk health badge shows the reason; dragging files into Thunar works; hovering changes only colors."
-msgstr ""
+msgstr "0.8.13 lister opdateres af sig selv: lokale mapper med det samme, servermapper når du vender tilbage til dem og hvert 30. s, mens vinduet er aktivt (Vis → Automatisk opdatering), markøren og markeringerne bevares; tynde linjer mellem kolonnerne, træk i dem for at ændre bredden (et dobbeltklik tilpasser til indholdet), gemt for hvert panel; navne, der ikke passer, ender med »…«; diskens sundhedsmærke viser årsagen; træk af filer ind i Thunar virker; når musen holdes over, ændres kun farver."
 
 #: crates/rolid-ui/src/app/menu.rs:759
 msgctxt "news"
 msgid "0.8.12 a bar above each panel: the folders on the path and the disks in a drop-down (Alt+↓), back, forward, up, root, home, refresh and favorites; the free space, file system and disk health moved into the path row; a right click on the empty space of a panel offers a new file, a new folder, a terminal and the disk properties."
-msgstr ""
+msgstr "0.8.12 en bjælke over hvert panel: mapperne på stien og diskene i en rulleliste (Alt+↓), tilbage, frem, op, rod, hjem, opdatér og favoritter; ledig plads, filsystem og diskens sundhed er flyttet til stilinjen; et højreklik på den tomme del af et panel tilbyder en ny fil, en ny mappe, en terminal og diskens egenskaber."
 
 #: crates/rolid-ui/src/app/menu.rs:766
 msgctxt "news"
 msgid "0.8.11 files and folders can be dragged out of the window to other applications (X11), from a server or an archive they are downloaded first; Shift+F4 creates a new file in the external editor; favorite folders can be added, renamed and removed in the new tab menu; stricter disk temperature and wear limits, the temperature is checked every 5 minutes."
-msgstr ""
+msgstr "0.8.11 filer og mapper kan trækkes ud af vinduet til andre programmer (X11), fra en server eller et arkiv hentes de først; Shift+F4 opretter en ny fil i den eksterne editor; favoritmapper kan tilføjes, omdøbes og fjernes i menuen for nyt faneblad; strengere grænser for disktemperatur og slid, temperaturen kontrolleres hvert 5. minut."
 
 #: crates/rolid-ui/src/app/menu.rs:773
 msgctxt "news"
 msgid "0.8.10 the free-space row shows the file system type and the disk health (SMART) with a detail in plain language; Ctrl+P opens a terminal in the panel's folder, on a server ssh with the saved password; the tab and server switcher moved to Ctrl+K."
-msgstr ""
+msgstr "0.8.10 linjen med ledig plads viser filsystemtypen og diskens sundhed (SMART) med en forklaring i klart sprog; Ctrl+P åbner en terminal i panelets mappe, på en server ssh med den gemte adgangskode; skift mellem faneblade og servere er flyttet til Ctrl+K."
 
 #: crates/rolid-ui/src/app/menu.rs:779
 msgctxt "news"
 msgid "0.8.9 built-in viewer (F3) in a window of its own: files of any size, also on a server without downloading them whole, syntax highlighting, encodings, hex, following a growing log, searching with the ripgrep engine (on a server with grep over SSH) and images (JPEG, PNG, animated GIF, WebP, BMP) with zoom, rotation and next / previous image."
-msgstr ""
+msgstr "0.8.9 indbygget fremviser (F3) i sit eget vindue: filer af enhver størrelse, også på en server uden at hente dem helt, syntaksfremhævning, tegnkodninger, hex, følgning af en voksende log, søgning med ripgrep-motoren (på en server med grep over SSH) og billeder (JPEG, PNG, animeret GIF, WebP, BMP) med zoom, rotation og næste / forrige billede."
 
 #: crates/rolid-ui/src/app/menu.rs:786
 msgctxt "news"
 msgid "0.8.8 new tab menu (Ctrl+T: home folder, favorites, servers, recent places), favorite folders (Ctrl+D), tab menu (duplicate, color, close others), dragging files inside the app (Shift moves, Esc cancels), saved passwords lock again after a set time, one look for all dialogs and a target history with Browse… when copying and moving."
-msgstr ""
+msgstr "0.8.8 menu for nyt faneblad (Ctrl+T: hjemmemappe, favoritter, servere, seneste steder), favoritmapper (Ctrl+D), fanebladsmenu (duplikér, farve, luk andre), træk af filer inde i programmet (Shift flytter, Esc annullerer), gemte adgangskoder låses igen efter en angivet tid, ét udseende for alle dialoger og en målhistorik med Gennemse… ved kopiering og flytning."
 
 #: crates/rolid-ui/src/app/menu.rs:793
 msgctxt "news"
 msgid "0.8.7 in eight languages: English, Czech, German, French, Polish, Spanish, Norwegian and Danish (by the system or in Settings, switches at once; your own translation in ~/.config/rolidscp/lang), numbers and dates written as the language does (or ISO), help on F1."
-msgstr ""
+msgstr "0.8.7 på otte sprog: engelsk, tjekkisk, tysk, fransk, polsk, spansk, norsk og dansk (efter systemet eller i Indstillinger, skifter med det samme; din egen oversættelse i ~/.config/rolidscp/lang), tal og datoer skrevet som sproget gør (eller ISO), hjælp på F1."
 
 #: crates/rolid-ui/src/app/menu.rs:799
 msgctxt "news"
 msgid "0.8.6 sharper text: strong hinting puts the vertical strokes of letters on whole pixels (the default, together with higher contrast); table lines stay sharp at 125% and 150% scaling too."
-msgstr ""
+msgstr "0.8.6 skarpere tekst: stærk hinting lægger bogstavernes lodrette streger på hele pixels (standard, sammen med højere kontrast); tabellinjer forbliver skarpe også ved 125 % og 150 % skalering."
 
 #: crates/rolid-ui/src/app/menu.rs:804
 msgctxt "news"
 msgid "0.8.5 rename right in the list (F2, Shift+F6), move to the other panel (F6), also between disks and servers, rename a tab by double-clicking it, font size in whole points (default 14), font Hinting and Contrast options in Settings, the bottom bar adapts to the window width."
-msgstr ""
+msgstr "0.8.5 omdøb direkte i listen (F2, Shift+F6), flyt til det andet panel (F6), også mellem diske og servere, omdøb et faneblad ved at dobbeltklikke på det, skriftstørrelse i hele punkter (standard 14), indstillingerne Hinting og Skriftkontrast i Indstillinger, den nederste bjælke tilpasser sig vinduets bredde."
 
 #: crates/rolid-ui/src/app/menu.rs:810
 msgctxt "news"
 msgid "0.8.4 GPL-3.0-or-later license and source code on GitHub, sharper Noto Sans font (system font and text size can be chosen in Settings), size of the folder under the cursor (Alt+Space or Shift+Space), more readable colors on the cursor row."
-msgstr ""
+msgstr "0.8.4 licens GPL-3.0-or-later og kildekode på GitHub, skarpere skrifttype Noto Sans (systemskrifttype og tekststørrelse kan vælges i Indstillinger), størrelse på mappen under markøren (Alt+Space eller Shift+Space), mere læselige farver på markørlinjen."
 
 #: crates/rolid-ui/src/app/menu.rs:816
 msgctxt "news"
 msgid "0.8.3 Enter opens a file in the default application (for a program or script it asks: editor / Run), more precise drop target when dragging, compression on all cores (a No compression level; already compressed files are only stored), estimated time remaining, folders in [square brackets], selecting by mask also for folders, folder sizes (Alt+Shift+Enter, on a server via du), MD5/SHA/BLAKE3/CRC32 checksums saved in a format compatible with sha256sum -c."
-msgstr ""
+msgstr "0.8.3 Enter åbner en fil i standardprogrammet (for et program eller script spørges der: editor / Kør), mere præcist slipmål ved træk, komprimering på alle kerner (et niveau Ingen komprimering; allerede komprimerede filer gemmes kun), anslået resterende tid, mapper i [firkantede parenteser], markering efter maske også for mapper, mappestørrelser (Alt+Shift+Enter, på en server via du), kontrolsummer MD5/SHA/BLAKE3/CRC32 gemt i et format, der er kompatibelt med sha256sum -c."
 
 #: crates/rolid-ui/src/app/menu.rs:824
 msgctxt "news"
 msgid "0.8.2 archives: pack (Alt+F5: zip, 7z, tar, tar.gz, tar.zst, AES-256 password for zip and 7z), extract (Alt+F9) with protection against zip-slip and zip bombs, archive test (Alt+Shift+F9), Enter opens an archive as a read-only folder (F5 copies out, also from a server)."
-msgstr ""
+msgstr "0.8.2 arkiver: pak (Alt+F5: zip, 7z, tar, tar.gz, tar.zst, AES-256-adgangskode for zip og 7z), udpak (Alt+F9) med beskyttelse mod zip-slip og zip-bomber, arkivtest (Alt+Shift+F9), Enter åbner et arkiv som en skrivebeskyttet mappe (F5 kopierer ud, også fra en server)."
 
 #: crates/rolid-ui/src/app/menu.rs:830
 msgctxt "news"
 msgid "0.8.1 toolbar, brief view and image thumbnails, folder history (Alt+←/→), selecting a group by mask, a distinct header for the active panel, free space, selection summary, file type icons and colors, exact drop target highlighting while dragging on X11."
-msgstr ""
+msgstr "0.8.1 værktøjslinje, kort visning og miniaturebilleder, mappehistorik (Alt+←/→), markering af en gruppe efter maske, en tydelig overskrift for det aktive panel, ledig plads, oversigt over markeringen, ikoner og farver efter filtype, præcis fremhævning af slipmålet ved træk på X11."
 
 #: crates/rolid-ui/src/app/menu.rs:836
 msgctxt "news"
 msgid "0.8.0 context menu (Open with, permissions, copying the path to the clipboard), default choice on conflict, consistent dialog look with icons, the queue shows “file 3 of 120”."
-msgstr ""
+msgstr "0.8.0 kontekstmenu (Åbn med, rettigheder, kopiering af stien til udklipsholderen), standardvalg ved konflikt, ensartet dialogudseende med ikoner, køen viser »fil 3 af 120«."
 
 #: crates/rolid-ui/src/app/menu.rs:846
 msgid "❤ Support development"
