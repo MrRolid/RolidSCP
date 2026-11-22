@@ -16,6 +16,9 @@ pub struct MarkForm {
     pub mask: String,
     pub dirs: bool,
     pub focus: bool,
+    /// Opened on a production server: "Include folders" starts off and is
+    /// not remembered.
+    pub production: bool,
 }
 
 /// Settings dialog being edited (applied on Save).
@@ -149,8 +152,9 @@ impl App {
 
     pub(super) fn ask_mark_group(&mut self, mark: bool) {
         let mask = self.settings.mark_masks.first().cloned().unwrap_or_else(|| "*".into());
-        let dirs = self.settings.mask_dirs;
-        self.dialog = Dialog::MarkGroup(Box::new(MarkForm { mark, mask, dirs, focus: true }));
+        let production = self.pane(self.active_ref()).and_then(|p| p.remote.as_ref()).is_some_and(|r| r.production);
+        let dirs = self.settings.mark_group_dirs(mark, production);
+        self.dialog = Dialog::MarkGroup(Box::new(MarkForm { mark, mask, dirs, focus: true, production }));
     }
 
     pub(super) fn invert_selection(&mut self) {
@@ -171,6 +175,7 @@ impl App {
             p.mark_group(&mask, f.mark, f.dirs);
         }
         self.settings.remember_mask(&mask);
+        self.settings.remember_mark_group_dirs(f.mark, f.dirs, f.production);
         self.save_settings();
     }
 
@@ -427,13 +432,17 @@ impl App {
                         });
                         ui.end_row();
                     });
-                    ui.checkbox(&mut f.dirs, tr!("Include folders"))
-                        .on_hover_text(tr!("The default is set in Settings → Selecting by mask includes folders too."));
+                    let tip = if f.production {
+                        tr!("On a production server this always starts off; your choice here is not remembered.")
+                    } else {
+                        tr!("Remembered for the next time. The default is set in Settings → Selecting by mask includes folders too.")
+                    };
+                    ui.checkbox(&mut f.dirs, tr!("Include folders")).on_hover_text(tip);
                     let ok_on = !f.mask.trim().is_empty();
                     let text = if f.mark { tr!("Select") } else { tr!("Unselect") };
                     let b = dialog::buttons(ui, [dialog::btn(Role::Ok, text).default(true).enabled(ok_on), dialog::cancel()]);
                     if b[0] && ok_on {
-                        let form = MarkForm { mark: f.mark, mask: f.mask.clone(), dirs: f.dirs, focus: false };
+                        let form = MarkForm { mark: f.mark, mask: f.mask.clone(), dirs: f.dirs, focus: false, production: f.production };
                         act = Some(Box::new(move |a: &mut Self| a.apply_mark_group(form)));
                         close = true;
                     }
@@ -673,6 +682,11 @@ impl App {
                             let s = &mut a.settings;
                             s.hide_toolbar = !toolbar;
                             s.dir_brackets_off = !brackets;
+                            if s.mask_dirs != mask_dirs {
+                                // A new default: the dialogs start from it again.
+                                s.mark_group_dirs = None;
+                                s.unmark_group_dirs = None;
+                            }
                             s.mask_dirs = mask_dirs;
                             s.thumb_size = (size != ThumbSize::default()).then_some(size);
                             s.thumbs_remote = (!remote).then_some(false);

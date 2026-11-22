@@ -658,6 +658,39 @@ impl App {
         self.activate_tab(side, self.sides[side].index(at.tab).unwrap_or(0));
     }
 
+    /// The middle button on a part of the path: that folder in a new tab
+    /// right after this one, with its color, in the background (as in a web
+    /// browser). Inside an archive the new tab browses the same archive;
+    /// the archive's own folder opens outside it.
+    pub(super) fn open_crumb_in_tab(&mut self, at: PaneRef, go: crate::pane::navbar::Go) {
+        use crate::pane::navbar::Go;
+        let side = at.side;
+        let Some(idx) = self.sides[side].index(at.tab) else { return };
+        let t = &self.sides[side].tabs[idx];
+        let tab = match go {
+            Go::LeaveArchive => {
+                let mut tab = t.duplicate(0);
+                tab.name = None;
+                tab
+            }
+            Go::Path(path) => {
+                let src = &t.pane;
+                let mut pane = Pane::new(src.fs.clone(), path);
+                pane.remote = src.remote.clone();
+                pane.offline = src.offline;
+                pane.style = src.style;
+                pane.archive = src.archive.clone();
+                Tab { id: 0, name: None, color: t.color, pane }
+            }
+        };
+        let id = self.id();
+        let keep = self.sides[side].active;
+        self.insert_tab(side, idx + 1, Tab { id, ..tab });
+        // In the background: the current tab stays current.
+        let s = &mut self.sides[side];
+        s.active = if keep > idx { keep + 1 } else { keep };
+    }
+
     /// "Close other tabs" of panel `side` (edited files may keep some open).
     pub(super) fn close_other_tabs(&mut self, side: usize, idx: usize) {
         let Some(keep) = self.sides[side].tabs.get(idx).map(|t| t.id) else { return };

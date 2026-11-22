@@ -1,6 +1,7 @@
 //! One file panel: listing, cursor, marks, quick filter, sorting, rendering.
 
 pub mod columns;
+pub mod crumbs;
 pub mod history;
 pub mod inline;
 pub mod kinds;
@@ -136,6 +137,8 @@ pub struct Pane {
 }
 
 /// A panel showing the inside of an archive remembers where it came from.
+/// A clone browses the same archive (a new tab opened inside it).
+#[derive(Clone)]
 pub struct ArchiveState {
     pub fs: Arc<crate::archive_fs::ArchiveFs>,
     pub back_fs: Arc<dyn Vfs>,
@@ -226,6 +229,8 @@ pub enum PaneEvent {
     WantMounts,
     /// A folder chosen in the drop-down, with the cursor on `select`.
     Jump { path: String, select: Option<String> },
+    /// The middle button on a part of the path: that folder in a new tab.
+    NewTab(navbar::Go),
     /// A column separator dragged or double clicked: the column's width at
     /// text scale 1 (`None` = default); `done` when the drag ended (save).
     ColumnWidth { col: Col, width: Option<f32>, done: bool },
@@ -1516,22 +1521,17 @@ impl Pane {
                 self.path_edit = None;
             }
         } else {
-            let header_text = match &self.search {
-                Some(sv) => format!("🔍 {}", tr!("{query} in {path}", query = sv.describe(), path = &self.path)),
-                None => self.path.clone(),
-            };
-            path_painter.text(
-                egui::pos2(path_x, hrect.center().y),
-                Align2::LEFT_CENTER,
-                header_text,
-                FontId::monospace(crate::fonts::fs(13.0)),
-                hfg,
-            );
+            // The clickable path, the pencil at its end; a double click on
+            // the empty part of the row edits the path.
+            let area = Rect::from_min_max(egui::pos2(path_x, hrect.top()), egui::pos2(text_right.max(path_x + crumbs::PENCIL_W + 20.0), hrect.bottom()));
+            self.crumbs_ui(ui, area, hfg, &mut events);
             let info_clicked = info.as_ref().is_some_and(|(_, r)| r.clicked());
             if info_clicked {
                 events.push(PaneEvent::DiskInfo);
-            } else if hresp.clicked() {
+            } else if hresp.double_clicked() {
                 self.path_edit = Some(self.path.clone());
+                events.push(PaneEvent::Focus);
+            } else if hresp.clicked() {
                 events.push(PaneEvent::Focus);
             }
             if !view.nav_bar {

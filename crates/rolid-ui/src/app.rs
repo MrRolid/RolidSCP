@@ -2283,6 +2283,7 @@ impl App {
                     self.active_side = at.side;
                     self.load(at, path, select);
                 }
+                PaneEvent::NewTab(go) => self.open_crumb_in_tab(at, go),
             }
         }
     }

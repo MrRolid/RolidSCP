@@ -11,7 +11,7 @@ use super::{Pane, PaneEvent};
 use crate::icons;
 
 /// Height of the bar.
-pub const BAR_H: f32 = 28.0;
+pub const BAR_H: f32 = 30.0;
 
 /// What a row of the tree opens.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -150,28 +150,145 @@ enum Btn {
     Favorites,
 }
 
-/// Paint a bar icon; Root, Home and Up are composed like in WinSCP.
-fn paint_icon(p: &egui::Painter, c: Pos2, b: Btn, color: Color32) {
-    let glyph = |g: &str, size: f32, at: Pos2| {
-        p.text(at, Align2::CENTER_CENTER, g, icons::font(size), color);
+/// Colors of the bar icons: a fill and a darker outline of the same hue,
+/// brighter fills in dark mode (the outline keeps the shape on both).
+#[derive(Clone, Copy)]
+struct Ink {
+    fill: Color32,
+    line: Color32,
+}
+
+fn ink(light: (u8, u8, u8), dark: (u8, u8, u8), line: (u8, u8, u8), dark_mode: bool, enabled: bool) -> Ink {
+    let (r, g, b) = if dark_mode { dark } else { light };
+    let (fill, line) = (Color32::from_rgb(r, g, b), Color32::from_rgb(line.0, line.1, line.2));
+    if enabled {
+        return Ink { fill, line };
+    }
+    // Disabled: gray and faint, the shape stays recognizable.
+    let gray = |c: Color32| {
+        let l = (0.3 * c.r() as f32 + 0.59 * c.g() as f32 + 0.11 * c.b() as f32) as u8;
+        Color32::from_gray(l).gamma_multiply(0.4)
     };
+    Ink { fill: gray(fill), line: gray(line) }
+}
+
+/// Drawing on a 20 × 20 grid whose origin is a whole pixel: outlines lie
+/// on half pixels, so 1 px lines are sharp.
+struct Pen<'a> {
+    p: &'a egui::Painter,
+    o: Pos2,
+}
+
+impl Pen<'_> {
+    fn at(&self, x: f32, y: f32) -> Pos2 {
+        self.o + Vec2::new(x, y)
+    }
+
+    /// A polygon seen whole from `center`: filled without seams, outlined.
+    fn shape(&self, center: (f32, f32), pts: &[(f32, f32)], ink: Ink) {
+        let mut mesh = egui::Mesh::default();
+        mesh.colored_vertex(self.at(center.0, center.1), ink.fill);
+        for &(x, y) in pts {
+            mesh.colored_vertex(self.at(x, y), ink.fill);
+        }
+        let n = pts.len() as u32;
+        for i in 0..n {
+            mesh.add_triangle(0, 1 + i, 1 + (i + 1) % n);
+        }
+        self.p.add(egui::Shape::mesh(mesh));
+        let line: Vec<Pos2> = pts.iter().map(|&(x, y)| self.at(x, y)).collect();
+        self.p.add(egui::Shape::closed_line(line, egui::Stroke::new(1.0, ink.line)));
+    }
+
+    fn rect(&self, x0: f32, y0: f32, x1: f32, y1: f32, ink: Ink) {
+        self.shape(((x0 + x1) / 2.0, (y0 + y1) / 2.0), &[(x0, y0), (x1, y0), (x1, y1), (x0, y1)], ink);
+    }
+
+    /// The yellow folder (Up, Root, the drop-down).
+    fn folder(&self, ink: Ink, front: Ink) {
+        self.shape((10.0, 11.0), &[(1.5, 3.5), (7.5, 3.5), (9.5, 5.5), (18.5, 5.5), (18.5, 16.5), (1.5, 16.5)], ink);
+        self.rect(1.5, 7.5, 18.5, 16.5, front);
+    }
+}
+
+/// Paint a bar icon (20 × 20 px around `c`): a blue arrow back and forward,
+/// a yellow folder with a green arrow up, the folder with "/" for the root,
+/// a house with a red roof, a green circle arrow, a gold star.
+fn paint_icon(p: &egui::Painter, c: Pos2, b: Btn, dark: bool, enabled: bool) {
+    let ppp = p.ctx().pixels_per_point();
+    let snap = |v: f32| (v * ppp).round() / ppp;
+    let pen = Pen { p, o: egui::pos2(snap(c.x - 10.0), snap(c.y - 10.0)) };
+    let blue = ink((0x3b, 0x82, 0xd6), (0x6a, 0xa8, 0xf5), (0x1a, 0x4a, 0x8f), dark, enabled);
+    let green = ink((0x2e, 0xa0, 0x4c), (0x5c, 0xd0, 0x7a), (0x14, 0x5e, 0x2a), dark, enabled);
+    let folder = ink((0xe8, 0xb3, 0x2e), (0xf0, 0xc0, 0x40), (0x8a, 0x62, 0x00), dark, enabled);
+    let front = ink((0xff, 0xd8, 0x6b), (0xff, 0xe0, 0x80), (0x8a, 0x62, 0x00), dark, enabled);
     match b {
-        Btn::Back => glyph(icons::BACK, 17.0, c),
-        Btn::Forward => glyph(icons::FORWARD, 17.0, c),
-        Btn::Refresh => glyph(icons::REFRESH, 17.0, c),
-        Btn::Favorites => glyph(icons::STAR, 17.0, c),
+        Btn::Back | Btn::Forward => {
+            let f = |x: f32| if b == Btn::Back { x } else { 20.0 - x };
+            let pts = [(1.5, 10.0), (9.5, 2.5), (9.5, 6.5), (18.5, 6.5), (18.5, 13.5), (9.5, 13.5), (9.5, 17.5)];
+            let pts: Vec<(f32, f32)> = pts.iter().map(|&(x, y)| (f(x), y)).collect();
+            pen.shape((f(10.0), 10.0), &pts, blue);
+        }
         Btn::Up => {
-            glyph(icons::FOLDER_SIMPLE, 19.0, c);
-            glyph(icons::ARROW_UP, 9.5, c + Vec2::new(0.0, 1.5));
+            pen.folder(folder, front);
+            pen.shape((10.0, 12.0), &[(10.0, 6.5), (15.5, 12.0), (12.5, 12.0), (12.5, 16.5), (7.5, 16.5), (7.5, 12.0), (4.5, 12.0)], green);
         }
         Btn::Root => {
-            glyph(icons::FOLDER_SIMPLE, 19.0, c);
-            p.text(c + Vec2::new(0.0, 1.5), Align2::CENTER_CENTER, "/", egui::FontId::monospace(10.5), color);
+            pen.folder(folder, front);
+            let slash = if enabled { if dark { Color32::from_rgb(0x1a, 0x3a, 0x80) } else { Color32::from_rgb(0x1a, 0x4a, 0x8f) } } else { blue.line };
+            p.line_segment([pen.at(12.5, 9.0), pen.at(7.5, 15.0)], egui::Stroke::new(2.0, slash));
         }
         Btn::Home => {
-            glyph(icons::HOUSE_SIMPLE, 19.0, c);
-            p.text(c + Vec2::new(0.0, 2.5), Align2::CENTER_CENTER, "~", egui::FontId::monospace(9.5), color);
+            let walls = ink((0xf6, 0xe7, 0xc8), (0xf6, 0xe7, 0xc8), (0x7a, 0x55, 0x2a), dark, enabled);
+            let door = ink((0x9a, 0x5b, 0x26), (0xb0, 0x6a, 0x30), (0x5c, 0x34, 0x12), dark, enabled);
+            let roof = ink((0xd6, 0x3a, 0x30), (0xf0, 0x55, 0x48), (0x80, 0x1c, 0x16), dark, enabled);
+            pen.rect(3.5, 9.5, 16.5, 18.5, walls);
+            pen.rect(8.5, 12.5, 11.5, 18.5, door);
+            pen.shape((10.0, 7.0), &[(10.0, 1.5), (19.0, 10.5), (1.0, 10.5)], roof);
         }
+        Btn::Refresh => {
+            // A clockwise circle arrow (↻): an arc from the right round to the
+            // top, the head pointing on to the right.
+            let (cx, cy, r) = (10.0_f32, 10.5_f32, 6.0_f32);
+            let (a0, a1) = (15.0_f32, 270.0_f32);
+            let arc: Vec<Pos2> = (0..=24)
+                .map(|i| {
+                    let a = (a0 + (a1 - a0) * i as f32 / 24.0).to_radians();
+                    pen.at(cx + r * a.cos(), cy + r * a.sin())
+                })
+                .collect();
+            p.add(egui::Shape::line(arc.clone(), egui::Stroke::new(4.5, green.line)));
+            p.add(egui::Shape::line(arc, egui::Stroke::new(2.5, green.fill)));
+            let a = a1.to_radians();
+            let (ex, ey) = (cx + r * a.cos(), cy + r * a.sin());
+            let (tx, ty) = (-a.sin(), a.cos()); // the way the arc goes on
+            let (nx, ny) = (a.cos(), a.sin()); // outwards
+            let tip = (ex + tx * 4.5, ey + ty * 4.5);
+            let b1 = (ex - tx * 1.0 + nx * 4.0, ey - ty * 1.0 + ny * 4.0);
+            let b2 = (ex - tx * 1.0 - nx * 4.0, ey - ty * 1.0 - ny * 4.0);
+            pen.shape((ex + tx, ey + ty), &[tip, b1, b2], green);
+        }
+        Btn::Favorites => {
+            let gold = ink((0xf5, 0xc0, 0x18), (0xff, 0xd0, 0x40), (0x8f, 0x66, 0x00), dark, enabled);
+            let pts: Vec<(f32, f32)> = (0..10)
+                .map(|i| {
+                    let a = (-90.0_f32 + 36.0 * i as f32).to_radians();
+                    let r = if i % 2 == 0 { 9.0 } else { 3.8 };
+                    (10.0 + r * a.cos(), 10.8 + r * a.sin())
+                })
+                .collect();
+            pen.shape((10.0, 10.8), &pts, gold);
+        }
+    }
+}
+
+/// The folder (yellow) or archive (brown) glyph of the drop-down.
+fn glyph_color(archive: bool, dark: bool) -> Color32 {
+    match (archive, dark) {
+        (false, false) => Color32::from_rgb(0xb8, 0x86, 0x00),
+        (false, true) => Color32::from_rgb(0xf0, 0xc0, 0x40),
+        (true, false) => Color32::from_rgb(0x8a, 0x55, 0x22),
+        (true, true) => Color32::from_rgb(0xd8, 0xa0, 0x60),
     }
 }
 
@@ -224,7 +341,7 @@ impl Pane {
         let weak = vis.weak_text_color();
         let buttons = [Btn::Back, Btn::Forward, Btn::Up, Btn::Root, Btn::Home, Btn::Refresh, Btn::Favorites];
         // A narrow panel: the drop-down shrinks first, then the buttons.
-        let bw = ((width - 70.0) / buttons.len() as f32).clamp(22.0, 28.0);
+        let bw = ((width - 70.0) / buttons.len() as f32).clamp(24.0, 30.0);
         let combo_w = (width - buttons.len() as f32 * bw - 8.0).clamp(60.0, 280.0);
         let combo = Rect::from_min_size(rect.min + Vec2::new(0.0, 2.0), Vec2::new(combo_w, BAR_H - 4.0));
         // --- The drop-down ---
@@ -239,7 +356,8 @@ impl Pane {
             Some(st) if self.fs.parent(&self.path).is_none() => (icons::ARCHIVE, st.fs.name.clone()),
             _ => (icons::FOLDER_SIMPLE, folder_name(&self.path)),
         };
-        p.text(combo.left_center() + Vec2::new(13.0, 0.0), Align2::CENTER_CENTER, glyph, icons::font(16.0), color);
+        let gcolor = if searching { weak } else { glyph_color(glyph == icons::ARCHIVE, vis.dark_mode) };
+        p.text(combo.left_center() + Vec2::new(13.0, 0.0), Align2::CENTER_CENTER, glyph, icons::font(17.0), gcolor);
         let caret = combo.right_center() - Vec2::new(11.0, 0.0);
         p.text(caret, Align2::CENTER_CENTER, icons::CARET_DOWN, icons::font(12.0), color);
         let text_clip = Rect::from_min_max(combo.min + Vec2::new(24.0, 0.0), egui::pos2(caret.x - 9.0, combo.max.y));
@@ -269,7 +387,7 @@ impl Pane {
             if resp.hovered() && enabled {
                 p.rect_filled(r, 3.0, vis.widgets.hovered.weak_bg_fill);
             }
-            paint_icon(&p, r.center(), b, if enabled { fg } else { weak.gamma_multiply(0.6) });
+            paint_icon(&p, r.center(), b, vis.dark_mode, enabled);
             let tip = match b {
                 Btn::Back => tr!("Back (Alt+←)"),
                 Btn::Forward => tr!("Forward (Alt+→)"),

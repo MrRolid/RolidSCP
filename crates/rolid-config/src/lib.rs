@@ -427,6 +427,13 @@ pub struct Settings {
     /// Marking by a mask (and inverting) includes folders by default.
     #[serde(default, skip_serializing_if = "is_false")]
     pub mask_dirs: bool,
+    /// "Include folders" as last left in the Select group dialog (`None` =
+    /// the default above).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mark_group_dirs: Option<bool>,
+    /// The same for the Unselect group dialog.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unmark_group_dirs: Option<bool>,
     /// The Ext column in the detailed listing.
     #[serde(default, skip_serializing_if = "is_false")]
     pub ext_column: bool,
@@ -705,6 +712,26 @@ impl Settings {
         self.mark_masks.truncate(10);
     }
 
+    /// "Include folders" when the Select (`mark`) or Unselect group dialog
+    /// opens: as last left there, otherwise the default. On a production
+    /// server always off.
+    pub fn mark_group_dirs(&self, mark: bool, production: bool) -> bool {
+        if production {
+            return false;
+        }
+        let last = if mark { self.mark_group_dirs } else { self.unmark_group_dirs };
+        last.unwrap_or(self.mask_dirs)
+    }
+
+    /// Remember "Include folders" as the dialog was confirmed; a dialog on
+    /// a production server (where it always opens off) changes nothing.
+    pub fn remember_mark_group_dirs(&mut self, mark: bool, dirs: bool, production: bool) {
+        if production {
+            return;
+        }
+        *(if mark { &mut self.mark_group_dirs } else { &mut self.unmark_group_dirs }) = Some(dirs);
+    }
+
     /// F5: overwrite, as before, unless set otherwise.
     pub fn copy_preset(&self) -> ConflictPreset {
         self.copy_conflict.unwrap_or(ConflictPreset::Overwrite)
@@ -903,6 +930,35 @@ mod tests {
         // An old settings.toml without the keys still loads.
         let old: Settings = toml::from_str("speed_limit_kib = 4096\n").unwrap();
         assert_eq!(old.drop_preset(), ConflictPreset::Skip);
+    }
+
+    #[test]
+    fn include_folders_of_mask_marking_is_remembered() {
+        let mut s = super::Settings::default();
+        // Nothing remembered yet: the default from Settings, both dialogs.
+        assert!(!s.mark_group_dirs(true, false) && !s.mark_group_dirs(false, false));
+        s.mask_dirs = true;
+        assert!(s.mark_group_dirs(true, false) && s.mark_group_dirs(false, false));
+        // Select group: turned off and confirmed; Unselect keeps its own.
+        s.remember_mark_group_dirs(true, false, false);
+        assert!(!s.mark_group_dirs(true, false));
+        assert!(s.mark_group_dirs(false, false));
+        s.remember_mark_group_dirs(false, true, false);
+        // Survives a restart (written and read back), the last mask too.
+        s.remember_mask("*.log");
+        let text = toml::to_string_pretty(&s).unwrap();
+        let mut back: super::Settings = toml::from_str(&text).unwrap();
+        assert!(!back.mark_group_dirs(true, false) && back.mark_group_dirs(false, false));
+        assert_eq!(back.mark_masks.first().map(String::as_str), Some("*.log"));
+        // Production: always opens off, and confirming there changes nothing.
+        back.remember_mark_group_dirs(true, true, false);
+        assert!(!back.mark_group_dirs(true, true) && !back.mark_group_dirs(false, true));
+        back.remember_mark_group_dirs(true, false, true);
+        back.remember_mark_group_dirs(false, false, true);
+        assert!(back.mark_group_dirs(true, false) && back.mark_group_dirs(false, false));
+        // Old settings without the keys.
+        let old: super::Settings = toml::from_str("mask_dirs = true\n").unwrap();
+        assert!(old.mark_group_dirs(true, false));
     }
 
     #[test]

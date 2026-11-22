@@ -2,7 +2,7 @@
 """Send keyboard and mouse input to an X display through XTEST (for the
 frame-time measurement in gui-frames.sh; uses only libX11 and libXtst).
 
-  xinput.py focus TITLE | key COMBO | type TEXT | wheel DOWN|UP N | move X Y | click MODS X Y | sleep S ...
+  xinput.py focus TITLE | key COMBO | type TEXT | wheel DOWN|UP N | move X Y | click MODS X Y | mclick X Y | dclick X Y | sleep S ...
 
 MODS for click is none, shift or ctrl.
 
@@ -115,6 +115,21 @@ while i < len(args):
         x.XFlush(d)
         time.sleep(0.1)
         i += 4
+    elif c in ("mclick", "dclick"):
+        # The middle button, or a double click with the left one.
+        t.XTestFakeMotionEvent(d, -1, int(args[i + 1]), int(args[i + 2]), 0)
+        x.XFlush(d)
+        time.sleep(0.1)
+        button, times = (2, 1) if c == "mclick" else (1, 2)
+        for _ in range(times):
+            t.XTestFakeButtonEvent(d, button, 1, 0)
+            x.XFlush(d)
+            time.sleep(0.04)
+            t.XTestFakeButtonEvent(d, button, 0, 0)
+            x.XFlush(d)
+            time.sleep(0.06)
+        time.sleep(0.1)
+        i += 3
     elif c == "sleep":
         time.sleep(float(args[i + 1]))
         i += 2
