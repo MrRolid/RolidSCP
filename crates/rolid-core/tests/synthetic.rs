@@ -548,6 +548,52 @@ async fn a_job_continued_after_a_lost_connection_counts_each_byte_once() {
     assert_eq!(p.bytes_done.saturating_add(p.bytes_resumed), size, "shown at the end: {} + {}", p.bytes_done, p.bytes_resumed);
 }
 
+/// A move interrupted after some files were complete in the target, then
+/// started again with "Resume": those files are moved too, but only when the
+/// checksums are compared (and match).
+#[tokio::test]
+async fn a_move_continued_with_resume_deletes_sources_already_copied_only_after_checksums() {
+    for verify in [true, false] {
+        let (src, dst) = pair(true);
+        src.put("/src/d", Node::Dir);
+        src.put("/src/d/done.bin", Node::Pattern(3 * MIB));
+        src.put("/src/d/todo.bin", Node::Pattern(5 * MIB));
+        // The first run had copied done.bin completely.
+        dst.put("/dst/d", Node::Dir);
+        dst.put("/dst/d/done.bin", Node::Pattern(3 * MIB));
+        static NOOP: fn(&Progress) = |_| {};
+        let mut job = CopyJob::new(&src, &dst, Arc::new(AtomicBool::new(false)), &NOOP).with_conflict(Conflict::Resume).moving().verify_moved(verify);
+        job.copy_items_retrying(&[("/src".into(), "d".into())], "/dst", 0, |_| async { false }).await.expect("move");
+        let c = job.delete_moved_sources().await;
+        assert!(c.mismatch.is_empty() && c.changed.is_empty(), "{c:?}");
+        assert_eq!(src.size("/src/d/todo.bin"), None, "verify {verify}: copied now, source deleted");
+        assert_eq!(dst.size("/dst/d/todo.bin"), Some(5 * MIB));
+        assert_eq!(dst.size("/dst/d/done.bin"), Some(3 * MIB));
+        let done_src = src.size("/src/d/done.bin");
+        if verify {
+            assert_eq!(done_src, None, "same checksum: the source of the file copied before is deleted");
+        } else {
+            assert_eq!(done_src, Some(3 * MIB), "without checksums the source stays");
+        }
+    }
+}
+
+/// Stopped after the finished file was put in place but before its info
+/// file was deleted: a copy continued with "Resume" skips the file (it is
+/// complete) and deletes the info file nothing refers to any more.
+#[tokio::test]
+async fn an_info_file_left_next_to_a_finished_file_is_cleaned_up() {
+    let (src, dst) = pair(true);
+    src.put("/src/f.bin", Node::Pattern(3 * MIB));
+    dst.put("/dst/f.bin", Node::Pattern(3 * MIB));
+    dst.put("/dst/f.bin.filepart-info", Node::Bytes(b"rolidscp-filepart 1\n".to_vec()));
+    let seen = Seen::default();
+    copy(&src, &dst, &["f.bin"], Conflict::Resume, Arc::new(AtomicBool::new(false)), &seen).await.expect("copy");
+    assert_eq!(dst.size("/dst/f.bin"), Some(3 * MIB));
+    assert_eq!(dst.size("/dst/f.bin.filepart-info"), None, "the leftover info file is gone");
+    assert_eq!(dst.written(), 0, "the complete file is not written again");
+}
+
 #[test]
 fn the_target_notices_a_wrong_byte() {
     let mut a = vec![0u8; 100];

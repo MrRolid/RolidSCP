@@ -579,9 +579,7 @@ impl<'a> CopyJob<'a> {
                 // conflict choice decides from the listing; skipping costs nothing.
                 if let Some(t) = present.as_ref().filter(|p| e.kind == EntryKind::File && only_target(p, &e.name)).and_then(|p| p.get(&e.name)) {
                     if !self.state.completed.contains(&d) && !self.overwrites(&e, t) {
-                        self.progress.files_skipped += 1;
-                        self.state.completed.insert(d);
-                        (self.on_progress)(&self.progress);
+                        self.skip_existing(&s, &d, &e);
                         continue;
                     }
                 }
@@ -783,9 +781,16 @@ impl<'a> CopyJob<'a> {
         let offset = match plan {
             Plan::Done => return Ok(()),
             Plan::Skip => {
-                self.progress.files_skipped += 1;
-                self.state.completed.insert(dst_path.to_owned());
-                (self.on_progress)(&self.progress);
+                if !free {
+                    // An info file without its part file: the program was
+                    // stopped after the file was put in place, before the
+                    // info file was deleted. Nothing refers to it any more.
+                    let info = info_path(dst_path);
+                    if self.dst.stat(&part_path).await.is_err() && self.dst.stat(&info).await.is_ok() {
+                        let _ = self.dst.remove_file(&info).await;
+                    }
+                }
+                self.skip_existing(src_path, dst_path, src);
                 return Ok(());
             }
             Plan::NotResumed => {
@@ -892,6 +897,24 @@ impl<'a> CopyJob<'a> {
 }
 
 impl CopyJob<'_> {
+    /// The target is there and the conflict choice keeps it. A move continued
+    /// with "Resume" after an interruption moves such a file too (it is the
+    /// one copied before the interruption): its source is deleted only when
+    /// the checksums match, never without comparing them.
+    fn skip_existing(&mut self, src_path: &str, dst_path: &str, src: &Entry) {
+        if self.moving && self.verify && self.conflict == Conflict::Resume {
+            self.state.moved_files.push(Moved {
+                src: src_path.to_owned(),
+                dst: dst_path.to_owned(),
+                size: src.size,
+                modified: src.modified,
+            });
+        }
+        self.progress.files_skipped += 1;
+        self.state.completed.insert(dst_path.to_owned());
+        (self.on_progress)(&self.progress);
+    }
+
     /// A write to the target failed. When its disk is full or the quota is
     /// used up, say so and that "Try again" continues once there is room (the
     /// written part is kept). A server often answers only "Failure": then its
