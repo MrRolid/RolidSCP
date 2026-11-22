@@ -37,6 +37,8 @@ catch it again.
   going to sleep and waking up during a session. Moved from 0.8.16: a real file over 100 GB copied
   to a server and back, interrupted and continued, and a transfer running overnight with memory
   checks.
+  Also: the news in the program translated into all eight languages, and release tags always
+  annotated.
 - **0.8.18 Servers and distributions:** different OpenSSH versions, Dropbear, SFTP-only servers
   without a shell, BusyBox, NAS devices and Windows servers; Debian, Ubuntu, Linux Mint, Fedora,
   openSUSE and Arch; X11 and Wayland; high-DPI screens. A broken or hostile server (odd names, huge
@@ -63,6 +65,14 @@ catch it again.
 - Connecting through a jump host (ProxyJump): a connection can go through another saved
   connection, with its own key or password; the keys of both servers are checked, the connection
   is restored after a drop-out, and the terminal (Ctrl+P) goes the same way.
+- Several ways to one server: a connection can have more than one address, for example one in the
+  local network and one through a jump host. They are tried in the order you set, the local network
+  first; when one does not work, the next is used. After a drop-out the program starts again from
+  the first one, and it shows which way you are connected.
+- SOCKS5 and HTTP CONNECT proxies and `ProxyCommand`, also when they come from `~/.ssh/config`.
+- Server keys checked against `~/.ssh/known_hosts` too, next to the program's own file. The program
+  never writes to `~/.ssh/known_hosts`: keys you accept go only to its own file. When the two files
+  disagree about a server, the program does not connect and tells you why.
 - Duplicating a connection in the site manager: a copy with all settings; you choose whether the
   saved password is copied too.
 - Trash for local deleting.
@@ -77,6 +87,10 @@ and "Open with" associations per file type.
 ## 1.0 alpha and later: large features
 
 - A Windows version from the same code, with the system-specific parts in separate modules.
+- FTP and FTPS (explicit and implicit TLS) as another protocol: listings, transfers, resuming,
+  reconnecting after a drop-out and the same protections of your data as with SFTP. Passwords only
+  in the password vault; plain FTP without encryption only when you allow it in the connection
+  settings.
 - File sharing in the local network, compatible with the LocalSend protocol.
 - A transfer queue that survives a restart of the program.
 - Comparing and synchronizing folders.
