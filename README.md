@@ -4,7 +4,7 @@ A dual-panel file manager for local disks and SFTP servers, inspired by WinSCP a
 Written in Rust with an [egui](https://github.com/emilk/egui) GUI. The main idea: **color-coded tabs,
 each holding a session**, and fast switching between them.
 
-![RolidSCP with a local panel and a panel on an SFTP server](docs/screenshot.png)
+![RolidSCP with a local panel and a panel on an SFTP server](docs/screenshots/hero.png)
 
 > **Status:** beta (developer version), Linux only for now. The user interface is in English, Czech,
 > German, French, Polish, Spanish, Norwegian (Bokmål) and Danish; the language follows the system and
@@ -478,7 +478,7 @@ po/              translations (gettext .po) and the template rolidscp.pot
 help/            F1 help pages per language (Markdown)
 scripts/         update-po.sh
 packaging/       package scripts (deb, rpm, AppImage), desktop entry, icon, cargo-about configuration
-docs/            Czech manual, screenshot, release notes (docs/releases/)
+docs/            Czech manual, screenshots (docs/screenshots/), release notes (docs/releases/)
 .github/         build and release workflow
 ```
 

@@ -3,7 +3,7 @@
 Dvoupanelový správce souborů pro lokální disky a SFTP servery, inspirovaný WinSCP a Total Commanderem.
 Napsaný v Rustu, GUI v egui. Hlavní myšlenka: **barevně odlišené záložky se session** a rychlé přepínání mezi nimi.
 
-![RolidSCP s lokálním panelem a panelem na SFTP serveru](screenshot.png)
+![RolidSCP s lokálním panelem a panelem na SFTP serveru](screenshots/hero.png)
 
 Co přijde dál – nejdřív spolehlivost, potom nové funkce – popisuje [plán vývoje](../ROADMAP.md) (anglicky).
 

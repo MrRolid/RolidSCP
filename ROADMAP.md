@@ -78,6 +78,10 @@ catch it again.
 - Trash for local deleting.
 - Custom keyboard shortcuts.
 - Custom columns: which columns, in which order.
+- A command line under the panels: on the left the current folder, then a field for a command. In
+  a local panel the command runs in the current folder, in a server panel over SSH in the current
+  remote folder. The output appears in a window. On a production server the command needs a
+  confirmation first. A history of commands, never with passwords in it.
 - A log of operations you can browse.
 - Import of saved sites from WinSCP and FileZilla.
 
