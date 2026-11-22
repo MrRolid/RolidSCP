@@ -721,7 +721,8 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
                      a key keeps the marks, Ctrl+A marks all and a second press unmarks (Tools → Select to the top / \
                      to the bottom); marking stays fast in a folder of a million files and survives a refresh, \
                      sorting and the filter; a full disk or a used-up quota is named and “Try again” continues where \
-                     the transfer stopped; after a lost connection the progress no longer counts the resumed part \
+                     the transfer stopped; a move continued after the program was killed finishes and leaves no \
+                     helper files; after a lost connection the progress no longer counts the resumed part \
                      twice; the remaining time shows days; sizes of petabytes and more are added up without \
                      overflowing; the journal of replaced files and the records of F4 copies are flushed to the \
                      disk."
