@@ -13,8 +13,8 @@ pub fn score(name: &str, query: &str) -> Option<i32> {
     score_unicode(name, query)
 }
 
-/// [`score`] for ASCII text, without allocating.
-fn score_ascii(n: &[u8], q: &[u8]) -> Option<i32> {
+/// [`score`] for ASCII text (both `n` and `q`), without allocating.
+pub fn score_ascii(n: &[u8], q: &[u8]) -> Option<i32> {
     let same = |a: &[u8]| a.iter().zip(q).all(|(x, y)| x.eq_ignore_ascii_case(y));
     if n.len() >= q.len() {
         if same(&n[..q.len()]) {

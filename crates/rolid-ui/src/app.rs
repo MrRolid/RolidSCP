@@ -1860,18 +1860,25 @@ impl App {
                 let at = a.active_ref();
                 a.activate_entry(at);
             });
-            on!(Modifiers::NONE, Key::Backspace, |a: &mut Self| {
-                let at = a.active_ref();
-                let filtering = a.pane(at).map(|p| !p.filter.is_empty()).unwrap_or(false);
-                if filtering {
-                    with_pane(a, |p| {
-                        p.filter.pop();
-                        p.rebuild_view();
-                    });
-                } else {
-                    a.go_up(at);
-                }
-            });
+            // Several Backspaces in one frame (fast typing) each take a letter
+            // of the filter; the view is made once.
+            let backspaces = i.count_and_consume_key(Modifiers::NONE, Key::Backspace);
+            if backspaces > 0 {
+                actions.push(Box::new(move |a: &mut Self| {
+                    let at = a.active_ref();
+                    let filtering = a.pane(at).map(|p| !p.filter.is_empty()).unwrap_or(false);
+                    if filtering {
+                        with_pane(a, |p| {
+                            for _ in 0..backspaces {
+                                p.filter.pop();
+                            }
+                            p.rebuild_view();
+                        });
+                    } else {
+                        a.go_up(at);
+                    }
+                }));
+            }
             on!(Modifiers::NONE, Key::Escape, |a: &mut Self| {
                 let at = a.active_ref();
                 let Some(p) = a.pane_mut(at) else { return };

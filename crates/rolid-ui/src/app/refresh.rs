@@ -274,7 +274,7 @@ impl App {
             let l = if i == last {
                 listing.take()
             } else {
-                listing.as_ref().map(|l| Prepared { entries: l.entries.clone(), sorted: l.sorted, print: l.print })
+                listing.as_ref().map(|l| Prepared { entries: l.entries.clone(), sorted: l.sorted, print: l.print, names: l.names.clone() })
             };
             if let (Some(p), Some(l)) = (self.pane_mut(at), l) {
                 if p.update_prepared(l) {

@@ -7,6 +7,7 @@ pub mod inline;
 pub mod kinds;
 pub mod layout;
 pub mod marks;
+pub mod names;
 pub mod navbar;
 pub mod thumbs;
 pub mod views;
@@ -69,6 +70,11 @@ pub struct Pane {
     listed_print: Option<u64>,
     /// Counted up whenever `entries` or the computed folder sizes change.
     entries_gen: u64,
+    /// `entries_gen` when the view was last made: the same entries, so the
+    /// item under the cursor is found again by its index, not its name.
+    view_entries_gen: u64,
+    /// The names in one block for the quick filter, for `entries_gen`.
+    names: Option<(u64, Arc<names::NameIndex>)>,
     sizes_gen: u64,
     /// The footer text of a big folder and what it was made from.
     footer: Option<((u64, u64, u64), String)>,
@@ -329,6 +335,8 @@ impl Pane {
             narrow: None,
             listed_print: None,
             entries_gen: 0,
+            names: None,
+            view_entries_gen: u64::MAX,
             sizes_gen: 0,
             footer: None,
             all_sums: None,
@@ -603,7 +611,7 @@ impl Pane {
 
     /// [`Pane::set_listing`] with a listing prepared in the background.
     pub fn set_prepared(&mut self, path: String, listing: Prepared, select: Option<&str>) {
-        let Prepared { entries, sorted, print } = listing;
+        let Prepared { entries, sorted, print, names } = listing;
         let was_search = self.search.is_some();
         self.exit_search();
         let same_dir = path == self.path && !was_search;
@@ -629,7 +637,7 @@ impl Pane {
         self.error = None;
         self.loaded_at = Some(Instant::now());
         self.forget_missing();
-        self.sort_unless(sorted);
+        self.sort_unless(sorted, names);
         self.rebuild_view();
         let want = select.map(str::to_owned).or(keep);
         self.cursor = 0;
@@ -668,7 +676,7 @@ impl Pane {
         if self.search.is_some() || self.archive.is_some() {
             return false;
         }
-        let Prepared { entries, sorted, print } = listing;
+        let Prepared { entries, sorted, print, names } = listing;
         if self.listed_print == Some(print) && self.entries.len() == entries.len() {
             drop_later(entries);
             return false;
@@ -682,7 +690,7 @@ impl Pane {
         self.listed_print = Some(print);
         self.error = None;
         self.forget_missing();
-        self.sort_unless(sorted);
+        self.sort_unless(sorted, names);
         self.rebuild_view();
         let at = keep.and_then(|n| self.find_row(&n, old_cursor));
         self.cursor = at.unwrap_or(old_cursor).min(self.view.len().saturating_sub(1));
@@ -803,10 +811,13 @@ impl Pane {
     }
 
     /// Sort `entries`, unless they already come sorted the panel's way.
-    fn sort_unless(&mut self, sorted: Option<(SortKey, bool)>) {
+    /// Sort the new entries unless they came sorted the panel's way; `names`
+    /// is their name block made in the background (in the order they came).
+    fn sort_unless(&mut self, sorted: Option<(SortKey, bool)>, names: Option<Arc<names::NameIndex>>) {
         let by_size_with_sizes = self.sort == SortKey::Size && !self.dir_sizes.is_empty();
         if sorted == Some((self.sort, self.sort_asc)) && !by_size_with_sizes {
             self.entries_changed();
+            self.names = names.filter(|n| n.len() == self.entries.len()).map(|n| (self.entries_gen, n));
         } else {
             self.sort_entries();
         }
@@ -869,6 +880,8 @@ impl Pane {
         }
         self.stroke = None;
         self.entries_changed();
+        // The name block in the new order (sorting a big folder takes far longer).
+        self.names = names::NameIndex::new(&self.entries).map(|n| (self.entries_gen, Arc::new(n)));
         // Sorting changes the order, not the sums.
         self.all_sums = all.map(|(_, a)| ((self.entries_gen, self.sizes_gen), a));
         self.marks_sums = marks.map(|m| ((self.entries_gen, self.marked.generation(), self.sizes_gen), m));
@@ -895,8 +908,16 @@ impl Pane {
         self.rename = None;
         self.stroke = None;
         self.view_gen += 1;
-        let keep = self.current_name();
-        let prev_view = std::mem::take(&mut self.view);
+        // The same entries as in the old view: the cursor's item by index
+        // (looking for a name among a million rows took 0.1 s).
+        let same_entries = self.view_entries_gen == self.entries_gen;
+        let keep_index = match self.view.get(self.cursor) {
+            Some(Row::Entry(i)) if same_entries => Some(*i),
+            _ => None,
+        };
+        let keep = if keep_index.is_some() { None } else { self.current_name() };
+        self.view_entries_gen = self.entries_gen;
+        let mut prev_view = std::mem::take(&mut self.view);
         if self.filter.is_empty() {
             // The old rows' memory is used again (a million rows).
             let mut view = prev_view;
@@ -908,25 +929,39 @@ impl Pane {
             view.extend((0..self.entries.len()).map(Row::Entry));
             self.view = view;
         } else {
-            // A longer filter matches only rows the shorter one matched.
+            // A longer filter matches only rows the shorter one matched (in
+            // the listing's order: equal scores keep the folders-first order).
             let narrowed = self.narrow.as_deref().is_some_and(|prev| self.filter.starts_with(prev));
-            let candidates: Vec<usize> = if narrowed {
-                prev_view.iter().filter_map(|r| if let Row::Entry(i) = r { Some(*i) } else { None }).collect()
-            } else {
-                (0..self.entries.len()).collect()
+            let n = self.entries.len();
+            let some = narrowed.then(|| names::in_order(prev_view.iter().filter_map(|r| if let Row::Entry(i) = r { Some(*i) } else { None }), n));
+            let candidates = match &some {
+                Some(v) => names::Candidates::Some(v),
+                None => names::Candidates::All(n),
             };
             let (entries, query) = (&self.entries, self.filter.as_str());
-            let scored = par_filter_map(&candidates, &|i| filter::score(&entries[i].name, query).map(|s| (s, i)));
-            // Keep directory-first sort order among equal scores (indices are unique).
-            let scored = par_sort_by(scored, &|a: &(i32, usize), b: &(i32, usize)| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
-            self.view
-                .extend(scored.into_iter().map(|(_, i)| Row::Entry(i)));
+            let block = self.names.as_ref().filter(|(g, ix)| *g == self.entries_gen && ix.len() == n).map(|(_, ix)| ix.clone());
+            let scored = match &block {
+                Some(ix) => names::score_all(&candidates, &|i| ix.score(i, entries, query)),
+                None => names::score_all(&candidates, &|i| filter::score(&entries[i].name, query)),
+            };
+            let ranked = names::rank(scored);
+            // The old rows' memory again (a new million-row block costs page faults).
+            prev_view.clear();
+            self.view = prev_view;
+            self.view.reserve(ranked.len());
+            self.view.extend(ranked.into_iter().map(|i| Row::Entry(i as usize)));
         }
         self.narrow = (!self.filter.is_empty()).then(|| self.filter.clone());
         let near = self.cursor;
         self.cursor = 0;
         if !self.filter.is_empty() {
             // While filtering, the best match is selected.
+        } else if let Some(i) = keep_index {
+            // Unfiltered, entry i is on row i (after "..").
+            let row = i + usize::from(matches!(self.view.first(), Some(Row::Up)));
+            if matches!(self.view.get(row), Some(Row::Entry(j)) if *j == i) {
+                self.cursor = row;
+            }
         } else if let Some(k) = keep {
             if let Some(pos) = self.find_row(&k, near) {
                 self.cursor = pos;
@@ -1326,6 +1361,8 @@ impl Pane {
     pub fn rename_entry(&mut self, from: &str, to: &str) {
         if let Some(e) = self.entries.iter_mut().find(|e| e.name == from) {
             e.name = to.to_string();
+            // The filter's block has the old name.
+            self.names = None;
         }
     }
 
@@ -2030,6 +2067,8 @@ pub struct Prepared {
     /// Sorted by this key and direction (`None` = as listed).
     pub sorted: Option<(SortKey, bool)>,
     pub print: u64,
+    /// The names in one block for the quick filter (big folders).
+    pub names: Option<Arc<names::NameIndex>>,
 }
 
 impl Prepared {
@@ -2041,7 +2080,9 @@ impl Prepared {
             Some((key, asc)) => sorted(entries, &itself, key, asc, &HashMap::new()),
             None => entries,
         };
-        Prepared { entries, sorted: sort, print }
+        // Only in the final order (unsorted entries are sorted by the panel).
+        let names = sort.and_then(|_| names::NameIndex::new(&entries)).map(Arc::new);
+        Prepared { entries, sorted: sort, print, names }
     }
 }
 
@@ -2111,7 +2152,7 @@ fn sorted<T: Send>(entries: Vec<T>, ent: &(impl Fn(&T) -> &Entry + Sync), key: S
 
 /// Threads for sorting and filtering a big listing (a million names take
 /// seconds on one).
-fn threads_for(len: usize) -> usize {
+pub(crate) fn threads_for(len: usize) -> usize {
     if len < 50_000 {
         return 1;
     }
@@ -2728,11 +2769,11 @@ mod tests {
         }
         // Claimed sorted: not sorted again on the UI thread.
         let mut p = Pane::new(Arc::new(rolid_local::LocalFs), "/a".into());
-        let claimed = Prepared { entries: vec![ent("z", false), ent("a", false)], sorted: Some((SortKey::Name, true)), print: 1 };
+        let claimed = Prepared { entries: vec![ent("z", false), ent("a", false)], sorted: Some((SortKey::Name, true)), print: 1, names: None };
         p.set_prepared("/a".into(), claimed, None);
         assert_eq!(p.entries[0].name, "z");
         // The same fingerprint again: nothing changes; another one: the new listing.
-        assert!(!p.update_prepared(Prepared { entries: vec![ent("z", false), ent("a", false)], sorted: Some((SortKey::Name, true)), print: 1 }));
+        assert!(!p.update_prepared(Prepared { entries: vec![ent("z", false), ent("a", false)], sorted: Some((SortKey::Name, true)), print: 1, names: None }));
         assert!(p.update_prepared(Prepared::new(vec![ent("q", false)], Some((SortKey::Name, true)))));
         assert_eq!(p.entries[0].name, "q");
     }
@@ -2941,6 +2982,49 @@ mod tests {
         p.rebuild_view();
         assert!(shown(&p).contains(&"f1200-new".to_string()));
         assert_eq!(shown(&p), fresh(&p, "f120"));
+    }
+
+    /// A big folder filters through the name block: the same rows as scoring
+    /// each name, the cursor's item kept after the filter is cleared, a
+    /// renamed item found by its new name.
+    #[test]
+    fn big_folder_filter_uses_the_name_block() {
+        let n = names::MIN_ITEMS + 1000;
+        let mut list: Vec<Entry> = (0..n).map(|i| ent(&format!("f{i:06}"), false)).collect();
+        list.push(ent("zeta.txt", false));
+        list.push(ent("Žluťoučký f1", false));
+        list.push(ent("folder-f1", true));
+        let mut p = Pane::new(Arc::new(rolid_local::LocalFs), "/a/b".into());
+        p.set_listing("/a/b".into(), list, None);
+        assert!(p.names.as_ref().is_some_and(|(g, _)| *g == p.entries_gen), "made when sorted");
+        let shown = |p: &Pane| -> Vec<usize> { p.view.iter().filter_map(|r| if let Row::Entry(i) = r { Some(*i) } else { None }).collect() };
+        let want = |p: &Pane, q: &str| -> Vec<usize> {
+            let mut v: Vec<(i32, usize)> = p.entries.iter().enumerate().filter_map(|(i, e)| filter::score(&e.name, q).map(|s| (s, i))).collect();
+            v.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+            v.into_iter().map(|(_, i)| i).collect()
+        };
+        for q in ["f", "f0", "f05", "f0512", "f05", "f1", "kůň", "ž", "zzz", "f"] {
+            p.filter = q.into();
+            p.rebuild_view();
+            assert_eq!(shown(&p), want(&p, q), "{q}");
+        }
+        // The folder comes first among equal scores ("f1" matches "folder-f1" fuzzily, lower).
+        // The cursor on a match far down, then the filter cleared: still on it.
+        p.filter = "f040123".into();
+        p.rebuild_view();
+        assert_eq!(p.current_name().as_deref(), Some("f040123"));
+        p.filter.clear();
+        p.rebuild_view();
+        assert_eq!(p.current_name().as_deref(), Some("f040123"));
+        assert_eq!(p.cursor, p.entries.iter().position(|e| e.name == "f040123").unwrap() + 1, "after “..”");
+        // Renamed in place: found by the new name.
+        p.rename_entry("zeta.txt", "omega.txt");
+        p.filter = "omega".into();
+        p.rebuild_view();
+        assert_eq!(p.current_name().as_deref(), Some("omega.txt"));
+        p.filter = "zeta".into();
+        p.rebuild_view();
+        assert_ne!(p.current_name().as_deref(), Some("zeta.txt"));
     }
 
     #[test]
