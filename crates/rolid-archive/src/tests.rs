@@ -844,3 +844,112 @@ fn the_part_file_of_a_long_name_fits() {
         assert_ne!(p, part_path(&d.join(format!("{name}z"))));
     }
 }
+
+/// Packing and extracting report the part file they write; the journal holds
+/// it while it is written and nothing once the job ends (also on cancel).
+#[test]
+fn part_file_is_recorded_while_written() {
+    use crate::journal::PartJournal;
+    let t = tempfile::tempdir().unwrap();
+    let src = tree(t.path());
+    let jdir = t.path().join("parts");
+    let out = t.path().join("a.tar.zst");
+    let j = PartJournal::create(&jdir).unwrap();
+    let rec = fs::read_dir(&jdir).unwrap().next().unwrap().unwrap().path();
+    let seen = std::sync::Mutex::new(Vec::<Option<PathBuf>>::new());
+    let mid = std::sync::Mutex::new(None::<Vec<u8>>);
+    let on = |tk: Tick<'_>| {
+        j.note(&tk);
+        match tk {
+            Tick::Part(p) => seen.lock().unwrap().push(p.map(Path::to_path_buf)),
+            Tick::Bytes(_) => {
+                let mut m = mid.lock().unwrap();
+                if m.is_none() {
+                    *m = Some(fs::read(&rec).unwrap());
+                }
+            }
+            _ => {}
+        }
+    };
+    let cancel = AtomicBool::new(false);
+    pack(std::slice::from_ref(&src), &out, Format::TarZst, Level::Fast, None, &Ctl { cancel: &cancel, on: &on }).unwrap();
+    let part = part_path(&out);
+    assert_eq!(*seen.lock().unwrap(), vec![Some(part.clone()), None]);
+    let mut want = part.as_os_str().as_encoded_bytes().to_vec();
+    want.push(0);
+    assert_eq!(mid.lock().unwrap().clone(), Some(want), "the record names the part file while it is written");
+    assert_eq!(fs::read(&rec).unwrap(), b"\0", "nothing once it is renamed");
+
+    // Extracting: every part file is announced and then cleared.
+    seen.lock().unwrap().clear();
+    let dest = t.path().join("x");
+    fs::create_dir(&dest).unwrap();
+    extract(&out, Format::TarZst, &dest, &ReadOpts::new(), Limits::default(), Exist::Overwrite, None, &Ctl { cancel: &cancel, on: &on }).unwrap();
+    let s = seen.lock().unwrap().clone();
+    assert_eq!(s.len(), 12, "six files: {s:?}");
+    assert!(s.chunks(2).all(|c| c[0].as_ref().is_some_and(|p| p.to_string_lossy().ends_with(".filepart")) && c[1].is_none()), "{s:?}");
+    // Canceled in the middle: the part file is gone and the record cleared.
+    let cancel_now = AtomicBool::new(false);
+    let on2 = |tk: Tick<'_>| {
+        j.note(&tk);
+        if matches!(tk, Tick::Bytes(_)) {
+            cancel_now.store(true, Ordering::Relaxed);
+        }
+    };
+    let out2 = t.path().join("b.tar.zst");
+    let r = pack(&[src], &out2, Format::TarZst, Level::Fast, None, &Ctl { cancel: &cancel_now, on: &on2 });
+    assert!(matches!(r, Err(Error::Canceled)), "{r:?}");
+    assert!(!part_path(&out2).exists());
+    assert_eq!(fs::read(&rec).unwrap(), b"\0");
+    drop(j);
+    assert!(!rec.exists(), "a finished job removes its record");
+}
+
+/// After a kill: the part file of a job whose process is gone is removed at
+/// the next start; a running job, other files and links are left alone.
+#[test]
+fn part_files_of_dead_jobs_are_cleaned_up() {
+    use crate::journal::clean;
+    let t = tempfile::tempdir().unwrap();
+    let jdir = t.path().join("parts");
+    fs::create_dir(&jdir).unwrap();
+    // No process can have this number (above the kernel's largest).
+    let dead = 4_294_967u32;
+    let record = |name: &str, path: &Path| {
+        let mut b = path.as_os_str().as_encoded_bytes().to_vec();
+        b.push(0);
+        // A longer, older record was there before: the rest after NUL is ignored.
+        b.extend_from_slice(b"/old/longer/path.filepart");
+        fs::write(jdir.join(name), b).unwrap();
+    };
+    let left = t.path().join("big archive.zip.filepart");
+    fs::write(&left, "half an archive").unwrap();
+    record(&format!("{dead}-0.parts"), &left);
+    // A running process (this one) keeps its part file.
+    let running = t.path().join("running.7z.filepart");
+    fs::write(&running, "being written").unwrap();
+    record(&format!("{}-7.parts", std::process::id()), &running);
+    // Not a part file: never removed.
+    let other = t.path().join("important.txt");
+    fs::write(&other, "keep").unwrap();
+    record(&format!("{dead}-1.parts"), &other);
+    // A link named like a part file: never followed or removed.
+    let target = t.path().join("target.txt");
+    fs::write(&target, "keep").unwrap();
+    let link = t.path().join("link.filepart");
+    symlink(&target, &link).unwrap();
+    record(&format!("{dead}-2.parts"), &link);
+    // A record of a job that had no part file at the moment.
+    fs::write(jdir.join(format!("{dead}-3.parts")), b"\0").unwrap();
+    // Something else in the folder.
+    fs::write(jdir.join("notes.txt"), "x").unwrap();
+
+    let removed = clean(&jdir);
+    assert_eq!(removed, vec![left.clone()]);
+    assert!(!left.exists() && running.exists() && other.exists() && target.exists());
+    assert!(fs::symlink_metadata(&link).is_ok());
+    let mut names: Vec<String> = fs::read_dir(&jdir).unwrap().map(|e| e.unwrap().file_name().to_string_lossy().into_owned()).collect();
+    names.sort();
+    assert_eq!(names, vec![format!("{}-7.parts", std::process::id()), "notes.txt".to_string()], "records of dead jobs are gone");
+    assert!(clean(&t.path().join("missing")).is_empty());
+}

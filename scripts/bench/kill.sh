@@ -7,20 +7,22 @@
 # is finished the way the program does it and compared byte by byte
 # (crates/rolid-ui/src/bench_kill.rs).
 #
-#   scripts/bench/kill.sh [-n ROUNDS] BASE [RESULTS.tsv]
+#   scripts/bench/kill.sh [-n ROUNDS] [-o OPS] BASE [RESULTS.tsv]
 #
 # BASE    an empty or missing folder on a real disk (about 400 MB are used).
 # ROUNDS  kills in all, spread over the operations (default 200).
+# OPS     only these operations, comma-separated (e.g. pack,unpack).
 #
 # Needs OpenSSH (sshd, ssh-keygen). Nothing is written to ~/.ssh. Processes
 # are stopped by the PIDs they were started with.
 set -euo pipefail
 ROUNDS=200
-while getopts "n:" o; do
-  case $o in n) ROUNDS=$OPTARG ;; *) exit 2 ;; esac
+ONLY=
+while getopts "n:o:" o; do
+  case $o in n) ROUNDS=$OPTARG ;; o) ONLY=$OPTARG ;; *) exit 2 ;; esac
 done
 shift $((OPTIND - 1))
-[ $# -ge 1 ] || { sed -n '2,16p' "$0"; exit 2; }
+[ $# -ge 1 ] || { sed -n '2,17p' "$0"; exit 2; }
 BASE=$(realpath -m "$1")
 HERE=$(dirname "$(realpath "$0")")
 ROOT=$(realpath "$HERE/../..")
@@ -68,6 +70,7 @@ note "preparing"
 stage prepare prepare | grep -E "panicked|SKIP" >&2 || true
 
 OPS=(copy_up copy_down move_up move_down f4 pack unpack settings vault)
+[ -z "$ONLY" ] || IFS=, read -r -a OPS <<<"$ONLY"
 declare -A LONG OK FAIL FINISHED
 note "how long each operation takes when it is not killed"
 for op in "${OPS[@]}"; do

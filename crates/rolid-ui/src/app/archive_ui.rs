@@ -585,7 +585,12 @@ impl App {
             }
             progress.lock().unwrap().started = Some(Instant::now());
             let res = tokio::task::spawn_blocking(move || {
+                // Without a record (state folder not writable) only a kill leaves the part file.
+                let journal = rolid_archive::journal::PartJournal::create(&crate::parts_dir()).ok();
                 let on = |t: Tick<'_>| {
+                    if let Some(j) = &journal {
+                        j.note(&t);
+                    }
                     match t {
                         Tick::Total { items, bytes } => {
                             *totals.lock().unwrap() = Totals { files: items, bytes, done: true };
@@ -594,6 +599,7 @@ impl App {
                         Tick::Bytes(n) => progress.lock().unwrap().bytes_done += n,
                         Tick::Done => progress.lock().unwrap().files_done += 1,
                         Tick::Read { done, total } => progress.lock().unwrap().read = Some((done, total)),
+                        Tick::Part(_) => return,
                     }
                     ctx.request_repaint_after(Duration::from_millis(150));
                 };

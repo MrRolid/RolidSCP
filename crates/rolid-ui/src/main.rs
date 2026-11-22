@@ -61,6 +61,11 @@ fn init_logging() {
     tracing::info!(version = env!("CARGO_PKG_VERSION"), log = %path.display(), "RolidSCP start");
 }
 
+/// Records of the part files of packing and extracting (see `rolid_archive::journal`).
+pub fn parts_dir() -> std::path::PathBuf {
+    rolid_config::state_dir().join("parts")
+}
+
 fn main() -> eframe::Result {
     // Started by ssh as the SSH_ASKPASS helper of a Ctrl+P terminal: answer and
     // end, before any logging or window.
@@ -71,6 +76,12 @@ fn main() -> eframe::Result {
     // The journal of unfinished replacements of files on servers (repaired at
     // the next connection).
     rolid_core::replace::set_journal_dir(rolid_config::state_dir().join("replace"));
+    // Part files of packing and extracting left by a killed program.
+    std::thread::spawn(|| {
+        for p in rolid_archive::journal::clean(&parts_dir()) {
+            tracing::info!(path = %p.display(), "removed a part file left by an interrupted pack or extract");
+        }
+    });
     // Background runtime for all I/O; the UI thread never blocks on disk or network.
     let rt = runtime();
     let handle = rt.handle().clone();

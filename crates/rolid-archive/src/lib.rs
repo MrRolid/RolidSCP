@@ -15,6 +15,7 @@ use std::time::SystemTime;
 use rolid_text::{n, nc, txt, Text};
 use secrecy::SecretString;
 
+pub mod journal;
 mod pack;
 mod par;
 mod read;
@@ -314,6 +315,9 @@ pub enum Tick<'a> {
     /// Bytes of the archive file read so far, of its size (extracting and
     /// testing: the progress and remaining time, the unpacked total is unknown).
     Read { done: u64, total: u64 },
+    /// The `.filepart` being written now; `None` once it is renamed or
+    /// removed (see [`journal`]).
+    Part(Option<&'a std::path::Path>),
 }
 
 /// Cancellation and progress of one operation.

@@ -265,11 +265,15 @@ fn bench_kill() {
         ("pack", "do") => {
             std::fs::create_dir_all(w.join("pack")).unwrap();
             let c = AtomicBool::new(false);
-            let on = |_: rolid_archive::Tick<'_>| {};
+            // The record of the part file, as the program keeps it.
+            let j = rolid_archive::journal::PartJournal::create(&w.join("parts")).unwrap();
+            let on = |t: rolid_archive::Tick<'_>| j.note(&t);
             let ctl = rolid_archive::Ctl { cancel: &c, on: &on };
             rolid_archive::pack(&[src.join("data")], &w.join("pack/out.zip"), rolid_archive::Format::Zip, rolid_archive::Level::Normal, None, &ctl).unwrap();
         }
         ("pack", "check") => {
+            // What the program does at its next start.
+            let cleaned = rolid_archive::journal::clean(&w.join("parts")).len();
             let out = w.join("pack/out.zip");
             let state = if out.exists() {
                 let c = AtomicBool::new(false);
@@ -285,19 +289,23 @@ fn bench_kill() {
             // Anything else in the folder: a temporary file the killed process left.
             let left = files(&w.join("pack")).iter().filter(|f| f.as_str() != "out.zip").count();
             std::fs::remove_dir_all(w.join("pack")).unwrap();
-            println!("KILLCHECK pack ok archive={state} temporary_files_left={left}");
+            assert_eq!(left, 0, "the part file of the killed packing is cleaned up");
+            println!("KILLCHECK pack ok archive={state} part_file_cleaned={cleaned} temporary_files_left={left}");
         }
         ("unpack", "do") => {
             std::fs::create_dir_all(w.join("unpack")).unwrap();
             let c = AtomicBool::new(false);
-            let on = |_: rolid_archive::Tick<'_>| {};
+            let j = rolid_archive::journal::PartJournal::create(&w.join("parts")).unwrap();
+            let on = |t: rolid_archive::Tick<'_>| j.note(&t);
             let ctl = rolid_archive::Ctl { cancel: &c, on: &on };
             rolid_archive::extract(&src.join("data.zip"), rolid_archive::Format::Zip, &w.join("unpack"), &rolid_archive::ReadOpts::new(), rolid_archive::Limits::default(), rolid_archive::Exist::Overwrite, None, &ctl).unwrap();
         }
         ("unpack", "check") => {
+            let cleaned = rolid_archive::journal::clean(&w.join("parts")).len();
             let (ok, parts) = real_files_complete(&w.join("unpack/data"));
             std::fs::remove_dir_all(w.join("unpack")).unwrap();
-            println!("KILLCHECK unpack ok complete={ok} part_files={parts}");
+            assert_eq!(parts, 0, "the part file of the killed extraction is cleaned up");
+            println!("KILLCHECK unpack ok complete={ok} part_file_cleaned={cleaned} part_files={parts}");
         }
         ("settings", "do") => {
             let (a, b) = (settings_text(SETTINGS_A), settings_text(SETTINGS_B));

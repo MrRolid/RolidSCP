@@ -115,6 +115,7 @@ pub fn pack_with(sources: &[PathBuf], out: &Path, o: &PackOpts, ctl: &Ctl) -> Re
     let threads = o.threads.max(1);
     let lvl = level_value(format, o.level);
     let part = part_path(out);
+    ctl.tick(Tick::Part(Some(&part)));
     let result = File::create(&part).map_err(Error::from).and_then(|f| {
         let w = BufWriter::with_capacity(1 << 20, f);
         match format {
@@ -138,8 +139,10 @@ pub fn pack_with(sources: &[PathBuf], out: &Path, o: &PackOpts, ctl: &Ctl) -> Re
     let result = result.and_then(|()| Ok(fs::rename(&part, out)?));
     if let Err(e) = result {
         let _ = fs::remove_file(&part);
+        ctl.tick(Tick::Part(None));
         return Err(if ctl.check().is_err() { Error::Canceled } else { e });
     }
+    ctl.tick(Tick::Part(None));
     Ok(rep)
 }
 

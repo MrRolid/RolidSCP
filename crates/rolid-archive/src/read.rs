@@ -601,6 +601,7 @@ pub fn extract(
                     }
                     _ => {
                         let part = part_path(&target);
+                        ctl.tick(Tick::Part(Some(&part)));
                         current = Some(part.clone());
                         let mut out = File::create(&part)?;
                         let mut buf = vec![0u8; 256 << 10];
@@ -629,6 +630,7 @@ pub fn extract(
                         drop(out);
                         fs::rename(&part, &target)?;
                         current = None;
+                        ctl.tick(Tick::Part(None));
                         if existing.is_none() {
                             rep.created.push(target);
                         }
@@ -642,6 +644,7 @@ pub fn extract(
     });
     if let Some(p) = current.take() {
         let _ = fs::remove_file(p);
+        ctl.tick(Tick::Part(None));
     }
     match res {
         Ok(()) => {}
