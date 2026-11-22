@@ -30,6 +30,7 @@ if [ -e "$BASE" ] && [ -n "$(ls -A "$BASE")" ]; then echo "$BASE is not empty" >
 mkdir -p "$BASE/w"
 free_before=$(df -B1 --output=avail "$BASE" | tail -1)
 : >"$OUT"
+: >"$OUT.log"
 note() { echo "== $(date +%T) $*" >&2; }
 bench() { echo -e "BENCH\t$1\t$2\t$3" | tee -a "$OUT"; }
 
@@ -59,7 +60,8 @@ W="$BASE/w"
 stage() { # OP STAGE
   ROLIDSCP_KILL_OP=$1 ROLIDSCP_KILL_STAGE=$2 "$TEST_BIN" --ignored --exact bench_kill::bench_kill --test-threads=1 --nocapture 2>&1
 }
-fresh_source() { # OP: a new source for a move
+fresh_source() { # OP: an empty target (also after a failed check) and a new source for a move
+  case $1 in copy_* | move_*) rm -rf "${W:?}/$1-to" ;; esac
   case $1 in move_*) rm -rf "${W:?}/$1-from"; mkdir -p "$W/$1-from"; cp -r "$W/src/data" "$W/$1-from/" ;; esac
 }
 note "preparing"
@@ -89,19 +91,23 @@ for ((r = 0; r < ROUNDS; r++)); do
   fresh_source "$op"
   # A random moment in the operation (process start included).
   delay=$(( RANDOM * LONG[$op] * 12 / 10 / 32768 ))
-  stage "$op" do >/dev/null 2>&1 &
+  # The test binary itself in the background (not a shell function: $! would
+  # be a subshell, and killing it would leave the binary running).
+  ROLIDSCP_KILL_OP=$op ROLIDSCP_KILL_STAGE=do "$TEST_BIN" --ignored --exact bench_kill::bench_kill --test-threads=1 >/dev/null 2>&1 &
   JOB_PID=$!
   sleep "$(printf '%d.%03d' $((delay / 1000)) $((delay % 1000)))"
   if kill -KILL "$JOB_PID" 2>/dev/null; then :; else FINISHED[$op]=$(( FINISHED[$op] + 1 )); fi
   wait "$JOB_PID" 2>/dev/null || true
   JOB_PID=
-  if res=$(stage "$op" check) && line=$(grep "^KILLCHECK" <<<"$res"); then
+  res=$(stage "$op" check) || true
+  # (The test harness prints "test ... " on the same line first.)
+  if line=$(grep -o "KILLCHECK.*" <<<"$res"); then
     OK[$op]=$(( OK[$op] + 1 ))
     echo "$r $op ${delay}ms ${line#KILLCHECK }" >>"$OUT.log"
   else
     FAIL[$op]=$(( FAIL[$op] + 1 ))
     echo "$r $op ${delay}ms FAILED" >>"$OUT.log"
-    grep -E "panicked" -A4 <<<"$res" | tee -a "$OUT.log" >&2
+    { grep -E "panicked" -A4 <<<"$res" || tail -15 <<<"$res"; } | tee -a "$OUT.log" >&2
   fi
 done
 for op in "${OPS[@]}"; do

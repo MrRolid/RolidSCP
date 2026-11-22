@@ -205,6 +205,9 @@ fn bench_kill() {
         ("copy_up" | "copy_down", "check") => {
             let (ok, parts) = real_files_complete(&up.join("data"));
             let (a, b) = pair(op == "copy_up");
+            // Killed before it made the target folder (in the program it is
+            // the other panel's folder: always there).
+            std::fs::create_dir_all(&up).unwrap();
             rt.block_on(copy(a.as_ref(), b.as_ref(), &src, &up, Conflict::Resume, false));
             all_complete(&up.join("data"));
             std::fs::remove_dir_all(&up).unwrap();
@@ -225,6 +228,7 @@ fn bench_kill() {
             }
             let left = (0..FILES).filter(|i| in_src.contains(&rel(*i))).count();
             let (a, b) = pair(op == "move_up");
+            std::fs::create_dir_all(&mv_dst).unwrap();
             if mv_src.join("data").exists() {
                 rt.block_on(copy(a.as_ref(), b.as_ref(), &mv_src, &mv_dst, Conflict::Resume, true));
             }
@@ -278,8 +282,10 @@ fn bench_kill() {
             } else {
                 "not_there"
             };
+            // Anything else in the folder: a temporary file the killed process left.
+            let left = files(&w.join("pack")).iter().filter(|f| f.as_str() != "out.zip").count();
             std::fs::remove_dir_all(w.join("pack")).unwrap();
-            println!("KILLCHECK pack ok archive={state}");
+            println!("KILLCHECK pack ok archive={state} temporary_files_left={left}");
         }
         ("unpack", "do") => {
             std::fs::create_dir_all(w.join("unpack")).unwrap();
