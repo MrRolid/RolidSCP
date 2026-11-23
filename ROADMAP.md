@@ -32,18 +32,28 @@ catch it again.
     with the arrows, Page Up, Page Down, Home and End extends it and going back unmarks only that
     range, a click without a key keeps the marks, Ctrl+A marks all and a second press unmarks.
     Measured in a folder of a million files.
-- **0.8.17 Bad connections:** high latency, jitter, packet loss, changing speed, repeated drop-outs
-  and frozen connections. Every transfer in these tests is verified with a checksum. The computer
-  going to sleep and waking up during a session. Moved from 0.8.16: a real file over 100 GB copied
-  to a server and back, interrupted and continued, and a transfer running overnight with memory
-  checks.
-  Also: the news in the program translated into all eight languages, and release tags always
-  annotated.
-- **0.8.18 Servers and distributions:** different OpenSSH versions, Dropbear, SFTP-only servers
-  without a shell, BusyBox, NAS devices and Windows servers; Debian, Ubuntu, Linux Mint, Fedora,
-  openSUSE and Arch; X11 and Wayland; high-DPI screens. A broken or hostile server (odd names, huge
-  or false listings, links pointing outside the target folder), permissions, ACLs and extended
-  attributes, and time zones and server clocks that are off.
+- **0.8.17 Bad connections:** what was tested:
+  - Transfers to and from a local SFTP server in a private network namespace whose line was made
+    bad on purpose: high latency, jitter, packet loss, a speed changing every few seconds, repeated
+    short and long drop-outs, a connection frozen for longer than the keepalive limit, and all of it
+    at once. A big file and a folder of small files went up and back through the program's own
+    copy code, and every file was compared by checksum. Fixed on the way: a slow line no longer
+    drops a working connection, a transfer goes on as long as it gets further, and a file
+    continued several times is counted once.
+  - Also: the path above a panel is clickable part by part, bigger colored icons in the bar above
+    the panels, the mask dialogs remember their options, packing and extracting clean up after a
+    kill, the first key of the quick filter in a folder of a million files under 0.1 s, the news in
+    the program translated into all eight languages, and release tags always annotated.
+  - Not done, moved to 0.8.18: a real file over 100 GB copied to a server and back, a transfer
+    running overnight with memory checks, and the computer going to sleep and waking up during a
+    session.
+- **0.8.18 Servers and distributions:** moved from 0.8.17: a real file over 100 GB copied to a
+  server and back, interrupted and continued, a transfer running overnight with memory checks, and
+  the computer going to sleep and waking up during a session. Then different OpenSSH versions,
+  Dropbear, SFTP-only servers without a shell, BusyBox, NAS devices and Windows servers; Debian,
+  Ubuntu, Linux Mint, Fedora, openSUSE and Arch; X11 and Wayland; high-DPI screens. A broken or
+  hostile server (odd names, huge or false listings, links pointing outside the target folder),
+  permissions, ACLs and extended attributes, and time zones and server clocks that are off.
 - **0.8.19 Polish:** consistent controls in every dialog, fuzz testing of everything the program reads
   (archives, server listings, `known_hosts`), a licence check of all dependencies and a check of the
   code for matches with other projects, and performance measured on every build. Two copies of the

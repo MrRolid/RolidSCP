@@ -481,34 +481,34 @@ msgstr "soubor {num} z {total}"
 msgid "file {num} of {total}+"
 msgstr "soubor {num} z {total}+"
 
-#: crates/rolid-core/src/copy.rs:406
+#: crates/rolid-core/src/copy.rs:409
 msgid "{error} (the name is not valid UTF-8, it cannot be transferred)"
 msgstr "{error} (název není platné UTF-8, nelze ho přenést)"
 
-#: crates/rolid-core/src/copy.rs:457
+#: crates/rolid-core/src/copy.rs:470
 msgid "{error} (the transfer gave up after {n} attempt – try it again manually)"
 msgid_plural "{error} (the transfer gave up after {n} attempts – try it again manually)"
 msgstr[0] "{error} (přenos se po {n} pokusu vzdal – zkus ho znovu ručně)"
 msgstr[1] "{error} (přenos se po {n} pokusech vzdal – zkus ho znovu ručně)"
 msgstr[2] "{error} (přenos se po {n} pokusech vzdal – zkus ho znovu ručně)"
 
-#: crates/rolid-core/src/copy.rs:494
+#: crates/rolid-core/src/copy.rs:507
 msgid "“{name}”: the name is not valid UTF-8, it cannot be transferred to the server"
 msgstr "„{name}“: název není platné UTF-8, na server ho nejde přenést"
 
-#: crates/rolid-core/src/copy.rs:520
+#: crates/rolid-core/src/copy.rs:533
 msgid "“{name}” is a symbolic link: it cannot be moved between disks (copy it and delete it manually)"
 msgstr "„{name}“ je symbolický odkaz: mezi disky ho nejde přesunout (zkopíruj ho a smaž ručně)"
 
-#: crates/rolid-core/src/copy.rs:941
+#: crates/rolid-core/src/copy.rs:957
 msgid "The disk quota on the target is used up ({error}). Free some space there or ask for a bigger quota, then press “Try again”: the transfer continues where it stopped."
 msgstr "Disková kvóta na cíli je vyčerpaná ({error}). Uvolněte tam místo nebo požádejte o větší kvótu a pak stiskněte „Zkusit znovu“: přenos bude pokračovat tam, kde skončil."
 
-#: crates/rolid-core/src/copy.rs:946
+#: crates/rolid-core/src/copy.rs:962
 msgid "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Cílový disk je plný ({error}). Uvolněte tam místo a pak stiskněte „Zkusit znovu“: přenos bude pokračovat tam, kde skončil."
 
-#: crates/rolid-core/src/copy.rs:953
+#: crates/rolid-core/src/copy.rs:969
 msgid "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Server odmítl zápis ({error}). Jeho disk je možná plný nebo je vyčerpaná vaše disková kvóta: uvolněte tam místo a pak stiskněte „Zkusit znovu“: přenos bude pokračovat tam, kde skončil."
 
@@ -915,7 +915,7 @@ msgstr "připojení selhalo: {error}"
 msgid "the command on the server did not answer within {n} s"
 msgstr "příkaz na serveru neodpověděl do {n} s"
 
-#: crates/rolid-ssh/src/lib.rs:535
+#: crates/rolid-ssh/src/lib.rs:555
 msgid "{name}: unexpected answer from the server"
 msgstr "{name}: neočekávaná odpověď serveru"
 
@@ -3651,119 +3651,119 @@ msgstr "Novinky"
 
 #: crates/rolid-ui/src/app/menu.rs:717
 msgctxt "news"
-msgid "0.8.17 bad connections: every part of the path above a panel is a button (a click opens that folder, the middle button opens it in a new tab) and the path is edited by a double click on the empty part of the row, the pencil or Ctrl+G; bigger colored icons in the bar above the panels; the mask dialogs remember the mask and Include folders (never on a production server); a pack or extract killed in the middle no longer leaves a .filepart file behind; the first key of the quick filter in a folder of a million files takes under 0.1 s; transfers tested over a line with latency, jitter, packet loss, a changing speed, outages and a frozen connection, every file checked by checksum; the news translated into all languages"
-msgstr "0.8.17 špatná spojení: každá část cesty nad panelem je tlačítko (kliknutí otevře tu složku, prostřední tlačítko ji otevře v nové záložce) a cesta se upravuje dvojklikem na prázdné místo řádku, tužkou nebo Ctrl+G; větší barevné ikony v liště nad panely; dialogy masky si pamatují masku a volbu Včetně složek (na produkčním serveru nikdy); balení nebo rozbalování zabité uprostřed už nenechá soubor .filepart; první klávesa rychlého filtru ve složce s milionem souborů trvá pod 0,1 s; přenosy vyzkoušené na lince se zpožděním, kolísáním, ztrátou paketů, měnící se rychlostí, výpadky a zamrzlým spojením, každý soubor ověřený kontrolním součtem; novinky přeložené do všech jazyků"
+msgid "0.8.17 bad connections: every part of the path above a panel is a button (a click opens that folder, the middle button opens it in a new tab) and the path is edited by a double click on the empty part of the row, the pencil or Ctrl+G; bigger colored icons in the bar above the panels; the mask dialogs remember the mask and Include folders (never on a production server); a pack or extract killed in the middle no longer leaves a .filepart file behind; the first key of the quick filter in a folder of a million files takes under 0.1 s; transfers tested over a line with latency, jitter, packet loss, a changing speed, outages and a frozen connection, every file checked by checksum: a slow line no longer drops a working connection, a transfer goes on as long as it gets further and a file continued several times is counted once; the news translated into all languages"
+msgstr "0.8.17 špatná spojení: každá část cesty nad panelem je tlačítko (kliknutí otevře tu složku, prostřední tlačítko ji otevře v nové záložce) a cesta se upravuje dvojklikem na prázdné místo řádku, tužkou nebo Ctrl+G; větší barevné ikony v liště nad panely; dialogy masky si pamatují masku a volbu Včetně složek (na produkčním serveru nikdy); balení nebo rozbalování zabité uprostřed už nenechá soubor .filepart; první klávesa rychlého filtru ve složce s milionem souborů trvá pod 0,1 s; přenosy vyzkoušené na lince se zpožděním, kolísáním, ztrátou paketů, měnící se rychlostí, výpadky a zamrzlým spojením, každý soubor ověřený kontrolním součtem: pomalá linka už neshodí funkční spojení, přenos pokračuje, dokud postupuje, a soubor navázaný vícekrát se započítá jednou; novinky přeložené do všech jazyků"
 
-#: crates/rolid-ui/src/app/menu.rs:728
+#: crates/rolid-ui/src/app/menu.rs:730
 msgctxt "news"
 msgid "0.8.16 big files and marking: Shift+click and Shift with the arrows, PgUp, PgDn, Home and End mark a range from the last clicked item and going back unmarks only that range, a click without a key keeps the marks, Ctrl+A marks all and a second press unmarks (Tools → Select to the top / to the bottom); marking stays fast in a folder of a million files and survives a refresh, sorting and the filter; a full disk or a used-up quota is named and “Try again” continues where the transfer stopped; a move continued after the program was killed finishes and leaves no helper files; after a lost connection the progress no longer counts the resumed part twice; the remaining time shows days; sizes of petabytes and more are added up without overflowing; the journal of replaced files and the records of F4 copies are flushed to the disk."
 msgstr "0.8.16 velké soubory a označování: Shift+klik a Shift se šipkami, PgUp, PgDn, Home a End označí rozsah od naposledy kliknuté položky a návrat zpět odznačí jen tento rozsah, klik bez klávesy označení ponechá, Ctrl+A označí vše a druhé stisknutí označení zruší (Nástroje → Označit k začátku / ke konci); označování zůstává rychlé i ve složce s milionem souborů a přežije obnovení, seřazení i filtr; plný disk nebo vyčerpaná kvóta se pojmenuje a „Zkusit znovu“ pokračuje tam, kde přenos skončil; přesun navázaný po zabití programu se dokončí a nenechá pomocné soubory; po ztrátě spojení už průběh nepočítá navázanou část dvakrát; zbývající čas ukazuje dny; velikosti v petabajtech a víc se sčítají bez přetečení; deník vyměňovaných souborů a záznamy kopií F4 se zapisují až na disk."
 
-#: crates/rolid-ui/src/app/menu.rs:741
+#: crates/rolid-ui/src/app/menu.rs:743
 msgctxt "news"
 msgid "0.8.15 many files: copying many small files to and from a server is several times faster (the target folder is listed once, several files go at a time), deleting is a job in the queue with progress and Cancel, big folders are listed, sorted and filtered several times faster and refresh without stalling the window, folder listings over SFTP are much faster; pipes, sockets, devices and broken links are skipped with a message instead of hanging or stopping the copy; names with invalid UTF-8, backslashes, line breaks or 255 bytes are copied exactly and shown readably; very deep folder trees no longer crash the program; search, folder sizes and checksums use commands on the server again instead of the slow walk over SFTP."
 msgstr "0.8.15 mnoho souborů: kopírování mnoha malých souborů na server a ze serveru je několikrát rychlejší (cílová složka se vypíše jednou, několik souborů jde najednou), mazání je úloha ve frontě s průběhem a tlačítkem Zrušit, velké složky se vypíšou, seřadí a vyfiltrují několikrát rychleji a obnovují se bez zamrznutí okna, výpisy složek přes SFTP jsou mnohem rychlejší; roury, sockety, zařízení a rozbité odkazy se přeskočí s hláškou, místo aby kopírování viselo nebo se zastavilo; názvy s neplatným UTF-8, zpětným lomítkem, koncem řádku nebo 255 bajty se zkopírují přesně a zobrazí čitelně; velmi hluboké stromy složek už program neshodí; hledání, velikosti složek a kontrolní součty používají opět příkazy na serveru místo pomalého procházení přes SFTP."
 
-#: crates/rolid-ui/src/app/menu.rs:752
+#: crates/rolid-ui/src/app/menu.rs:754
 msgctxt "news"
 msgid "0.8.14 data protection: on a production server copying, uploading, moving and a new folder never start with Overwrite and Enter does not confirm them; a move deletes the source only when it did not change meanwhile, and to a server only after the checksums match; an interrupted transfer is resumed only from a part file of the same source; a file replaced on a server without atomic rename is repaired at the next connection after a cut-off; F4 copies are kept on disk, a failed upload is tried again, the time of the upload has seconds; starts without system fonts; slow server shells no longer hold up search and checksums."
 msgstr "0.8.14 ochrana dat: na produkčním serveru kopírování, nahrávání, přesun ani nová složka nezačínají volbou Přepsat a Enter je nepotvrdí; přesun smaže zdroj, jen když se mezitím nezměnil, a na server až po shodě kontrolních součtů; přerušený přenos se navazuje jen z rozpracovaného souboru téhož zdroje; soubor vyměňovaný na serveru bez atomického přejmenování se po přerušení opraví při dalším připojení; kopie F4 jsou na disku, neúspěšné nahrání se zopakuje, čas nahrání má sekundy; spustí se i bez systémových písem; pomalý shell serveru už nezdržuje hledání a kontrolní součty."
 
-#: crates/rolid-ui/src/app/menu.rs:762
+#: crates/rolid-ui/src/app/menu.rs:764
 msgctxt "news"
 msgid "0.8.13 listings refresh by themselves: local folders at once, server folders when you come back to them and every 30 s while the window is active (View → Automatic refresh), the cursor and the marks stay; thin lines between the columns, drag them to change the width (a double click fits the content), kept for each panel; names that do not fit end with “…”; the disk health badge shows the reason; dragging files into Thunar works; hovering changes only colors."
 msgstr "0.8.13 výpisy se obnovují samy: místní složky hned, složky na serveru při návratu k nim a každých 30 s, dokud je okno aktivní (Zobrazit → Automatické obnovování), kurzor i označení zůstanou; tenké čáry mezi sloupci, jejich tažením se mění šířka (dvojklik přizpůsobí obsahu), pamatuje se pro každý panel; názvy, které se nevejdou, končí „…“; odznak stavu disku ukazuje důvod; tažení souborů do Thunaru funguje; najetí myší mění jen barvy."
 
-#: crates/rolid-ui/src/app/menu.rs:770
+#: crates/rolid-ui/src/app/menu.rs:772
 msgctxt "news"
 msgid "0.8.12 a bar above each panel: the folders on the path and the disks in a drop-down (Alt+↓), back, forward, up, root, home, refresh and favorites; the free space, file system and disk health moved into the path row; a right click on the empty space of a panel offers a new file, a new folder, a terminal and the disk properties."
 msgstr "0.8.12 lišta nad každým panelem: složky na cestě a disky v rozbalovacím poli (Alt+↓), zpět, vpřed, výš, kořen, domů, obnovit a oblíbené; volné místo, souborový systém a stav disku se přesunuly do řádku s cestou; pravé tlačítko na prázdném místě panelu nabídne nový soubor, novou složku, terminál a vlastnosti disku."
 
-#: crates/rolid-ui/src/app/menu.rs:777
+#: crates/rolid-ui/src/app/menu.rs:779
 msgctxt "news"
 msgid "0.8.11 files and folders can be dragged out of the window to other applications (X11), from a server or an archive they are downloaded first; Shift+F4 creates a new file in the external editor; favorite folders can be added, renamed and removed in the new tab menu; stricter disk temperature and wear limits, the temperature is checked every 5 minutes."
 msgstr "0.8.11 soubory a složky jde vytáhnout z okna do jiných aplikací (X11), ze serveru nebo z archivu se nejdřív stáhnou; Shift+F4 vytvoří nový soubor v externím editoru; oblíbené složky jde v nabídce nové záložky přidat, přejmenovat a odebrat; přísnější limity teploty a opotřebení disků, teplota se kontroluje každých 5 minut."
 
-#: crates/rolid-ui/src/app/menu.rs:784
+#: crates/rolid-ui/src/app/menu.rs:786
 msgctxt "news"
 msgid "0.8.10 the free-space row shows the file system type and the disk health (SMART) with a detail in plain language; Ctrl+P opens a terminal in the panel's folder, on a server ssh with the saved password; the tab and server switcher moved to Ctrl+K."
 msgstr "0.8.10 řádek s volným místem ukazuje typ souborového systému a stav disku (SMART) se srozumitelným detailem; Ctrl+P otevře terminál ve složce panelu, na serveru ssh s uloženým heslem; hledání záložek a serverů se přesunulo na Ctrl+K."
 
-#: crates/rolid-ui/src/app/menu.rs:790
+#: crates/rolid-ui/src/app/menu.rs:792
 msgctxt "news"
 msgid "0.8.9 built-in viewer (F3) in a window of its own: files of any size, also on a server without downloading them whole, syntax highlighting, encodings, hex, following a growing log, searching with the ripgrep engine (on a server with grep over SSH) and images (JPEG, PNG, animated GIF, WebP, BMP) with zoom, rotation and next / previous image."
 msgstr "0.8.9 vestavěný prohlížeč (F3) ve vlastním okně: soubory libovolné velikosti, i na serveru bez stahování celého souboru, zvýraznění syntaxe, kódování, šestnáctkový výpis, sledování rostoucího logu, hledání jádrem ripgrepu (na serveru přes grep po SSH) a obrázky (JPEG, PNG, animovaný GIF, WebP, BMP) se zoomem, otáčením a dalším / předchozím obrázkem."
 
-#: crates/rolid-ui/src/app/menu.rs:797
+#: crates/rolid-ui/src/app/menu.rs:799
 msgctxt "news"
 msgid "0.8.8 new tab menu (Ctrl+T: home folder, favorites, servers, recent places), favorite folders (Ctrl+D), tab menu (duplicate, color, close others), dragging files inside the app (Shift moves, Esc cancels), saved passwords lock again after a set time, one look for all dialogs and a target history with Browse… when copying and moving."
 msgstr "0.8.8 nabídka nové záložky (Ctrl+T: domovská složka, oblíbené, servery, poslední místa), oblíbené složky (Ctrl+D), nabídka záložky (duplikovat, barva, zavřít ostatní), tažení souborů myší uvnitř aplikace (Shift přesouvá, Esc ruší), uložená hesla se po nastavené době znovu zamknou, jednotný vzhled všech dialogů a historie cílů s tlačítkem Procházet… při kopírování a přesunu."
 
-#: crates/rolid-ui/src/app/menu.rs:804
+#: crates/rolid-ui/src/app/menu.rs:806
 msgctxt "news"
 msgid "0.8.7 in eight languages: English, Czech, German, French, Polish, Spanish, Norwegian and Danish (by the system or in Settings, switches at once; your own translation in ~/.config/rolidscp/lang), numbers and dates written as the language does (or ISO), help on F1."
 msgstr "0.8.7 v osmi jazycích: angličtina, čeština, němčina, francouzština, polština, španělština, norština a dánština (podle systému nebo v Nastavení, přepne se hned; vlastní překlad v ~/.config/rolidscp/lang), čísla a data podle jazyka (nebo ISO), nápověda na F1."
 
-#: crates/rolid-ui/src/app/menu.rs:810
+#: crates/rolid-ui/src/app/menu.rs:812
 msgctxt "news"
 msgid "0.8.6 sharper text: strong hinting puts the vertical strokes of letters on whole pixels (the default, together with higher contrast); table lines stay sharp at 125% and 150% scaling too."
 msgstr "0.8.6 ostřejší písmo: silný hinting dá svislé tahy písmen na celé pixely (výchozí spolu s vyšším kontrastem), čáry tabulky ostré i při měřítku 125 % a 150 %."
 
-#: crates/rolid-ui/src/app/menu.rs:815
+#: crates/rolid-ui/src/app/menu.rs:817
 msgctxt "news"
 msgid "0.8.5 rename right in the list (F2, Shift+F6), move to the other panel (F6), also between disks and servers, rename a tab by double-clicking it, font size in whole points (default 14), font Hinting and Contrast options in Settings, the bottom bar adapts to the window width."
 msgstr "0.8.5 přejmenování přímo v seznamu (F2, Shift+F6), přesun do druhého panelu (F6) i mezi disky a servery, přejmenování záložky dvojklikem, velikost písma v celých bodech (výchozí 14), volby Hinting a Kontrast písma v Nastavení, spodní lišta podle šířky okna."
 
-#: crates/rolid-ui/src/app/menu.rs:821
+#: crates/rolid-ui/src/app/menu.rs:823
 msgctxt "news"
 msgid "0.8.4 GPL-3.0-or-later license and source code on GitHub, sharper Noto Sans font (system font and text size can be chosen in Settings), size of the folder under the cursor (Alt+Space or Shift+Space), more readable colors on the cursor row."
 msgstr "0.8.4 licence GPL-3.0-or-later a zdrojový kód na GitHubu, ostřejší písmo Noto Sans (volba systémového písma a velikosti textu v Nastavení), velikost složky pod kurzorem (Alt+Space nebo Shift+Space), čitelnější barvy na řádku kurzoru."
 
-#: crates/rolid-ui/src/app/menu.rs:827
+#: crates/rolid-ui/src/app/menu.rs:829
 msgctxt "news"
 msgid "0.8.3 Enter opens a file in the default application (for a program or script it asks: editor / Run), more precise drop target when dragging, compression on all cores (a No compression level; already compressed files are only stored), estimated time remaining, folders in [square brackets], selecting by mask also for folders, folder sizes (Alt+Shift+Enter, on a server via du), MD5/SHA/BLAKE3/CRC32 checksums saved in a format compatible with sha256sum -c."
 msgstr "0.8.3 Enter otevře soubor výchozí aplikací (u programu a skriptu se zeptá: editor / Spustit), přesnější cíl při tažení, komprese na všech jádrech (úroveň Bez komprese, už komprimované soubory se jen uloží), odhad zbývajícího času, složky v [hranatých závorkách], označení maskou i pro složky, velikost složek (Alt+Shift+Enter, na serveru přes du), kontrolní součty MD5/SHA/BLAKE3/CRC32 s uložením kompatibilním se sha256sum -c."
 
-#: crates/rolid-ui/src/app/menu.rs:835
+#: crates/rolid-ui/src/app/menu.rs:837
 msgctxt "news"
 msgid "0.8.2 archives: pack (Alt+F5: zip, 7z, tar, tar.gz, tar.zst, AES-256 password for zip and 7z), extract (Alt+F9) with protection against zip-slip and zip bombs, archive test (Alt+Shift+F9), Enter opens an archive as a read-only folder (F5 copies out, also from a server)."
 msgstr "0.8.2 archivy: zabalit (Alt+F5: zip, 7z, tar, tar.gz, tar.zst, heslo AES-256 u zip a 7z), rozbalit (Alt+F9) s ochranou proti zip-slip a zip bombám, test archivu (Alt+Shift+F9), Enter otevře archiv jako složku jen pro čtení (F5 kopíruje ven, i ze serveru)."
 
-#: crates/rolid-ui/src/app/menu.rs:841
+#: crates/rolid-ui/src/app/menu.rs:843
 msgctxt "news"
 msgid "0.8.1 toolbar, brief view and image thumbnails, folder history (Alt+←/→), selecting a group by mask, a distinct header for the active panel, free space, selection summary, file type icons and colors, exact drop target highlighting while dragging on X11."
 msgstr "0.8.1 nástrojová lišta, stručný výpis a miniatury obrázků, historie složek (Alt+←/→), označení skupiny maskou, výrazná hlavička aktivního panelu, volné místo, souhrn výběru, ikony a barvy typů souborů, na X11 přesné zvýraznění cíle při tažení."
 
-#: crates/rolid-ui/src/app/menu.rs:847
+#: crates/rolid-ui/src/app/menu.rs:849
 msgctxt "news"
 msgid "0.8.0 context menu (Open with, permissions, copying the path to the clipboard), default choice on conflict, consistent dialog look with icons, the queue shows “file 3 of 120”."
 msgstr "0.8.0 kontextová nabídka (Otevřít s, práva, kopírování cesty do schránky), výchozí volba při konfliktu, jednotný vzhled dialogů s ikonami, fronta ukazuje „soubor 3 z 120“."
 
-#: crates/rolid-ui/src/app/menu.rs:857
+#: crates/rolid-ui/src/app/menu.rs:859
 msgid "❤ Support development"
 msgstr "❤ Podpořte vývoj"
 
-#: crates/rolid-ui/src/app/menu.rs:858
+#: crates/rolid-ui/src/app/menu.rs:860
 msgid "RolidSCP is free and has no ads. If it saves you time, you can support its further development with a bitcoin donation of any amount. Thank you!"
 msgstr "RolidSCP je zdarma a bez reklam. Pokud vám šetří čas, můžete jeho další vývoj podpořit libovolným příspěvkem v bitcoinech. Děkuji!"
 
-#: crates/rolid-ui/src/app/menu.rs:867
+#: crates/rolid-ui/src/app/menu.rs:869
 msgid "Bitcoin (BTC):"
 msgstr "Bitcoin (BTC):"
 
-#: crates/rolid-ui/src/app/menu.rs:870
+#: crates/rolid-ui/src/app/menu.rs:872
 msgid "Copy address"
 msgstr "Zkopírovat adresu"
 
-#: crates/rolid-ui/src/app/menu.rs:873
+#: crates/rolid-ui/src/app/menu.rs:875
 msgid "₿ Open in wallet"
 msgstr "₿ Otevřít v peněžence"
 
-#: crates/rolid-ui/src/app/menu.rs:875
+#: crates/rolid-ui/src/app/menu.rs:877
 msgid "🔎 Address on mempool.space"
 msgstr "🔎 Adresa na mempool.space"
 
-#: crates/rolid-ui/src/app/menu.rs:879
+#: crates/rolid-ui/src/app/menu.rs:881
 msgid "Scan the QR code with a mobile wallet."
 msgstr "Naskenujte QR kód mobilní peněženkou."
 

@@ -723,7 +723,9 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
                      a pack or extract killed in the middle no longer leaves a .filepart file behind; the first key \
                      of the quick filter in a folder of a million files takes under 0.1 s; transfers tested over a \
                      line with latency, jitter, packet loss, a changing speed, outages and a frozen connection, \
-                     every file checked by checksum; the news translated into all languages"
+                     every file checked by checksum: a slow line no longer drops a working connection, a transfer \
+                     goes on as long as it gets further and a file continued several times is counted once; the \
+                     news translated into all languages"
                 ),
                 trc!(
                     "news",
