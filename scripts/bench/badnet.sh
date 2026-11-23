@@ -4,12 +4,15 @@
 # changing speed, repeated outages and a frozen connection; every file is
 # compared by SHA-256 (crates/rolid-ui/src/bench_net.rs).
 #
-#   scripts/bench/badnet.sh [-m MB] [-s SCENARIOS] BASE [RESULTS.tsv]
+#   scripts/bench/badnet.sh [-m MB] [-s SCENARIOS] [-r] BASE [RESULTS.tsv]
 #
 # BASE       an empty or missing folder on a real disk (about 3 × MB used).
 # MB         size of the big file (default 32); 200 small files go with it.
 # SCENARIOS  comma-separated subset (default: all of SCENARIOS below; the
 #            ones in EXTRA run only when named here).
+# -r         also move the big file with OpenSSH's sftp over the same line
+#            (net.<scenario>.sftp_up_ms / sftp_down_ms), for comparison.
+# ROLIDSCP_NET_SMALL=0 leaves out the small files.
 #
 # No root needed: everything runs in a private user and network namespace
 # (unshare -rn). In it this script is "root" only for that namespace and
@@ -19,11 +22,12 @@
 set -euo pipefail
 MB=32
 ONLY=
-while getopts "m:s:" o; do
-  case $o in m) MB=$OPTARG ;; s) ONLY=$OPTARG ;; *) exit 2 ;; esac
+REF=
+while getopts "m:s:r" o; do
+  case $o in m) MB=$OPTARG ;; s) ONLY=$OPTARG ;; r) REF=1 ;; *) exit 2 ;; esac
 done
 shift $((OPTIND - 1))
-[ $# -ge 1 ] || { sed -n '2,17p' "$0"; exit 2; }
+[ $# -ge 1 ] || { sed -n '2,20p' "$0"; exit 2; }
 BASE=$(realpath -m "$1")
 HERE=$(dirname "$(realpath "$0")")
 ROOT=$(realpath "$HERE/../..")
@@ -46,7 +50,7 @@ for l in sys.stdin:
   : >"$OUT"
   set +e
   BADNET_INSIDE=1 TEST_BIN="$TEST_BIN" REAL_UID=$(id -u) REAL_GID=$(id -g) \
-    unshare -rn --fork --pid --mount-proc bash "$0" -m "$MB" ${ONLY:+-s "$ONLY"} "$BASE" "$OUT"
+    unshare -rn --fork --pid --mount-proc bash "$0" -m "$MB" ${ONLY:+-s "$ONLY"} ${REF:+-r} "$BASE" "$OUT"
   rc=$?
   set -e
   rm -rf "$BASE"
@@ -117,7 +121,25 @@ SCENARIOS=(
 # Run only when named with -s.
 EXTRA=(
   "flapping|delay 30ms 10ms rate 4mbit|flapping"
+  # A server far away without jitter (jitter reorders packets, which makes
+  # every TCP transfer vary a lot from run to run).
+  "far|delay 100ms|-"
+  # The same with room for 100 000 packets on the way (the emulator's default
+  # of 1000 holds every program to about 3.5 MB/s at 100 ms).
+  "far_fast|limit 100000 delay 100ms|-"
 )
+# OpenSSH's sftp with the same file over the same line: prints milliseconds.
+# Its own settings only (no ~/.ssh: -F /dev/null), the host key from the file.
+sftp_ref() {
+  local port user key kh t0
+  IFS='|' read -r port user key kh <<<"$ROLIDSCP_BIG_SSH"
+  t0=$(date +%s%N)
+  timeout 900 sftp -q -F /dev/null -b - -i "$key" -P "$port" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+    -o UserKnownHostsFile="$kh" -o GlobalKnownHostsFile=/dev/null -o ServerAliveInterval=15 \
+    "$user@127.0.0.1" <<<"$1" >/dev/null 2>>"$BASE/sftp.err" || { echo -1; return; }
+  echo $(( ($(date +%s%N) - t0) / 1000000 ))
+}
+
 fail=0
 ALL=("${SCENARIOS[@]}")
 [ -n "$ONLY" ] && ALL+=("${EXTRA[@]}")
@@ -136,6 +158,22 @@ for s in "${ALL[@]}"; do
   rc=$?
   set -e
   [ -n "$DPID" ] && { kill "$DPID" 2>/dev/null || true; wait "$DPID" 2>/dev/null || true; }
+  if [ -n "$REF" ]; then
+    # The same line again from its start, with its disturber.
+    clear_line
+    # shellcheck disable=SC2086
+    [ "$start" = - ] || line $start
+    DPID=
+    if [ "$dist" != - ]; then "$dist" & DPID=$!; fi
+    big=$(ls "$BASE"/w/src-*/data/big.bin | head -1)
+    rm -f "$BASE/w/ref-up.bin" "$BASE/w/ref-down.bin"
+    up_ms=$(sftp_ref "put $big $BASE/w/ref-up.bin")
+    down_ms=$(sftp_ref "get $BASE/w/ref-up.bin $BASE/w/ref-down.bin")
+    [ -n "$DPID" ] && { kill "$DPID" 2>/dev/null || true; wait "$DPID" 2>/dev/null || true; }
+    cmp -s "$big" "$BASE/w/ref-down.bin" && same=1 || same=0
+    rm -f "$BASE/w/ref-up.bin" "$BASE/w/ref-down.bin"
+    echo -e "BENCH\tnet.$name.sftp_up_ms\t$up_ms\tms\nBENCH\tnet.$name.sftp_down_ms\t$down_ms\tms\nBENCH\tnet.$name.sftp_same\t$same\tbool" | tee -a "$OUT"
+  fi
   clear_line
   cp "$BASE/$name.log" "${OUT%.tsv}-$name.log"
   grep "^BENCH" "$BASE/$name.log" | tee -a "$OUT"

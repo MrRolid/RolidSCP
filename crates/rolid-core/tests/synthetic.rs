@@ -82,6 +82,8 @@ struct Inner {
     limit: Mutex<Option<(u64, Fail)>>,
     /// What [`Vfs::space`] tells (`None`: the backend cannot tell).
     avail: Mutex<Option<u64>>,
+    /// What [`Vfs::write_confirmed`] tells, for every path.
+    confirmed: Mutex<Option<u64>>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -299,6 +301,9 @@ impl Vfs for Synth {
             Node::Dir => Err(missing()),
         }
     }
+    fn write_confirmed(&self, _path: &str) -> Option<u64> {
+        *self.inner.confirmed.lock().unwrap()
+    }
     async fn open_write_at(&self, path: &str, offset: u64) -> VfsResult<Writer> {
         if path.ends_with(PARTIAL_SUFFIX) {
             let mut nodes = self.inner.nodes.lock().unwrap();
@@ -403,6 +408,44 @@ async fn files_of_a_terabyte_to_the_top_of_u64_resume_near_their_end() {
             assert_eq!(done + resumed, size, "{what}: done + resumed");
             assert_eq!(seen.backwards.load(Ordering::Relaxed), 0, "{what}: the counter went back");
         }
+    }
+}
+
+/// A server that confirmed how far its part file is written: the continuation
+/// starts right there instead of [`RESUME_MARGIN`] before the end, and never
+/// after the end of the part file.
+#[tokio::test]
+async fn a_continuation_rewrites_only_what_the_server_did_not_confirm() {
+    let size = 256 * MIB;
+    let have = 100 * MIB;
+    for (confirmed, from) in [
+        (Some(have - 300 * 1024), have - 300 * 1024),
+        (Some(have), have),
+        // More than is in the file (it was cut short meanwhile): the margin.
+        (Some(have + 1), have - RESUME_MARGIN),
+        (None, have - RESUME_MARGIN),
+    ] {
+        let (src, dst) = pair(true);
+        *dst.inner.confirmed.lock().unwrap() = confirmed;
+        src.put("/src/big.bin", Node::Pattern(size));
+        let cancel = Arc::new(AtomicBool::new(false));
+        let c2 = cancel.clone();
+        let cb = move |p: &Progress| {
+            if p.bytes_done > 0 {
+                c2.store(true, Ordering::Relaxed);
+            }
+        };
+        {
+            let mut job = CopyJob::new(&src, &dst, cancel.clone(), &cb);
+            let _ = job.copy_items_retrying(&[("/src".into(), "big.bin".into())], "/dst", 0, |_| async { false }).await;
+        }
+        dst.put("/dst/big.bin.filepart", Node::Pattern(have));
+        let seen = Seen::default();
+        copy(&src, &dst, &["big.bin"], Conflict::Resume, Arc::new(AtomicBool::new(false)), &seen).await.expect("resume");
+        assert_eq!(dst.size("/dst/big.bin"), Some(size), "{confirmed:?}");
+        assert_eq!(dst.wrong(), 0, "{confirmed:?}");
+        assert_eq!(seen.resumed.load(Ordering::Relaxed), from, "{confirmed:?}: continued from");
+        assert_eq!(seen.done.load(Ordering::Relaxed), size - from, "{confirmed:?}");
     }
 }
 

@@ -204,6 +204,13 @@ pub trait Vfs: Send + Sync {
     /// Open (create) a file for writing at `offset`. `offset == 0` truncates;
     /// otherwise existing content up to `offset` is kept (resume).
     async fn open_write_at(&self, path: &str, offset: u64) -> VfsResult<Writer>;
+    /// How far the last writer of `path` opened here (in this run of the
+    /// program) got its writes confirmed: everything before it is in the file.
+    /// `None` = not known (a continuation then writes the last
+    /// [`crate::copy::RESUME_MARGIN`] again).
+    fn write_confirmed(&self, _path: &str) -> Option<u64> {
+        None
+    }
     /// Set permission bits and/or modification time (best effort).
     async fn set_attrs(
         &self,

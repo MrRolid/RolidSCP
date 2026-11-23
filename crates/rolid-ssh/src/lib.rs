@@ -17,6 +17,7 @@ use tokio::io::AsyncSeekExt;
 
 pub mod auth;
 pub mod link;
+mod upload;
 pub use auth::{KbdPrompter, KbdRequest};
 pub use link::{Attempt, Link, LinkState, NeedUser, RemoteFs};
 
@@ -43,6 +44,12 @@ pub struct ConnectParams {
     /// Keepalive (interval, unanswered probes before the connection counts as
     /// dead); default [`link::KEEPALIVE_INTERVAL`] × [`link::KEEPALIVE_MAX`].
     pub keepalive: Option<(Duration, usize)>,
+    /// A transfer that gets nothing from the server for this long counts the
+    /// connection as dead; default [`link::STALL_LIMIT`].
+    pub stall_limit: Option<Duration>,
+    /// How long one SFTP request may wait for its answer; default
+    /// [`SFTP_REQUEST_TIMEOUT`].
+    pub request_timeout: Option<Duration>,
 }
 
 impl std::fmt::Debug for ConnectParams {
@@ -123,10 +130,49 @@ struct ClientHandler {
     accept_fingerprint: Option<String>,
     known_hosts: Option<PathBuf>,
     verdict: Arc<Mutex<Option<HostKeyVerdict>>>,
+    alive: Arc<Alive>,
+}
+
+/// Milliseconds since the first call (a clock shared by all connections).
+fn now_ms() -> u64 {
+    static START: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
+    START.get_or_init(std::time::Instant::now).elapsed().as_millis() as u64 + 1
+}
+
+/// When the server was last heard from (see [`SshConnection::quiet_for`]).
+struct Alive {
+    /// [`now_ms`] of the last data or answer to a ping.
+    last_ms: std::sync::atomic::AtomicU64,
+    /// A ping is on the way.
+    pinging: std::sync::atomic::AtomicBool,
+    stall_limit: Duration,
+    request_timeout: Duration,
+}
+
+impl Alive {
+    fn heard(&self) {
+        self.last_ms.store(now_ms(), std::sync::atomic::Ordering::Relaxed);
+    }
 }
 
 impl client::Handler for ClientHandler {
     type Error = russh::Error;
+
+    async fn data(&mut self, _channel: russh::ChannelId, _data: &[u8], _session: &mut client::Session) -> Result<(), Self::Error> {
+        self.alive.heard();
+        Ok(())
+    }
+
+    async fn extended_data(
+        &mut self,
+        _channel: russh::ChannelId,
+        _ext: u32,
+        _data: &[u8],
+        _session: &mut client::Session,
+    ) -> Result<(), Self::Error> {
+        self.alive.heard();
+        Ok(())
+    }
 
     async fn check_server_key(
         &mut self,
@@ -191,6 +237,7 @@ pub struct SshConnection {
     pub key: String,
     /// The address actually connected to (after the DNS lookup).
     pub peer: Option<std::net::SocketAddr>,
+    alive: Arc<Alive>,
 }
 
 impl SshConnection {
@@ -201,25 +248,30 @@ impl SshConnection {
             keepalive_interval: Some(ka_interval),
             keepalive_max: ka_max,
             nodelay: true,
+            window_size: SSH_CHANNEL_WINDOW,
+
             ..Default::default()
         });
         let verdict = Arc::new(Mutex::new(None));
+        let alive = Arc::new(Alive {
+            last_ms: std::sync::atomic::AtomicU64::new(now_ms()),
+            pinging: std::sync::atomic::AtomicBool::new(false),
+            stall_limit: p.stall_limit.unwrap_or(link::STALL_LIMIT),
+            request_timeout: p.request_timeout.unwrap_or(SFTP_REQUEST_TIMEOUT),
+        });
         let handler = ClientHandler {
             host: p.host.clone(),
             port: p.port,
             accept_fingerprint: p.accept_fingerprint.clone(),
             known_hosts: p.known_hosts.clone(),
             verdict: verdict.clone(),
+            alive: alive.clone(),
         };
         // The TCP connection is opened here (not by russh) to learn which of
         // the addresses of the name it went to.
         let addr = (p.host.as_str(), p.port);
         let deadline = tokio::time::Instant::now() + Duration::from_secs(20);
-        let stream = match tokio::time::timeout_at(deadline, tokio::net::TcpStream::connect(addr)).await {
-            Err(_) => return Err(SshError::Other(txt!("the connection timed out"))),
-            Ok(Err(e)) => return Err(SshError::Other(txt!("connection failed: {error}", error = e.to_string()))),
-            Ok(Ok(s)) => s,
-        };
+        let stream = tcp_connect(addr, deadline).await?;
         if let Err(e) = stream.set_nodelay(true) {
             tracing::warn!("set_nodelay failed: {e}");
         }
@@ -250,12 +302,55 @@ impl SshConnection {
         };
 
         auth::authenticate(&mut handle, p).await?;
+        alive.heard();
         Ok(Self {
             handle: Arc::new(handle),
             label: format!("{}@{}", p.user, p.host),
             key: format!("{}@{}:{}", p.user, p.host, p.port),
             peer,
+            alive,
         })
+    }
+
+    /// How long nothing came from the server (no data on any channel, no
+    /// answer to a ping).
+    pub fn quiet_for(&self) -> Duration {
+        Duration::from_millis(now_ms().saturating_sub(self.alive.last_ms.load(std::sync::atomic::Ordering::Relaxed)))
+    }
+
+    /// A transfer that hears nothing from the server for this long counts the
+    /// connection as dead (see [`link::STALL_LIMIT`]).
+    pub fn stall_limit(&self) -> Duration {
+        self.alive.stall_limit
+    }
+
+    /// Ask the server for an answer (in the background; one at a time): a
+    /// server that is only slow answers, and [`Self::quiet_for`] starts again.
+    pub fn ping(&self) {
+        use std::sync::atomic::Ordering;
+        if self.alive.pinging.swap(true, Ordering::Relaxed) {
+            return;
+        }
+        let (handle, alive) = (self.handle.clone(), self.alive.clone());
+        tokio::spawn(async move {
+            if tokio::time::timeout(alive.stall_limit, handle.send_ping()).await.is_ok_and(|r| r.is_ok()) && !handle.is_closed() {
+                alive.heard();
+            }
+            alive.pinging.store(false, Ordering::Relaxed);
+        });
+    }
+
+    /// Give up this connection (it is replaced by a new one): close it in the
+    /// background, so everything still waiting on it ends at once.
+    pub fn abandon(&self) {
+        let handle = self.handle.clone();
+        tokio::spawn(async move {
+            let _ = tokio::time::timeout(
+                Duration::from_secs(2),
+                handle.disconnect(russh::Disconnect::ByApplication, "connection stalled", ""),
+            )
+            .await;
+        });
     }
 
     /// Both are the same connection (not just to the same server).
@@ -376,7 +471,7 @@ impl SshConnection {
         let cfg = russh_sftp::client::Config {
             max_concurrent_reads: SFTP_READS_IN_FLIGHT,
             max_concurrent_writes: SFTP_WRITES_IN_FLIGHT,
-            request_timeout_secs: SFTP_REQUEST_TIMEOUT.as_secs(),
+            request_timeout_secs: self.alive.request_timeout.as_secs().max(1),
             ..Default::default()
         };
         let sftp = SftpSession::new_with_config(channel.into_stream(), cfg)
@@ -387,6 +482,7 @@ impl SshConnection {
             sftp,
             posix_rename: std::sync::atomic::AtomicU8::new(POSIX_RENAME_UNKNOWN),
             aux: tokio::sync::OnceCell::new(),
+            confirmed: upload::Confirmed::default(),
         })
     }
 
@@ -398,9 +494,29 @@ impl SshConnection {
         let channel = self.handle.channel_open_session().await.map_err(other)?;
         channel.request_subsystem(true, "sftp").await.map_err(other)?;
         let raw = russh_sftp::client::RawSftpSession::new(channel.into_stream());
-        raw.set_timeout(SFTP_REQUEST_TIMEOUT.as_secs());
+        raw.set_timeout(self.alive.request_timeout.as_secs().max(1));
         let version = raw.init().await.map_err(other)?;
         Ok((raw, version))
+    }
+}
+
+/// One try of the TCP connection: when the line was down, the first packets
+/// were lost and the system would send them again only after 1, 3, 7, 15 s…
+/// A new try every few seconds gets through a line that is up for a moment
+/// (the flapping line of the bad-line test: down for 30 s, up for 8).
+pub const TCP_TRY: Duration = Duration::from_secs(4);
+
+/// Open the TCP connection to `addr` until `deadline`, a new try every [`TCP_TRY`].
+async fn tcp_connect(addr: (&str, u16), deadline: tokio::time::Instant) -> Result<tokio::net::TcpStream, SshError> {
+    loop {
+        let try_until = (tokio::time::Instant::now() + TCP_TRY).min(deadline);
+        match tokio::time::timeout_at(try_until, tokio::net::TcpStream::connect(addr)).await {
+            Ok(Ok(s)) => return Ok(s),
+            // Refused, unreachable: said at once (the reconnection tries again later).
+            Ok(Err(e)) => return Err(SshError::Other(txt!("connection failed: {error}", error = e.to_string()))),
+            Err(_) if try_until >= deadline => return Err(SshError::Other(txt!("the connection timed out"))),
+            Err(_) => {}
+        }
     }
 }
 
@@ -424,6 +540,13 @@ pub const SFTP_BYTES_IN_FLIGHT: u64 = {
     if r > w { r } else { w }
 };
 
+/// How much the server may send on one channel before we confirm it (the SSH
+/// channel window). russh's default of 2 MB, topped up only when half is
+/// used, let a download over a distant line move only 1–2 MB per round trip:
+/// 128 MiB at 100 ms took 29 s against 19–26 s for OpenSSH's `sftp`; with
+/// room for twice the data a transfer keeps on the way it takes 14 s.
+pub const SSH_CHANNEL_WINDOW: u32 = 8 * 1024 * 1024;
+
 /// How often an operation in progress checks that its connection still exists.
 pub const CLOSED_POLL: Duration = Duration::from_millis(100);
 
@@ -438,6 +561,14 @@ fn other(e: impl std::fmt::Display) -> SshError {
     SshError::Other(raw_text(e))
 }
 
+/// More entries than this in one folder: the listing of a broken or hostile
+/// server that never ends stops here instead of filling the memory (a real
+/// folder of a million files takes about a fifth of it).
+pub const MAX_LISTING: usize = 5_000_000;
+/// The error of such a listing (`Error::Limited`; told to the user by
+/// [`link::classify_sftp`]).
+const TOO_LONG: &str = "the listing does not end";
+
 /// SFTP-backed filesystem.
 pub struct SftpFs {
     conn: SshConnection,
@@ -447,7 +578,9 @@ pub struct SftpFs {
     /// A second, low-level SFTP session (opened when first needed) for reading
     /// folders and for [`POSIX_RENAME`], with whether the server offers that.
     /// `None` = the server refused another channel.
-    aux: tokio::sync::OnceCell<Option<(russh_sftp::client::RawSftpSession, bool)>>,
+    aux: tokio::sync::OnceCell<Option<(Arc<russh_sftp::client::RawSftpSession>, bool)>>,
+    /// How far the server confirmed the files written last.
+    confirmed: upload::Confirmed,
 }
 
 /// Read the whole folder `path` with READDIR requests: each batch is appended
@@ -462,6 +595,9 @@ async fn read_dir_batched(
     let handle = raw.opendir(path).await?.handle;
     let mut files = Vec::new();
     let r = loop {
+        if files.len() > MAX_LISTING {
+            break Err(Error::Limited(TOO_LONG.into()));
+        }
         match raw.readdir(handle.as_str()).await {
             Ok(name) => files.extend(name.files),
             Err(Error::Status(st)) if st.status_code == StatusCode::Eof => break Ok(()),
@@ -473,12 +609,12 @@ async fn read_dir_batched(
 }
 
 impl SftpFs {
-    async fn aux(&self) -> Option<&(russh_sftp::client::RawSftpSession, bool)> {
+    async fn aux(&self) -> Option<&(Arc<russh_sftp::client::RawSftpSession>, bool)> {
         self.aux
             .get_or_init(|| async {
                 let (raw, version) = self.conn.raw_sftp().await.ok()?;
                 let posix = version.extensions.get(POSIX_RENAME).is_some_and(|v| v == "1");
-                Some((raw, posix))
+                Some((Arc::new(raw), posix))
             })
             .await
             .as_ref()
@@ -508,6 +644,31 @@ impl SftpFs {
         &self.conn
     }
 
+    /// Open `path` for writing at `offset`; `confirmed` follows how far the
+    /// server confirmed it (see [`upload::AckWriter`]; without the second
+    /// session it stays at `offset`).
+    pub(crate) async fn open_write_counted(
+        &self,
+        path: &str,
+        offset: u64,
+        confirmed: Arc<std::sync::atomic::AtomicU64>,
+    ) -> VfsResult<Writer> {
+        let mut flags = OpenFlags::CREATE | OpenFlags::WRITE;
+        if offset == 0 {
+            flags |= OpenFlags::TRUNCATE;
+        }
+        confirmed.store(offset, std::sync::atomic::Ordering::Relaxed);
+        if let Some((raw, _)) = self.aux().await {
+            let handle = raw.open(path, flags, FileAttributes::empty()).await.map_err(link::classify_sftp)?.handle;
+            return Ok(Box::new(upload::AckWriter::new(raw.clone(), handle, offset, SFTP_WRITES_IN_FLIGHT, confirmed)));
+        }
+        let mut f = self.sftp.open_with_flags(path, flags).await.map_err(link::classify_sftp)?;
+        if offset > 0 {
+            f.seek(std::io::SeekFrom::Start(offset)).await?;
+        }
+        Ok(Box::new(f))
+    }
+
     /// Never use [`POSIX_RENAME`] (tests of the fallback path).
     pub fn disable_posix_rename(&self) {
         self.posix_rename.store(POSIX_RENAME_NO, std::sync::atomic::Ordering::Relaxed);
@@ -524,7 +685,7 @@ impl SftpFs {
         // The kept session; a new one (closed afterwards) when it could not be opened.
         let own;
         let (raw, offered, owned) = match self.aux().await {
-            Some((raw, offered)) => (raw, *offered, false),
+            Some((raw, offered)) => (&**raw, *offered, false),
             None => {
                 let (raw, version) = self.conn.raw_sftp().await.map_err(verr)?;
                 own = raw;
@@ -699,15 +860,10 @@ impl Vfs for SftpFs {
         Ok(Box::new(f))
     }
     async fn open_write_at(&self, path: &str, offset: u64) -> VfsResult<Writer> {
-        let mut flags = OpenFlags::CREATE | OpenFlags::WRITE;
-        if offset == 0 {
-            flags |= OpenFlags::TRUNCATE;
-        }
-        let mut f = self.sftp.open_with_flags(path, flags).await.map_err(link::classify_sftp)?;
-        if offset > 0 {
-            f.seek(std::io::SeekFrom::Start(offset)).await?;
-        }
-        Ok(Box::new(f))
+        self.open_write_counted(path, offset, self.confirmed.start(path)).await
+    }
+    fn write_confirmed(&self, path: &str) -> Option<u64> {
+        self.confirmed.get(path)
     }
     async fn set_attrs(
         &self,
@@ -753,5 +909,13 @@ mod tests {
         assert!(keepalive < SFTP_REQUEST_TIMEOUT);
         // And a fast line far away still has enough on the way (0.1 s round trip, 30 MB/s).
         assert!(SFTP_READS_IN_FLIGHT as u64 * 255 * 1024 >= 3 * 1024 * 1024);
+    }
+
+    #[test]
+    fn the_channel_window_does_not_hold_back_a_download() {
+        // The window is topped up when half of it is used: the reads sent
+        // ahead must fit into that half, or the server waits for us every
+        // round trip.
+        assert!(u64::from(SSH_CHANNEL_WINDOW) / 2 >= SFTP_READS_IN_FLIGHT as u64 * 255 * 1024);
     }
 }

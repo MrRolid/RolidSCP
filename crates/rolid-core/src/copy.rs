@@ -43,7 +43,17 @@ const INFO_HEADER: &str = "rolidscp-filepart 1";
 /// its end. Writes are pipelined (many in flight); a server that does not apply
 /// them strictly in order could leave a hole just before the end when the
 /// connection breaks. Rewriting the tail makes the result correct either way.
-pub const RESUME_MARGIN: u64 = 4 * 1024 * 1024;
+/// It is what an SFTP upload keeps on the way (64 writes of 32 kB). Used only
+/// when the destination does not know how far the server confirmed the file
+/// ([`Vfs::write_confirmed`]: after a restart of the program); otherwise just
+/// the unconfirmed rest is written again.
+pub const RESUME_MARGIN: u64 = 2 * 1024 * 1024;
+
+/// A file on a server may grow while it is copied (a log being written), but
+/// not without end: from a server that sends more than its size plus this
+/// much (or twice its size), the file is not taken (a broken or hostile server
+/// would fill the disk).
+pub const MAX_GROWTH: u64 = 64 * 1024 * 1024;
 
 /// Less free space than this after a failed write: the target disk is full
 /// (writes go in pieces of up to a few MiB, the last ones did not fit).
@@ -636,13 +646,13 @@ impl<'a> CopyJob<'a> {
         // it, whatever the conflict policy.
         if self.state.retrying && self.state.in_flight.as_deref() == Some(dst_path) {
             if let Some(p) = partial.as_ref().filter(|p| p.size <= src.size) {
-                return Plan::Write { offset: self.resume_offset(p.size) };
+                return Plan::Write { offset: self.resume_offset(part_path, p.size) };
             }
         }
         if let (Conflict::Resume, Some(p)) = (self.conflict, partial.as_ref()) {
             let info = read_info(self.dst, &info_path(dst_path)).await;
             return match info {
-                Some(i) if i.matches(src_path, src) && p.size <= src.size => Plan::Write { offset: self.resume_offset(p.size) },
+                Some(i) if i.matches(src_path, src) && p.size <= src.size => Plan::Write { offset: self.resume_offset(part_path, p.size) },
                 None if src.size < RESUME_INFO_MIN => Plan::Write { offset: 0 },
                 _ => Plan::NotResumed,
             };
@@ -732,12 +742,18 @@ impl<'a> CopyJob<'a> {
         let mut w = self.dst.open_write(&part_path).await?;
         let mut buf = vec![0u8; (src.size.saturating_add(1)).clamp(4096, BUF_SIZE as u64) as usize];
         let mut write_failed = false;
+        let cap = self.read_cap(src.size);
+        let mut got = 0u64;
         let copied: VfsResult<()> = async {
             loop {
                 self.check_cancel()?;
                 let n = r.read(&mut buf).await?;
                 if n == 0 {
                     return Ok(());
+                }
+                got += n as u64;
+                if got > cap {
+                    return Err(too_much(src_path, src.size));
                 }
                 if let Err(e) = w.write_all(&buf[..n]).await {
                     write_failed = true;
@@ -748,6 +764,10 @@ impl<'a> CopyJob<'a> {
         .await;
         if let Err(e) = copied {
             let _ = w.flush().await;
+            if got > cap {
+                drop(w);
+                let _ = self.dst.remove_file(&part_path).await;
+            }
             return Err(if write_failed { self.write_error(e, dst_path).await } else { e });
         }
         if let Err(e) = w.shutdown().await {
@@ -839,6 +859,8 @@ impl<'a> CopyJob<'a> {
         self.progress.bytes_resumed = self.progress.bytes_resumed.saturating_add(offset);
         let mut buf = vec![0u8; BUF_SIZE];
         let mut write_failed = false;
+        let cap = self.read_cap(src.size).saturating_sub(offset);
+        let mut got = 0u64;
         let copied: VfsResult<()> = async {
             loop {
                 self.check_cancel()?;
@@ -846,6 +868,10 @@ impl<'a> CopyJob<'a> {
                 let n = r.read(&mut buf[..chunk]).await?;
                 if n == 0 {
                     return Ok(());
+                }
+                got += n as u64;
+                if got > cap {
+                    return Err(too_much(src_path, src.size));
                 }
                 if let Err(e) = w.write_all(&buf[..n]).await {
                     write_failed = true;
@@ -864,6 +890,13 @@ impl<'a> CopyJob<'a> {
             // Let writes still in flight land (tokio::fs::File writes in the
             // background): a retry measures the .filepart to resume from it.
             let _ = w.flush().await;
+            if got > cap {
+                // Nothing to continue: the file is not taken.
+                drop(w);
+                let _ = self.dst.remove_file(&part_path).await;
+                let _ = self.dst.remove_file(&info).await;
+                self.state.in_flight = None;
+            }
             return Err(if write_failed { self.write_error(e, dst_path).await } else { e });
         }
         if let Err(e) = w.shutdown().await {
@@ -975,14 +1008,35 @@ impl CopyJob<'_> {
         }
     }
 
-    /// Where to continue a partial file of `size` bytes (see [`RESUME_MARGIN`]).
-    fn resume_offset(&self, size: u64) -> u64 {
-        if self.dst.is_remote() {
-            size.saturating_sub(RESUME_MARGIN)
+    /// How much of a file of `size` bytes is read at most (see [`MAX_GROWTH`]).
+    fn read_cap(&self, size: u64) -> u64 {
+        if self.src.is_remote() {
+            size.saturating_add(size.max(MAX_GROWTH))
         } else {
-            size
+            u64::MAX
         }
     }
+
+    /// Where to continue the partial file `part_path` of `size` bytes: after
+    /// what the server confirmed, or [`RESUME_MARGIN`] before its end.
+    fn resume_offset(&self, part_path: &str, size: u64) -> u64 {
+        if !self.dst.is_remote() {
+            return size;
+        }
+        match self.dst.write_confirmed(part_path) {
+            Some(c) if c <= size => c,
+            _ => size.saturating_sub(RESUME_MARGIN),
+        }
+    }
+}
+
+/// The error of a file that a server sends far more of than its size.
+fn too_much(src_path: &str, size: u64) -> VfsError {
+    VfsError::Backend(txt!(
+        "“{name}”: the server sends much more than the size of the file ({size} B); the file was not taken",
+        name = src_path,
+        size = size.to_string()
+    ))
 }
 
 /// Nothing in the listing `present` of the target folder is in the way of

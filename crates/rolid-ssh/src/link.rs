@@ -5,8 +5,10 @@
 //! When the connection breaks (keepalive unanswered, closed channel, EOF,
 //! timeout), the link goes to [`LinkState::Reconnecting`]; every operation then
 //! fails at once with [`VfsError::ConnectionLost`] instead of hanging.
-//! [`drive_reconnect`] tries to connect again with growing pauses
-//! ([`backoff`]: 1, 2, 4, 8, 16, then 30 s), without limit, until it succeeds,
+//! A transfer that hears nothing from the server for [`STALL_LIMIT`] counts
+//! the connection as dead too, sooner than the keepalive.
+//! [`drive_reconnect`] tries to connect again, every few seconds in the first
+//! minutes, then with growing pauses ([`backoff`]), without limit, until it succeeds,
 //! needs the user (locked passwords, unknown question, host key) or is stopped.
 //! After success every `RemoteFs` opens a fresh SFTP channel on the new
 //! connection with its next operation.
@@ -28,13 +30,30 @@ pub const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(15);
 /// …and the connection counts as dead after 3 unanswered probes.
 pub const KEEPALIVE_MAX: usize = 3;
 
-/// Pauses before reconnection attempts (seconds); the last one repeats.
-pub const BACKOFF_SECS: [u64; 6] = [1, 2, 4, 8, 16, 30];
+/// A transfer that gets nothing from the server for this long (no data, no
+/// answer to a ping sent after a third of it) counts the connection as dead
+/// and it is made again at once. The keepalive alone needs 45 s; a line that is
+/// up only for moments between outages (8 s up, 30 s down) was never used.
+pub const STALL_LIMIT: Duration = Duration::from_secs(15);
 
-/// Pause before reconnection attempt `attempt` (1-based).
-pub fn backoff(attempt: u32) -> Duration {
-    let i = (attempt.max(1) as usize - 1).min(BACKOFF_SECS.len() - 1);
-    Duration::from_secs(BACKOFF_SECS[i])
+/// Pauses before the first reconnection attempts (seconds); the last repeats
+/// for [`FREQUENT_FOR`] after the loss.
+pub const BACKOFF_SECS: [u64; 3] = [1, 2, 3];
+/// How long after a loss the attempts come every few seconds: a line that is
+/// back for a moment is caught. Then every 10 s, after 10 minutes every 30 s.
+pub const FREQUENT_FOR: Duration = Duration::from_secs(180);
+
+/// Pause before reconnection attempt `attempt` (1-based), `since_loss` after
+/// the connection was lost.
+pub fn backoff(attempt: u32, since_loss: Duration) -> Duration {
+    if since_loss < FREQUENT_FOR {
+        let i = (attempt.max(1) as usize - 1).min(BACKOFF_SECS.len() - 1);
+        Duration::from_secs(BACKOFF_SECS[i])
+    } else if since_loss < Duration::from_secs(600) {
+        Duration::from_secs(10)
+    } else {
+        Duration::from_secs(30)
+    }
 }
 
 /// Does an error message (from the SFTP / SSH layer, not a server status reply)
@@ -86,6 +105,10 @@ pub fn classify_sftp(e: russh_sftp::client::error::Error) -> VfsError {
         }
         E::Status(st) => VfsError::raw(status_text(&st)),
         E::Timeout => VfsError::ConnectionLost(txt!("the server does not respond (timeout)")),
+        E::Limited(m) if m == crate::TOO_LONG => VfsError::Backend(txt!(
+            "the server's listing of the folder does not end (more than {count} entries): it was stopped",
+            count = crate::MAX_LISTING.to_string()
+        )),
         E::IO(m) => VfsError::ConnectionLost(txt!("connection interrupted: {error}", error = m)),
         E::UnexpectedBehavior(m) if message_means_lost(&m) => {
             VfsError::ConnectionLost(txt!("connection interrupted: {error}", error = m))
@@ -342,9 +365,10 @@ where
     Fut: std::future::Future<Output = Attempt>,
 {
     let mut attempt = 0u32;
+    let lost_at = tokio::time::Instant::now();
     loop {
         // Wait before the attempt (interrupted by "Connect now" / "Cancel").
-        let pause = backoff(attempt + 1);
+        let pause = backoff(attempt + 1, lost_at.elapsed());
         let error = link.state().error().cloned().unwrap_or_else(|| raw_text(""));
         if !link.set_state(LinkState::Reconnecting {
             attempt,
@@ -383,6 +407,30 @@ where
 
 // ------------------------------------------------------------------ RemoteFs
 
+fn stall_error(limit: Duration) -> VfsError {
+    VfsError::ConnectionLost(txt!("nothing came from the server for {seconds} s", seconds = limit.as_secs().to_string()))
+}
+
+/// Resolves (with the error) when nothing came from the server for the stall
+/// limit while this waited; pings after a third of it (see [`STALL_LIMIT`]).
+/// The connection is then given up.
+async fn stalled(conn: &SshConnection) -> VfsError {
+    let start = tokio::time::Instant::now();
+    loop {
+        let limit = conn.stall_limit();
+        let quiet = conn.quiet_for().min(start.elapsed());
+        if quiet >= limit {
+            conn.abandon();
+            return stall_error(limit);
+        }
+        let ping_at = limit / 3;
+        if quiet >= ping_at {
+            conn.ping();
+        }
+        tokio::time::sleep(if quiet < ping_at { ping_at - quiet } else { limit - quiet }).await;
+    }
+}
+
 fn lost_now(link: &Link) -> VfsError {
     let s = link.state();
     VfsError::ConnectionLost(match s.error() {
@@ -401,17 +449,19 @@ fn lost_now(link: &Link) -> VfsError {
 pub struct RemoteFs {
     link: Arc<Link>,
     session: tokio::sync::Mutex<Option<(u64, Arc<SftpFs>)>>,
+    /// How far the server confirmed the files written last (across connections).
+    confirmed: crate::upload::Confirmed,
 }
 
 impl RemoteFs {
     pub fn new(link: Arc<Link>) -> Self {
-        Self { link, session: tokio::sync::Mutex::new(None) }
+        Self { link, session: tokio::sync::Mutex::new(None), confirmed: Default::default() }
     }
 
     /// With an already open SFTP session on the link's current connection.
     pub fn with_session(link: Arc<Link>, sftp: SftpFs) -> Self {
         let gen = link.generation();
-        Self { link, session: tokio::sync::Mutex::new(Some((gen, Arc::new(sftp)))) }
+        Self { link, session: tokio::sync::Mutex::new(Some((gen, Arc::new(sftp)))), confirmed: Default::default() }
     }
 
     pub fn link(&self) -> &Arc<Link> {
@@ -429,7 +479,14 @@ impl RemoteFs {
             }
         }
         *g = None;
-        match conn.sftp().await {
+        let opened = tokio::select! {
+            r = conn.sftp() => r,
+            e = stalled(&conn) => {
+                self.link.mark_lost(gen, e.text());
+                return Err(e);
+            }
+        };
+        match opened {
             Ok(s) => {
                 let s = Arc::new(s);
                 *g = Some((gen, s.clone()));
@@ -475,6 +532,7 @@ impl RemoteFs {
             biased;
             r = f(s.clone()) => r,
             _ = conn.closed() => Err(VfsError::ConnectionLost(txt!("the connection to the server was interrupted"))),
+            e = stalled(&conn) => Err(e),
         };
         match r {
             Ok(v) => Ok(v),
@@ -535,33 +593,99 @@ impl Vfs for RemoteFs {
     }
     async fn open_read_at(&self, path: &str, offset: u64) -> VfsResult<Reader> {
         let (gen, s) = self.sftp().await?;
-        match s.open_read_at(path, offset).await {
-            Ok(r) => Ok(Box::new(Guarded { inner: r, link: self.link.clone(), gen, sftp: s })),
+        let opened = tokio::select! {
+            r = s.open_read_at(path, offset) => r,
+            e = stalled(s.connection()) => Err(e),
+        };
+        match opened {
+            Ok(r) => Ok(Box::new(Guarded::new(r, self.link.clone(), gen, s))),
             Err(e) => Err(self.check(gen, s.connection().is_closed(), e)),
         }
     }
     async fn open_write_at(&self, path: &str, offset: u64) -> VfsResult<Writer> {
         let (gen, s) = self.sftp().await?;
-        match s.open_write_at(path, offset).await {
-            Ok(w) => Ok(Box::new(Guarded { inner: w, link: self.link.clone(), gen, sftp: s })),
+        let opened = tokio::select! {
+            r = s.open_write_counted(path, offset, self.confirmed.start(path)) => r,
+            e = stalled(s.connection()) => Err(e),
+        };
+        match opened {
+            Ok(w) => Ok(Box::new(Guarded::new(w, self.link.clone(), gen, s))),
             Err(e) => Err(self.check(gen, s.connection().is_closed(), e)),
         }
     }
     async fn set_attrs(&self, path: &str, mode: Option<u32>, mtime: Option<SystemTime>) -> VfsResult<()> {
         self.run(|s| async move { s.set_attrs(path, mode, mtime).await }).await
     }
+    fn write_confirmed(&self, path: &str) -> Option<u64> {
+        self.confirmed.get(path)
+    }
 }
 
 /// Reader / writer that reports a lost connection (and says so in the error kind,
-/// so copy jobs can continue after reconnection).
+/// so copy jobs can continue after reconnection). While it waits for the
+/// server it watches the connection: after a third of [`STALL_LIMIT`] without
+/// anything from the server it pings, and when nothing at all came for the
+/// whole limit the connection counts as dead (and is given up, so a new one
+/// is made at once).
 struct Guarded<T> {
     inner: T,
     link: Arc<Link>,
     gen: u64,
     sftp: Arc<SftpFs>,
+    /// Since when the current operation waits (None: it does not).
+    waiting_since: Option<tokio::time::Instant>,
+    /// Wakes the waiting operation for the next look at the connection.
+    timer: Option<std::pin::Pin<Box<tokio::time::Sleep>>>,
 }
 
 impl<T> Guarded<T> {
+    fn new(inner: T, link: Arc<Link>, gen: u64, sftp: Arc<SftpFs>) -> Self {
+        Self { inner, link, gen, sftp, waiting_since: None, timer: None }
+    }
+
+    /// After every poll of the inner reader / writer: an error when the
+    /// connection went quiet for too long while this waited.
+    fn watch<R>(&mut self, cx: &mut std::task::Context<'_>, p: std::task::Poll<std::io::Result<R>>) -> std::task::Poll<std::io::Result<R>> {
+        use std::task::Poll;
+        match p {
+            Poll::Ready(Err(e)) => {
+                self.waiting_since = None;
+                Poll::Ready(Err(self.map(e)))
+            }
+            Poll::Ready(ok) => {
+                self.waiting_since = None;
+                Poll::Ready(ok)
+            }
+            Poll::Pending => {
+                let conn = self.sftp.connection();
+                let limit = conn.stall_limit();
+                let now = tokio::time::Instant::now();
+                let since = *self.waiting_since.get_or_insert(now);
+                // Quiet since the later of: the start of this wait, the last word from the server.
+                let quiet = conn.quiet_for().min(now - since);
+                if quiet >= limit {
+                    self.waiting_since = None;
+                    conn.abandon();
+                    let e = stall_error(limit);
+                    self.link.mark_lost(self.gen, e.text());
+                    return Poll::Ready(Err(std::io::Error::new(std::io::ErrorKind::ConnectionAborted, e)));
+                }
+                let ping_at = limit / 3;
+                if quiet >= ping_at {
+                    conn.ping();
+                }
+                // Look again when the ping is due or the limit is reached.
+                let next = now + if quiet < ping_at { ping_at - quiet } else { limit - quiet };
+                let timer = self.timer.get_or_insert_with(|| Box::pin(tokio::time::sleep_until(next)));
+                timer.as_mut().reset(next);
+                if std::future::Future::poll(timer.as_mut(), cx).is_ready() {
+                    cx.waker().wake_by_ref();
+                }
+                Poll::Pending
+            }
+        }
+    }
+
     fn map(&self, e: std::io::Error) -> std::io::Error {
         let lost = io_is_connection_lost(&e)
             || e.kind() == std::io::ErrorKind::TimedOut
@@ -585,10 +709,8 @@ impl<T: AsyncRead + Unpin> AsyncRead for Guarded<T> {
         cx: &mut std::task::Context<'_>,
         buf: &mut tokio::io::ReadBuf<'_>,
     ) -> std::task::Poll<std::io::Result<()>> {
-        match std::pin::Pin::new(&mut self.inner).poll_read(cx, buf) {
-            std::task::Poll::Ready(Err(e)) => std::task::Poll::Ready(Err(self.map(e))),
-            other => other,
-        }
+        let p = std::pin::Pin::new(&mut self.inner).poll_read(cx, buf);
+        self.watch(cx, p)
     }
 }
 
@@ -598,28 +720,22 @@ impl<T: AsyncWrite + Unpin> AsyncWrite for Guarded<T> {
         cx: &mut std::task::Context<'_>,
         buf: &[u8],
     ) -> std::task::Poll<std::io::Result<usize>> {
-        match std::pin::Pin::new(&mut self.inner).poll_write(cx, buf) {
-            std::task::Poll::Ready(Err(e)) => std::task::Poll::Ready(Err(self.map(e))),
-            other => other,
-        }
+        let p = std::pin::Pin::new(&mut self.inner).poll_write(cx, buf);
+        self.watch(cx, p)
     }
     fn poll_flush(
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<std::io::Result<()>> {
-        match std::pin::Pin::new(&mut self.inner).poll_flush(cx) {
-            std::task::Poll::Ready(Err(e)) => std::task::Poll::Ready(Err(self.map(e))),
-            other => other,
-        }
+        let p = std::pin::Pin::new(&mut self.inner).poll_flush(cx);
+        self.watch(cx, p)
     }
     fn poll_shutdown(
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<std::io::Result<()>> {
-        match std::pin::Pin::new(&mut self.inner).poll_shutdown(cx) {
-            std::task::Poll::Ready(Err(e)) => std::task::Poll::Ready(Err(self.map(e))),
-            other => other,
-        }
+        let p = std::pin::Pin::new(&mut self.inner).poll_shutdown(cx);
+        self.watch(cx, p)
     }
 }
 
@@ -631,10 +747,13 @@ mod tests {
 
     #[test]
     fn backoff_sequence() {
-        let secs: Vec<u64> = (1..=9).map(|n| backoff(n).as_secs()).collect();
-        assert_eq!(secs, [1, 2, 4, 8, 16, 30, 30, 30, 30]);
-        assert_eq!(backoff(0).as_secs(), 1);
-        assert_eq!(backoff(u32::MAX).as_secs(), 30);
+        let early = Duration::from_secs(20);
+        let secs: Vec<u64> = (1..=6).map(|n| backoff(n, early).as_secs()).collect();
+        assert_eq!(secs, [1, 2, 3, 3, 3, 3], "every few seconds right after the loss");
+        assert_eq!(backoff(0, early).as_secs(), 1);
+        assert_eq!(backoff(60, Duration::from_secs(179)).as_secs(), 3);
+        assert_eq!(backoff(61, Duration::from_secs(180)).as_secs(), 10, "then less often");
+        assert_eq!(backoff(u32::MAX, Duration::from_secs(600)).as_secs(), 30);
     }
 
     fn status(code: StatusCode, msg: &str) -> E {
@@ -712,8 +831,8 @@ mod tests {
             }
         })
         .await;
-        // Waits 1, 2, 4, 8 s before attempts 1–4.
-        assert_eq!(*calls.lock().unwrap(), [(1, 1), (2, 3), (3, 7), (4, 15)]);
+        // Waits 1, 2, 3, 3 s before attempts 1–4.
+        assert_eq!(*calls.lock().unwrap(), [(1, 1), (2, 3), (3, 6), (4, 9)]);
         assert_eq!(link.state(), LinkState::NeedsUser { reason: NeedUser::Credentials, error: raw_text("password") });
         assert!(link.state().text().to_string().contains("login details"));
 

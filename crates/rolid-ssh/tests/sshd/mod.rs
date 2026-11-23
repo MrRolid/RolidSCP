@@ -161,6 +161,39 @@ impl Sshd {
         Err(format!("not listening after 20 s: {}", log()))
     }
 
+    /// The processes that serve the SFTP channels of this server's connections
+    /// (found from the per-connection processes by the server port of their
+    /// sockets, then their children that have no children of their own).
+    #[allow(dead_code)]
+    pub fn sftp_workers(&self) -> Vec<u32> {
+        let out = Command::new("ss")
+            .args(["-tnpH", "state", "established", &format!("sport = :{}", self.port)])
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
+            .unwrap_or_default();
+        let children = |pid: u32| -> Vec<u32> {
+            let mut v = Vec::new();
+            for t in std::fs::read_dir(format!("/proc/{pid}/task")).into_iter().flatten().flatten() {
+                let c = std::fs::read_to_string(t.path().join("children")).unwrap_or_default();
+                v.extend(c.split_whitespace().filter_map(|x| x.parse::<u32>().ok()));
+            }
+            v
+        };
+        let mut todo: Vec<u32> =
+            out.split("pid=").skip(1).filter_map(|t| t.split(|c: char| !c.is_ascii_digit()).next()?.parse().ok()).collect();
+        todo.sort_unstable();
+        todo.dedup();
+        let mut leaves = Vec::new();
+        while let Some(p) = todo.pop() {
+            let c = children(p);
+            if c.is_empty() {
+                leaves.push(p);
+            }
+            todo.extend(c);
+        }
+        leaves
+    }
+
     /// Stop the listening server and every connection it serves (server restart / crash).
     pub fn kill(&mut self) {
         if let Some(mut c) = self.child.take() {
