@@ -3149,7 +3149,7 @@ fn speed_limit_combo(ui: &mut egui::Ui, id: &str, kib: &mut Option<u64>) -> bool
 
 /// File system type of `path` on a server (`df -PT` / `stat -f` over SSH);
 /// `None` without a shell or when the command does not answer in time.
-async fn remote_fs_type(link: &rolid_ssh::Link, path: &str) -> Option<String> {
+pub(crate) async fn remote_fs_type(link: &rolid_ssh::Link, path: &str) -> Option<String> {
     let (_, conn) = link.current()?;
     let cmd = rolid_disk::remote::fs_type_command(&rolid_search::remote::sh_quote(path));
     let cancel = std::sync::atomic::AtomicBool::new(false);

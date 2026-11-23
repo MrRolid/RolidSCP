@@ -27,6 +27,8 @@ mod bench_kill;
 #[cfg(test)]
 mod bench_net;
 #[cfg(test)]
+mod bench_servers;
+#[cfg(test)]
 mod bench_space;
 
 /// Log to `rolid_config::log_path()` (and stderr). Default level: info for our
