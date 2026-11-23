@@ -5881,11 +5881,11 @@ msgstr ""
 msgid "Choose what to do with existing files: nothing is preselected."
 msgstr ""
 
-#: crates/rolid-ui/src/app.rs:3106
+#: crates/rolid-ui/src/app.rs:3108
 msgid "unlimited"
 msgstr ""
 
-#: crates/rolid-ui/src/app.rs:3145
+#: crates/rolid-ui/src/app.rs:3147
 msgid "Exact value (drag, or double-click and type)"
 msgstr ""
 
@@ -6294,6 +6294,21 @@ msgstr ""
 
 #: crates/rolid-ui/src/pane.rs:2355
 msgid "Other application…"
+msgstr ""
+
+#: crates/rolid-ui/src/startup_error.rs:38
+msgid ""
+"RolidSCP could not open its window.\n"
+"\n"
+"{error}\n"
+"\n"
+"The program needs the graphics libraries of your system: EGL or Vulkan (Mesa), X11 or Wayland, and libxkbcommon. Install them with your package manager, or install the deb or rpm package, which brings them along.\n"
+"\n"
+"The log: {log}"
+msgstr ""
+
+#: crates/rolid-ui/src/startup_error.rs:55
+msgid "RolidSCP could not start"
 msgstr ""
 
 #: crates/rolid-view/src/search.rs:440

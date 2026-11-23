@@ -5,6 +5,8 @@
 extern crate rolid_i18n;
 
 mod secret;
+mod bundled_libs;
+mod startup_error;
 mod app;
 mod archive_fs;
 mod checksum;
@@ -76,7 +78,14 @@ fn main() -> eframe::Result {
     if let Some(code) = terminal::helper_if_asked() {
         std::process::exit(code);
     }
+    let xkb = bundled_libs::prepare_env();
     init_logging();
+    // Libraries the AppImage carries, for systems that lack them.
+    if let Some(dir) = xkb {
+        tracing::info!(dir = %dir.display(), "no keyboard data folder on the system: XKB_CONFIG_ROOT set to the AppImage's");
+    }
+    bundled_libs::load();
+    startup_error::install_panic_hook();
     // The journal of unfinished replacements of files on servers (repaired at
     // the next connection).
     rolid_core::replace::set_journal_dir(rolid_config::state_dir().join("replace"));
@@ -107,6 +116,9 @@ fn main() -> eframe::Result {
         Box::new(move |cc| Ok(Box::new(app::App::new(cc, handle)))),
     );
     rt.shutdown_timeout(std::time::Duration::from_secs(1));
+    if let Err(e) = &res {
+        startup_error::report(&e.to_string());
+    }
     res
 }
 

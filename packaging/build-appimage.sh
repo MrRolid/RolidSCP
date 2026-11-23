@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 # Build target/appimage/RolidSCP-<version>-x86_64.AppImage from a release build.
 #
-# The AppImage holds only the program, its desktop entry, icon and licences.
-# The binary links only to glibc and libgcc_s and loads the graphics, input and
-# font libraries (X11, Wayland, EGL/Vulkan, fontconfig) of the host at run time,
-# so none of them are bundled.
+# The AppImage holds the program, its desktop entry, icon and licences, and the
+# libraries the program opens at run time that a system may lack (keyboard,
+# X11 cursor and input, Wayland cursor and EGL; the list is LIBS in
+# crates/rolid-ui/src/bundled_libs.rs). They go to usr/lib/rolidscp and are
+# used only where the system has no copy of its own. What the AppImage exclude
+# list expects on every system (glibc, libX11, libxcb, libEGL, libGL,
+# libwayland-client, fontconfig, freetype) is not bundled. The libraries are
+# copied from the building system (Ubuntu 22.04 in CI, so they need no newer
+# glibc than the program), with their copyright files.
 #
 # Needs mksquashfs (squashfs-tools) and the AppImage type 2 runtime, downloaded
 # from a fixed release and checked against its SHA-256 (or given as
@@ -34,6 +39,29 @@ cp packaging/rolidscp.desktop "$APPDIR/rolidscp.desktop"
 cp packaging/rolidscp.svg "$APPDIR/rolidscp.svg"
 ln -s rolidscp.svg "$APPDIR/.DirIcon"
 ln -s usr/bin/rolidscp "$APPDIR/AppRun"
+
+# The libraries for systems that lack them (see the top of this file).
+LIBDIR=$APPDIR/usr/lib/rolidscp
+mkdir -p "$LIBDIR" "$APPDIR/usr/share/licenses/rolidscp/bundled"
+# An empty keyboard data folder for systems without one (bundled_libs::prepare_env).
+mkdir -p "$APPDIR/usr/share/rolidscp/xkb"
+for lib in $(sed -n '/^pub const LIBS/,/^];/p' crates/rolid-ui/src/bundled_libs.rs | grep -oE 'lib[A-Za-z0-9_-]+\.so\.[0-9]+'); do
+    src=$(/sbin/ldconfig -p | awk -v l="$lib" '$1 == l && /x86-64/ { print $NF; exit }')
+    if [ -z "$src" ]; then
+        echo "missing on this system: $lib (install it to build the AppImage)" >&2
+        exit 1
+    fi
+    cp -L "$src" "$LIBDIR/$lib"
+    chmod 644 "$LIBDIR/$lib"
+    pkg=$(dpkg -S "$(readlink -f "$src")" 2>/dev/null | head -1 | cut -d: -f1)
+    if [ -n "$pkg" ] && [ -f "/usr/share/doc/$pkg/copyright" ]; then
+        cp "/usr/share/doc/$pkg/copyright" "$APPDIR/usr/share/licenses/rolidscp/bundled/$pkg.copyright"
+    else
+        echo "no copyright file for $lib" >&2
+        exit 1
+    fi
+    echo "bundled $lib ($pkg)"
+done
 
 SQUASHFS=$STAGE/rolidscp.squashfs
 rm -f "$SQUASHFS"

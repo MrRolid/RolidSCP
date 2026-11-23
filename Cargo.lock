@@ -4639,6 +4639,7 @@ dependencies = [
  "futures-util",
  "getrandom 0.4.3",
  "image",
+ "libc",
  "md5",
  "qrcode",
  "raw-window-handle",
@@ -4663,6 +4664,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "winit",
+ "x11-dl",
  "x11rb",
  "zeroize",
 ]

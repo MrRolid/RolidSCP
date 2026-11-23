@@ -3011,6 +3011,8 @@ impl eframe::App for App {
         let ctx = ui.ctx().clone();
         let frame_start = Instant::now();
         if !self.scale_logged {
+            // The window is there: later errors are not start errors.
+            crate::startup_error::started();
             self.scale_logged = true;
             let native = ctx.input(|i| i.viewport().native_pixels_per_point);
             let tess = ctx.tessellation_options(|t| t.round_text_to_pixels);

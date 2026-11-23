@@ -43,6 +43,10 @@ secrecy = "0.10.3"
 rolid-edit = { path = "../rolid-edit" }
 rolid-archive = { path = "../rolid-archive" }
 dirs = "7.0.0"
+# dlopen of the libraries the AppImage carries (bundled_libs.rs).
+libc = "0.2.191"
+# The start error window without a toolkit (startup_error.rs); the version winit uses.
+x11-dl = "2.21.0"
 md5 = "0.8.1"
 sha1 = "0.11.0"
 sha2 = "0.11.1"
