@@ -49,7 +49,13 @@ catch it again.
     session.
 - **0.8.18 Servers and distributions:** moved from 0.8.17: a real file over 100 GB copied to a
   server and back, interrupted and continued, a transfer running overnight with memory checks, and
-  the computer going to sleep and waking up during a session. Then different OpenSSH versions,
+  the computer going to sleep and waking up during a session. A line that is down for 30 seconds
+  and up for only 8, again and again (the `flapping` scenario of `badnet.sh`), must be survived: a
+  connection that receives no data for 15 seconds during a transfer is treated as dead and made
+  again at once, reconnection is tried more often in the first minutes, and less of the end of a
+  file is written again after a reconnection (now 4 MB). Downloading over a line with a long round
+  trip is looked into: 24 s against 9.5 s for OpenSSH's `sftp` with 32 MiB at 100 ms, while
+  uploading is as fast. Then different OpenSSH versions,
   Dropbear, SFTP-only servers without a shell, BusyBox, NAS devices and Windows servers; Debian,
   Ubuntu, Linux Mint, Fedora, openSUSE and Arch; X11 and Wayland; high-DPI screens. A broken or
   hostile server (odd names, huge or false listings, links pointing outside the target folder),
