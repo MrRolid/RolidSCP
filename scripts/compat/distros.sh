@@ -62,6 +62,9 @@ for entry in "${DISTROS[@]}"; do
     echo -e "DISTRO\t$name\tunpack\tfail\t$(tail -1 "$WORK/$name.log")" | tee -a "$OUT"; continue
   fi
   os=$(. "$R/etc/os-release" 2>/dev/null; echo "${PRETTY_NAME:-?}")
+  # Linux Mint's image is its Ubuntu base with Mint's repositories.
+  mint=$(grep -rhoE 'packages\.linuxmint\.com +[a-z]+' "$R/etc/apt/sources.list" "$R/etc/apt/sources.list.d" 2>/dev/null | awk '{ print $2; exit }' || true)
+  [ -n "$mint" ] && os="$os with the Linux Mint repositories ($mint)"
   echo -e "DISTRO\t$name\tsystem\tinfo\t$os" | tee -a "$OUT"
   note "$name: installing the $kind package"
   if out=$("$HERE/inroot.sh" "$R" -b "$PKG:/pkg" -- bash -c "$(install_cmd "$kind" "$name")" 2>&1 | tee -a "$WORK/$name.log" | tail -1); then
