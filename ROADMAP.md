@@ -47,25 +47,39 @@ catch it again.
   - Not done, moved to 0.8.18: a real file over 100 GB copied to a server and back, a transfer
     running overnight with memory checks, and the computer going to sleep and waking up during a
     session.
-- **0.8.18 Servers and distributions:** moved from 0.8.17: a real file over 100 GB copied to a
-  server and back, interrupted and continued, a transfer running overnight with memory checks, and
-  the computer going to sleep and waking up during a session. A line that is down for 30 seconds
-  and up for only 8, again and again (the `flapping` scenario of `badnet.sh`), must be survived: a
-  connection that receives no data for 15 seconds during a transfer is treated as dead and made
-  again at once, reconnection is tried more often in the first minutes, and less of the end of a
-  file is written again after a reconnection (now 4 MB). Downloading over a line with a long round
-  trip is looked into: 24 s against 9.5 s for OpenSSH's `sftp` with 32 MiB at 100 ms, while
-  uploading is as fast. Then different OpenSSH versions,
-  Dropbear, SFTP-only servers without a shell, BusyBox, NAS devices and Windows servers; Debian,
-  Ubuntu, Linux Mint, Fedora, openSUSE and Arch; X11 and Wayland; high-DPI screens. A broken or
-  hostile server (odd names, huge or false listings, links pointing outside the target folder),
-  permissions, ACLs and extended attributes, and time zones and server clocks that are off.
-- **0.8.19 Polish:** consistent controls in every dialog, fuzz testing of everything the program reads
-  (archives, server listings, `known_hosts`), a licence check of all dependencies and a check of the
-  code for matches with other projects, and performance measured on every build. Two copies of the
-  program running at once; settings from older versions, going back to an older version and damaged
-  settings files. Keyboard-only use, screen readers and long translated texts. Signed checksums of
-  the release files and reproducible builds.
+- **0.8.18 Servers and distributions:** what was tested:
+  - A line that is down for 30 seconds and up for only 8, again and again, is survived: a
+    connection on which nothing comes from the server for 15 seconds while the program waits is
+    taken as dead and made again at once (a ping after 5 seconds tells a slow server from a dead
+    line), reconnection is tried every few seconds in the first three minutes, and an upload
+    continues from the part the server confirmed. The other bad-line scenarios of 0.8.17 measured
+    again, next to OpenSSH's `sftp`.
+  - Downloading over a line with a long round trip: the SSH channel window of the library (2 MB)
+    held the transfer back; with 8 MiB a download at 100 ms takes about half the time.
+  - Servers without a physical machine, in user namespaces without root: OpenSSH 7.6, 8.2, 9.2,
+    9.6 and 10.0, Dropbear 2022 and 2025, an SFTP-only account without a shell, BusyBox (Alpine)
+    and a chroot SFTP server. Each: connecting, listing, transfers both ways with SHA-256, F4,
+    permissions, renaming, deleting, archives, and what the program does without `du`, `find`,
+    `df` or a shell.
+  - The deb, rpm and AppImage packages installed by each distribution's package manager and used
+    in the program's window (on a virtual screen): Debian, Ubuntu, Linux Mint, Fedora, openSUSE
+    and Arch.
+  - A faulty and hostile server: false sizes, names with `..`, `/` and control characters, links
+    pointing outside the target folder, huge and endless listings, a file without end, a server
+    that stops answering. Nothing is written outside the target folder, and nothing crashes or
+    hangs.
+  - Moved to a separate test machine and not done yet: a real file over 100 GB, a transfer running
+    overnight with memory checks, the computer going to sleep and waking up during a session, a
+    network cable pulled out, a Windows server and a NAS.
+  - Not done yet, moved to 0.8.19: X11 against Wayland, high-DPI screens, ACLs, extended
+    attributes, and time zones and server clocks that are off.
+- **0.8.19 Polish:** moved from 0.8.18: X11 against Wayland, high-DPI screens, ACLs, extended
+  attributes, and time zones and server clocks that are off. Consistent controls in every dialog,
+  fuzz testing of everything the program reads (archives, server listings, `known_hosts`), a licence
+  check of all dependencies and a check of the code for matches with other projects, and performance
+  measured on every build. Two copies of the program running at once; settings from older versions,
+  going back to an older version and damaged settings files. Keyboard-only use, screen readers and
+  long translated texts. Signed checksums of the release files and reproducible builds.
 
 ## 0.9.x: small new features
 
