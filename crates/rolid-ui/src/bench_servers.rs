@@ -72,6 +72,9 @@ fn sums(root: &Path) -> Vec<(String, String)> {
     out
 }
 
+// Marked although the whole module is test code: the check for untranslated
+// text skips `#[cfg(test)]` items, and this one holds a non-English name.
+#[cfg(test)]
 fn make_tree(d: &Path) {
     std::fs::create_dir_all(d.join("sub/deeper")).unwrap();
     std::fs::write(d.join("big.bin"), content(1, 6 << 20)).unwrap();
