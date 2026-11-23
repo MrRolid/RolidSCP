@@ -722,7 +722,8 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
                      server confirmed; downloads over a distant line about twice as fast; a faulty or hostile server \
                      cannot make the program write outside the target folder, and an endless listing or a file sent \
                      far past its size is stopped; tested with OpenSSH 7.6 to 10.0, Dropbear, BusyBox, SFTP-only and \
-                     chroot servers, and the packages on Debian, Ubuntu, Linux Mint, Fedora, openSUSE and Arch"
+                     chroot servers, and the packages on Debian, Ubuntu, Linux Mint, Fedora, openSUSE and Arch; the AppImage brings the \
+                     libraries a minimal system lacks, and a start that fails shows its error in a window"
                 ),
                 trc!(
                     "news",
