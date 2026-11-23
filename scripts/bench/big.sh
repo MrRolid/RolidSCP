@@ -6,13 +6,18 @@
 # by SHA-256. Measured: speed, the remaining-time estimate the transfer queue
 # shows, memory and open files (crates/rolid-ui/src/bench_big.rs).
 #
-#   scripts/bench/big.sh [-g GIB] [-s STEPS] BASE [RESULTS.tsv]
+#   scripts/bench/big.sh [-g GIB] [-s STEPS] [-b TEST_BIN] [-p] BASE [RESULTS.tsv]
 #
 # BASE   an empty or missing folder on a real disk with about 3.2 × GIB free
-#        (source, the copy on the server and one more copy at a time).
+#        (source, the copy on the server and one more copy at a time; with
+#        -p and only the down steps, 1.1 × GIB).
 #        Everything is created inside BASE and deleted at the end.
 # GIB    size of the file in GiB (default 120).
 # STEPS  comma-separated subset of: up,upkill,down,downkill,ref (default: all).
+# -b     the test binary of the rolidscp crate, built elsewhere (for a
+#        computer without the Rust toolchain); default: built here with cargo.
+# -p     a sparse source (scripts/bench/sparsefile.py: 4 KiB of data every
+#        256 KiB, 1/64 of the size on the disk) instead of pseudo-random data.
 #
 # Needs openssl (fast pseudo-random data), sha256sum and OpenSSH (sshd, sftp,
 # ssh-keygen). Nothing is written to ~/.ssh. Processes are stopped by the PIDs
@@ -20,8 +25,10 @@
 set -euo pipefail
 GIB=120
 STEPS=up,upkill,down,downkill,ref
-while getopts "g:s:" o; do
-  case $o in g) GIB=$OPTARG ;; s) STEPS=$OPTARG ;; *) exit 2 ;; esac
+TEST_BIN=
+SPARSE=0
+while getopts "g:s:b:p" o; do
+  case $o in g) GIB=$OPTARG ;; s) STEPS=$OPTARG ;; b) TEST_BIN=$(realpath "$OPTARG") ;; p) SPARSE=1 ;; *) exit 2 ;; esac
 done
 shift $((OPTIND - 1))
 [ $# -ge 1 ] || { sed -n '2,19p' "$0"; exit 2; }
@@ -38,6 +45,7 @@ mkdir -p "$BASE"
 [ "$(stat -f -c %T "$BASE")" = tmpfs ] && { echo "$BASE is on tmpfs: use a real disk" >&2; exit 1; }
 free_before=$(df -B1 --output=avail "$BASE" | tail -1)
 need=$((SIZE / 10 * 32))
+if [ "$SPARSE" = 1 ] && [[ ",$STEPS," != *",up"* ]]; then need=$((SIZE / 10 * 11)); fi
 [ "$free_before" -gt "$need" ] || { echo "not enough space in $BASE: $free_before B free, $need B needed" >&2; exit 1; }
 : >"$OUT"
 note() { echo "== $(date +%T) $*" >&2; }
@@ -59,8 +67,8 @@ mkdir -p "$BASE/local" "$BASE/server" "$BASE/ssh"
 bench big.miner_at_start "$(miner)" bool
 bench big.size "$SIZE" B
 
-note "building"
-TEST_BIN=$(cd "$ROOT" && "$CARGO" test --release -p rolidscp --no-run --message-format=json 2>/dev/null |
+[ -n "$TEST_BIN" ] || note "building"
+[ -n "$TEST_BIN" ] || TEST_BIN=$(cd "$ROOT" && "$CARGO" test --release -p rolidscp --no-run --message-format=json 2>/dev/null |
   python3 -c 'import json,sys
 for l in sys.stdin:
     m = json.loads(l)
@@ -94,11 +102,17 @@ for _ in $(seq 50); do (exec 3<>/dev/tcp/127.0.0.1/"$PORT") 2>/dev/null && break
 export ROLIDSCP_BIG_SSH="$PORT|$(id -un)|$S/client|$S/known_hosts" ROLIDSCP_BENCH_OUT="$OUT"
 
 SRC="$BASE/local/big.bin"
-note "writing $GIB GiB of pseudo-random data"
 t0=$(date +%s)
-# (openssl ends with SIGPIPE when head has enough: not an error.)
-want=$( { openssl enc -aes-128-ctr -K 00112233445566778899aabbccddeeff -iv 0 -nosalt -in /dev/zero 2>/dev/null || true; } |
-  head -c "$SIZE" | tee "$SRC" | sha256sum | cut -d' ' -f1)
+if [ "$SPARSE" = 1 ]; then
+  note "writing a sparse file of $GIB GiB"
+  want=$(python3 -I "$HERE/sparsefile.py" "$SRC" "$GIB")
+  bench big.source_sparse 1 bool
+else
+  note "writing $GIB GiB of pseudo-random data"
+  # (openssl ends with SIGPIPE when head has enough: not an error.)
+  want=$( { openssl enc -aes-128-ctr -K 00112233445566778899aabbccddeeff -iv 0 -nosalt -in /dev/zero 2>/dev/null || true; } |
+    head -c "$SIZE" | tee "$SRC" | sha256sum | cut -d' ' -f1)
+fi
 bench big.write_source_s "$(( $(date +%s) - t0 ))" s
 
 # check FILE NAME: the SHA-256 of FILE against the source's.

@@ -9,6 +9,8 @@
 //! Ignored by a plain `cargo test`. Settings come from the environment:
 //!
 //! - `ROLIDSCP_BIG_SSH`: `port|user|client key|known_hosts` of the server
+//! - `ROLIDSCP_BIG_HOST`: the server's address (default 127.0.0.1; another
+//!   computer for `scripts/bench/big-remote.sh`)
 //! - `ROLIDSCP_BIG_DIR`: `up` (local → server) or `down` (server → local)
 //! - `ROLIDSCP_BIG_SRC`: the source file, `ROLIDSCP_BIG_DST`: the target folder
 //! - `ROLIDSCP_BIG_NAME`: the target's name (default: the source's)
@@ -38,7 +40,7 @@ fn var(name: &str) -> Option<String> {
 async fn connect(spec: &str) -> (Arc<dyn Vfs>, rolid_ssh::SshConnection) {
     let p: Vec<&str> = spec.split('|').collect();
     let params = rolid_ssh::ConnectParams {
-        host: "127.0.0.1".into(),
+        host: std::env::var("ROLIDSCP_BIG_HOST").unwrap_or_else(|_| "127.0.0.1".into()),
         port: p[0].parse().expect("port"),
         user: p[1].into(),
         key_path: Some(p[2].into()),
@@ -78,8 +80,10 @@ struct Run {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn run_job(src: &dyn Vfs, dst: &dyn Vfs, dir: &str, name: &str, dst_dir: &str, target: &str, size: u64, conflict: Conflict, cancel_at: Option<u64>) -> Run {
-    let rt = crate::bench::rt();
+/// `rt` is the runtime the connection was made on: what a job opens on the
+/// connection (the second SFTP session for writes) lives on it, as in the
+/// program, which has one runtime; a runtime of its own per job would end it.
+fn run_job(rt: &tokio::runtime::Runtime, src: &dyn Vfs, dst: &dyn Vfs, dir: &str, name: &str, dst_dir: &str, target: &str, size: u64, conflict: Conflict, cancel_at: Option<u64>) -> Run {
     let seen = Arc::new(Seen::default());
     let cancel = Arc::new(AtomicBool::new(false));
     let (s2, c2) = (seen.clone(), cancel.clone());
@@ -201,26 +205,26 @@ fn bench_big() {
     let fd0 = open_fds();
     match stage.as_str() {
         "copy" => {
-            let r = run_job(from.as_ref(), to.as_ref(), dir, name, &dst_dir, &target, size, Conflict::Overwrite, None);
+            let r = run_job(&rt, from.as_ref(), to.as_ref(), dir, name, &dst_dir, &target, size, Conflict::Overwrite, None);
             r.result.as_ref().expect("copy");
             report_run(&tag, size, &r);
         }
         "resume" => {
-            let r = run_job(from.as_ref(), to.as_ref(), dir, name, &dst_dir, &target, size, Conflict::Resume, None);
+            let r = run_job(&rt, from.as_ref(), to.as_ref(), dir, name, &dst_dir, &target, size, Conflict::Resume, None);
             r.result.as_ref().expect("resume");
             report_run(&tag, size, &r);
         }
         "cancel" => {
             let pct: u64 = std::env::var("ROLIDSCP_BIG_AT").ok().and_then(|v| v.parse().ok()).unwrap_or(50);
             let at = size / 100 * pct;
-            let r = run_job(from.as_ref(), to.as_ref(), dir, name, &dst_dir, &target, size, Conflict::Overwrite, Some(at));
+            let r = run_job(&rt, from.as_ref(), to.as_ref(), dir, name, &dst_dir, &target, size, Conflict::Overwrite, Some(at));
             report(&format!("{tag}.first.canceled"), r.result.is_err() as u8 as f64, "bool");
             report(&format!("{tag}.first.bytes_done"), r.done as f64, "B");
             report(&format!("{tag}.first.seconds"), r.elapsed.as_secs_f64(), "s");
             let part = format!("{dst_dir}/{target}.filepart");
             let part_size = rt.block_on(to.stat(&part)).map(|e| e.size).unwrap_or(0);
             report(&format!("{tag}.first.filepart"), part_size as f64, "B");
-            let r2 = run_job(from.as_ref(), to.as_ref(), dir, name, &dst_dir, &target, size, Conflict::Resume, None);
+            let r2 = run_job(&rt, from.as_ref(), to.as_ref(), dir, name, &dst_dir, &target, size, Conflict::Resume, None);
             r2.result.as_ref().expect("resume");
             report(&format!("{tag}.resumed_from_filepart"), (r2.resumed == part_size || r2.resumed + rolid_core::copy::RESUME_MARGIN == part_size) as u8 as f64, "bool");
             report_run(&format!("{tag}.second"), size, &r2);
