@@ -167,6 +167,18 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
 - Si la connexion est coupée, RolidSCP se reconnecte de lui-même et les transferts interrompus
   reprennent. Un transfert continue tant qu'il progresse entre les coupures ; après cinq coupures
   d'affilée sans progrès, il s'arrête et vous pouvez le relancer depuis la file d'attente.
+- Quand rien ne vient du serveur pendant 15 secondes alors que le programme l'attend, la connexion
+  est considérée comme morte et rétablie aussitôt (une courte vérification après 5 secondes
+  distingue un serveur lent d'une ligne morte). Dans les trois premières minutes après une coupure,
+  une tentative a lieu toutes les quelques secondes, puis toutes les 10 secondes, et après dix
+  minutes toutes les 30 secondes. Un envoi reprend à la dernière partie confirmée par le serveur.
+- Sur un serveur sans shell ou sans certains outils (`du`, `find`, `df`, `sha256sum`, par exemple
+  BusyBox ou un compte SFTP seul), tout passe par SFTP seul : la taille des dossiers et la recherche
+  en parcourant les dossiers, les sommes de contrôle en lisant les fichiers.
+- Un serveur défaillant ou malveillant ne peut pas faire écrire le programme hors du dossier cible :
+  les noms contenant `/`, `..` ou vides sont refusés, les caractères de contrôle des noms sont
+  affichés comme `\xNN`. Une liste de dossier de plus de 5 millions d'éléments est arrêtée, et un
+  fichier que le serveur envoie bien au-delà de sa taille n'est pas pris.
 - **Ctrl+P** ouvre le terminal du système (`$TERMINAL` ou `x-terminal-emulator`) dans le dossier du
   panneau. Sur un serveur, il lance `ssh` dans ce dossier, avec la même vérification de la clé du
   serveur que RolidSCP (une clé inconnue ou modifiée met fin à la connexion). Un mot de passe

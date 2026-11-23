@@ -716,6 +716,16 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
             for news in [
                 trc!(
                     "news",
+                    "0.8.18 servers and distributions: a connection on which nothing comes from the server for 15 s \
+                     is made again at once, and in the first minutes after a drop-out it is tried every few seconds, \
+                     so a line that keeps going down for 30 s is survived; an upload continues from the part the \
+                     server confirmed; downloads over a distant line about twice as fast; a faulty or hostile server \
+                     cannot make the program write outside the target folder, and an endless listing or a file sent \
+                     far past its size is stopped; tested with OpenSSH 7.6 to 10.0, Dropbear, BusyBox, SFTP-only and \
+                     chroot servers, and the packages on Debian, Ubuntu, Linux Mint, Fedora, openSUSE and Arch"
+                ),
+                trc!(
+                    "news",
                     "0.8.17 bad connections: every part of the path above a panel is a button (a click opens that \
                      folder, the middle button opens it in a new tab) and the path is edited by a double click on \
                      the empty part of the row, the pencil or Ctrl+G; bigger colored icons in the bar above the \

@@ -149,6 +149,18 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
 - Gdy połączenie zostanie zerwane, RolidSCP sam łączy się ponownie, a przerwane transfery są
   kontynuowane. Transfer trwa, dopóki posuwa się naprzód między przerwami; po pięciu przerwach z
   rzędu bez postępu zatrzymuje się i można go uruchomić ponownie z kolejki.
+- Gdy z serwera przez 15 sekund nic nie przychodzi, choć program na niego czeka, połączenie uznaje
+  się za martwe i od razu nawiązuje na nowo (krótkie sprawdzenie po 5 sekundach odróżnia wolny
+  serwer od martwej linii). W pierwszych trzech minutach po zerwaniu próby są co kilka sekund, potem
+  co 10 sekund, a po dziesięciu minutach co 30 sekund. Wysyłanie wznawia się od ostatniej części
+  potwierdzonej przez serwer.
+- Na serwerze bez powłoki lub bez niektórych narzędzi (`du`, `find`, `df`, `sha256sum`, np. BusyBox
+  lub konto tylko do SFTP) wszystko odbywa się wyłącznie przez SFTP: rozmiary folderów i
+  wyszukiwanie przez przechodzenie folderów, sumy kontrolne przez czytanie plików.
+- Wadliwy lub złośliwy serwer nie zmusi programu do zapisu poza folderem docelowym: nazwy z `/`,
+  `..` lub puste są odrzucane, znaki sterujące w nazwach są wyświetlane jako `\xNN`. Lista folderu z
+  ponad 5 milionami elementów jest zatrzymywana, a plik, który serwer wysyła daleko ponad jego
+  rozmiar, nie jest przyjmowany.
 - **Ctrl+P** otwiera terminal systemowy (`$TERMINAL` lub `x-terminal-emulator`) w folderze panelu. Na
   serwerze uruchamia `ssh` do tego folderu z tym samym sprawdzaniem klucza serwera co RolidSCP
   (nieznany lub zmieniony klucz kończy połączenie). Zapisane hasło przekazuje jednorazowy pomocnik

@@ -162,6 +162,19 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
   laufen weiter. Eine Übertragung läuft weiter, solange sie zwischen den Abbrüchen vorankommt; nach
   fünf Abbrüchen in Folge ohne Fortschritt hält sie an, und Sie können sie in der Warteschlange
   erneut starten.
+- Kommt 15 Sekunden lang nichts vom Server, während das Programm auf ihn wartet, gilt die Verbindung
+  als tot und wird sofort neu aufgebaut (eine kurze Prüfung nach 5 Sekunden unterscheidet einen
+  langsamen Server von einer toten Leitung). In den ersten drei Minuten nach einem Ausfall wird es
+  alle paar Sekunden versucht, dann alle 10 Sekunden, nach zehn Minuten alle 30 Sekunden. Ein
+  Hochladen setzt beim letzten Teil fort, den der Server bestätigt hat.
+- Auf einem Server ohne Shell oder ohne manche Werkzeuge (`du`, `find`, `df`, `sha256sum`, etwa
+  BusyBox oder ein reines SFTP-Konto) geschieht alles nur über SFTP: Ordnergrößen und Suche durch
+  Durchlaufen der Ordner, Prüfsummen durch Lesen der Dateien.
+- Ein fehlerhafter oder bösartiger Server kann das Programm nicht dazu bringen, außerhalb des
+  Zielordners zu schreiben: Namen mit `/`, `..` oder leere Namen werden abgelehnt, Steuerzeichen in
+  Namen werden als `\xNN` angezeigt. Eine Ordnerauflistung mit mehr als 5 Millionen Einträgen wird
+  angehalten, und eine Datei, die der Server weit über ihre Größe hinaus sendet, wird nicht
+  übernommen.
 - **Ctrl+P** öffnet das Systemterminal (`$TERMINAL` oder `x-terminal-emulator`) im Ordner des Felds.
   Auf einem Server startet es `ssh` in diesen Ordner, mit derselben Prüfung des Serverschlüssels wie
   RolidSCP (ein unbekannter oder geänderter Schlüssel beendet die Verbindung). Ein gespeichertes

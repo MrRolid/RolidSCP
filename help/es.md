@@ -160,6 +160,18 @@ de teclado está en la segunda página de esta ventana.
 - Si se pierde la conexión, RolidSCP vuelve a conectarse solo y las transferencias interrumpidas
   continúan. Una transferencia sigue mientras avance entre los cortes; tras cinco cortes seguidos
   sin avanzar se detiene y puede iniciarla de nuevo desde la cola.
+- Si no llega nada del servidor durante 15 segundos mientras el programa lo espera, la conexión se
+  considera muerta y se vuelve a establecer enseguida (una breve comprobación a los 5 segundos
+  distingue un servidor lento de una línea muerta). En los tres primeros minutos tras un corte se
+  intenta cada pocos segundos, luego cada 10 segundos y, pasados diez minutos, cada 30 segundos. Una
+  subida continúa desde la última parte que el servidor confirmó.
+- En un servidor sin shell o sin algunas herramientas (`du`, `find`, `df`, `sha256sum`, por ejemplo
+  BusyBox o una cuenta solo SFTP) todo se hace solo por SFTP: los tamaños de carpeta y la búsqueda
+  recorriendo las carpetas, las sumas de comprobación leyendo los archivos.
+- Un servidor defectuoso o malicioso no puede hacer que el programa escriba fuera de la carpeta de
+  destino: los nombres con `/`, `..` o vacíos se rechazan y los caracteres de control de los nombres
+  se muestran como `\xNN`. Un listado de carpeta de más de 5 millones de elementos se detiene, y un
+  archivo que el servidor envía mucho más allá de su tamaño no se acepta.
 - **Ctrl+P** abre el terminal del sistema (`$TERMINAL` o `x-terminal-emulator`) en la carpeta del
   panel. En un servidor ejecuta `ssh` a esa carpeta, con la misma comprobación de la clave del
   servidor que RolidSCP (una clave desconocida o cambiada termina la conexión). Una contraseña

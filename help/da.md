@@ -146,6 +146,18 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
 - Når forbindelsen afbrydes, forbinder RolidSCP igen af sig selv, og afbrudte overførsler
   fortsætter. En overførsel fortsætter, så længe den kommer videre mellem afbrydelserne; efter fem
   afbrydelser i træk uden fremskridt stopper den, og du kan starte den igen fra køen.
+- Når der intet kommer fra serveren i 15 sekunder, mens programmet venter på den, regnes
+  forbindelsen for død og oprettes straks igen (et kort tjek efter 5 sekunder skelner en langsom
+  server fra en død linje). I de første tre minutter efter et udfald forsøges det med få sekunders
+  mellemrum, derefter hvert 10. sekund, efter ti minutter hvert 30. sekund. En upload fortsætter fra
+  den sidste del, serveren bekræftede.
+- På en server uden shell eller uden visse værktøjer (`du`, `find`, `df`, `sha256sum`, for eksempel
+  BusyBox eller en konto kun til SFTP) klares alt over SFTP alene: mappestørrelser og søgning ved at
+  gennemgå mapperne, kontrolsummer ved at læse filerne.
+- En fejlbehæftet eller ondsindet server kan ikke få programmet til at skrive uden for målmappen:
+  navne med `/`, `..` eller tomme navne afvises, kontroltegn i navne vises som `\xNN`. En
+  mappevisning med mere end 5 millioner elementer stoppes, og en fil, som serveren sender langt ud
+  over dens størrelse, modtages ikke.
 - **Ctrl+P** åbner systemets terminal (`$TERMINAL` eller `x-terminal-emulator`) i panelets mappe. På en
   server kører den `ssh` ind i mappen med samme kontrol af værtsnøglen som RolidSCP (en ukendt eller
   ændret nøgle afslutter forbindelsen). En gemt adgangskode overføres af en engangshjælper

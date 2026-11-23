@@ -144,6 +144,18 @@ hurtigtaster står på den andre siden i dette vinduet.
 - Når tilkoblingen brytes, kobler RolidSCP til på nytt av seg selv, og avbrutte overføringer
   fortsetter. En overføring fortsetter så lenge den kommer videre mellom bruddene; etter fem brudd
   på rad uten fremgang stopper den, og du kan starte den igjen fra køen.
+- Når ingenting kommer fra serveren på 15 sekunder mens programmet venter på den, regnes
+  forbindelsen som død og opprettes straks på nytt (en kort sjekk etter 5 sekunder skiller en treg
+  server fra en død linje). De første tre minuttene etter et brudd prøves det med noen få sekunders
+  mellomrom, deretter hvert 10. sekund, etter ti minutter hvert 30. sekund. En opplasting fortsetter
+  fra den siste delen serveren bekreftet.
+- På en server uten skall eller uten enkelte verktøy (`du`, `find`, `df`, `sha256sum`, for eksempel
+  BusyBox eller en konto bare for SFTP) gjøres alt bare over SFTP: mappestørrelser og søk ved å gå
+  gjennom mappene, kontrollsummer ved å lese filene.
+- En feilaktig eller ondsinnet server kan ikke få programmet til å skrive utenfor målmappen: navn
+  med `/`, `..` eller tomme navn avvises, kontrolltegn i navn vises som `\xNN`. En mappeoppføring
+  med mer enn 5 millioner elementer stoppes, og en fil som serveren sender langt forbi størrelsen
+  sin, tas ikke imot.
 - **Ctrl+P** åpner systemterminalen (`$TERMINAL` eller `x-terminal-emulator`) i panelets mappe. På en
   server kjører den `ssh` inn i mappen, med samme kontroll av vertsnøkkelen som RolidSCP (en ukjent
   eller endret nøkkel avslutter forbindelsen). Et lagret passord sendes av en engangshjelper

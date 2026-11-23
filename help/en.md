@@ -142,6 +142,18 @@ shortcuts is on the second page of this window.
 - When the connection drops, RolidSCP connects again by itself and interrupted transfers continue. A
   transfer goes on as long as it gets further between the drop-outs; after five drop-outs in a row
   without progress it stops, and you can start it again from the queue.
+- When nothing comes from the server for 15 seconds while the program waits for it, the connection
+  is taken as dead and made again at once (a short check after 5 seconds tells a slow server from a
+  dead line). In the first three minutes after a drop-out it is tried every few seconds, then every
+  10 seconds, after ten minutes every 30 seconds. An upload continues from the last part the server
+  confirmed.
+- On a server without a shell or without some tools (`du`, `find`, `df`, `sha256sum`, for example
+  BusyBox or an SFTP-only account), everything is done over SFTP alone: folder sizes and searching
+  by walking the folders, checksums by reading the files.
+- A faulty or hostile server cannot make the program write outside the target folder: names with
+  `/`, `..` or nothing in them are refused, control characters in names are shown as `\xNN`. A
+  folder listing of more than 5 million entries is stopped, and a file the server sends far past its
+  size is not taken.
 - **Ctrl+P** opens the system terminal (`$TERMINAL` or `x-terminal-emulator`) in the panel's folder.
   On a server it runs `ssh` into the folder, with the same host key check as RolidSCP (an unknown or
   changed key ends the connection). A saved password is passed by a one-time helper (`SSH_ASKPASS`)

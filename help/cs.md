@@ -138,6 +138,16 @@ klávesových zkratek je na druhé stránce tohoto okna.
 - Když spojení spadne, RolidSCP se sám připojí znovu a přerušené přenosy pokračují. Přenos
   pokračuje, dokud se mezi výpadky posouvá; po pěti výpadcích za sebou bez posunu se zastaví a
   můžete ho spustit znovu z fronty.
+- Když ze serveru 15 sekund nic nepřijde, ač na něj program čeká, bere se spojení jako mrtvé a hned
+  se naváže znovu (krátká zkouška po 5 sekundách odliší pomalý server od mrtvé linky). V prvních
+  třech minutách po výpadku se to zkouší každých pár sekund, pak každých 10 sekund, po deseti
+  minutách každých 30 sekund. Nahrávání pokračuje od poslední části, kterou server potvrdil.
+- Na serveru bez shellu nebo bez některých nástrojů (`du`, `find`, `df`, `sha256sum`, třeba BusyBox
+  nebo účet jen pro SFTP) se vše dělá jen přes SFTP: velikosti složek a hledání procházením složek,
+  kontrolní součty čtením souborů.
+- Vadný nebo zlomyslný server nemůže program přimět zapsat mimo cílovou složku: názvy s `/`, `..`
+  nebo prázdné se odmítnou, řídicí znaky v názvech se zobrazí jako `\xNN`. Výpis složky s víc než 5
+  miliony položek se zastaví a soubor, který server posílá daleko za jeho velikost, se nepřevezme.
 - **Ctrl+P** otevře systémový terminál (`$TERMINAL` nebo `x-terminal-emulator`) ve složce panelu.
   Na serveru spustí `ssh` do této složky se stejnou kontrolou klíče serveru jako RolidSCP (neznámý
   nebo změněný klíč spojení ukončí). Uložené heslo předá jednorázový pomocník (`SSH_ASKPASS`), který
