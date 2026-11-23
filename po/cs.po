@@ -460,7 +460,7 @@ msgstr "Orchidejová"
 msgid "Pearl"
 msgstr "Perlová"
 
-#: crates/rolid-core/src/copy.rs:154
+#: crates/rolid-core/src/copy.rs:164
 #: crates/rolid-ui/src/app.rs:2861
 #: crates/rolid-ui/src/pane.rs:1938
 msgid "{n} file"
@@ -469,48 +469,52 @@ msgstr[0] "{n} soubor"
 msgstr[1] "{n} soubory"
 msgstr[2] "{n} souborů"
 
-#: crates/rolid-core/src/copy.rs:154
+#: crates/rolid-core/src/copy.rs:164
 msgid "file {num}"
 msgstr "soubor {num}"
 
-#: crates/rolid-core/src/copy.rs:159
+#: crates/rolid-core/src/copy.rs:169
 msgid "file {num} of {total}"
 msgstr "soubor {num} z {total}"
 
-#: crates/rolid-core/src/copy.rs:161
+#: crates/rolid-core/src/copy.rs:171
 msgid "file {num} of {total}+"
 msgstr "soubor {num} z {total}+"
 
-#: crates/rolid-core/src/copy.rs:409
+#: crates/rolid-core/src/copy.rs:419
 msgid "{error} (the name is not valid UTF-8, it cannot be transferred)"
 msgstr "{error} (název není platné UTF-8, nelze ho přenést)"
 
-#: crates/rolid-core/src/copy.rs:470
+#: crates/rolid-core/src/copy.rs:480
 msgid "{error} (the transfer gave up after {n} attempt – try it again manually)"
 msgid_plural "{error} (the transfer gave up after {n} attempts – try it again manually)"
 msgstr[0] "{error} (přenos se po {n} pokusu vzdal – zkus ho znovu ručně)"
 msgstr[1] "{error} (přenos se po {n} pokusech vzdal – zkus ho znovu ručně)"
 msgstr[2] "{error} (přenos se po {n} pokusech vzdal – zkus ho znovu ručně)"
 
-#: crates/rolid-core/src/copy.rs:507
+#: crates/rolid-core/src/copy.rs:517
 msgid "“{name}”: the name is not valid UTF-8, it cannot be transferred to the server"
 msgstr "„{name}“: název není platné UTF-8, na server ho nejde přenést"
 
-#: crates/rolid-core/src/copy.rs:533
+#: crates/rolid-core/src/copy.rs:543
 msgid "“{name}” is a symbolic link: it cannot be moved between disks (copy it and delete it manually)"
 msgstr "„{name}“ je symbolický odkaz: mezi disky ho nejde přesunout (zkopíruj ho a smaž ručně)"
 
-#: crates/rolid-core/src/copy.rs:957
+#: crates/rolid-core/src/copy.rs:990
 msgid "The disk quota on the target is used up ({error}). Free some space there or ask for a bigger quota, then press “Try again”: the transfer continues where it stopped."
 msgstr "Disková kvóta na cíli je vyčerpaná ({error}). Uvolněte tam místo nebo požádejte o větší kvótu a pak stiskněte „Zkusit znovu“: přenos bude pokračovat tam, kde skončil."
 
-#: crates/rolid-core/src/copy.rs:962
+#: crates/rolid-core/src/copy.rs:995
 msgid "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Cílový disk je plný ({error}). Uvolněte tam místo a pak stiskněte „Zkusit znovu“: přenos bude pokračovat tam, kde skončil."
 
-#: crates/rolid-core/src/copy.rs:969
+#: crates/rolid-core/src/copy.rs:1002
 msgid "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Server odmítl zápis ({error}). Jeho disk je možná plný nebo je vyčerpaná vaše disková kvóta: uvolněte tam místo a pak stiskněte „Zkusit znovu“: přenos bude pokračovat tam, kde skončil."
+
+#: crates/rolid-core/src/copy.rs:1035
+msgid "“{name}”: the server sends much more than the size of the file ({size} B); the file was not taken"
+msgstr "„{name}“: server posílá mnohem víc, než je velikost souboru ({size} B); soubor nebyl převzat"
 
 #: crates/rolid-core/src/eta.rs:80
 msgid "remaining: calculating"
@@ -889,88 +893,96 @@ msgstr "keyboard-interactive s odpovědí uživatele"
 msgid "too many rounds of prompts"
 msgstr "příliš mnoho kol výzev"
 
-#: crates/rolid-ssh/src/lib.rs:82
+#: crates/rolid-ssh/src/lib.rs:89
 msgid "unknown server key {host}:{port} ({algorithm}) {fingerprint}"
 msgstr "neznámý klíč serveru {host}:{port} ({algorithm}) {fingerprint}"
 
-#: crates/rolid-ssh/src/lib.rs:89
+#: crates/rolid-ssh/src/lib.rs:96
 msgid "WARNING: the key of server {host}:{port} has changed compared to known_hosts! It may be a man-in-the-middle attack. Connection refused."
 msgstr "POZOR: klíč serveru {host}:{port} se změnil oproti known_hosts! Může jít o útok man-in-the-middle. Připojení odmítnuto."
 
-#: crates/rolid-ssh/src/lib.rs:94
+#: crates/rolid-ssh/src/lib.rs:101
 msgid "login failed. {report}"
 msgstr "přihlášení selhalo. {report}"
 
-#: crates/rolid-ssh/src/lib.rs:219
-#: crates/rolid-ssh/src/lib.rs:229
+#: crates/rolid-ssh/src/lib.rs:281
+#: crates/rolid-ssh/src/lib.rs:517
 msgid "the connection timed out"
 msgstr "časový limit připojení vypršel"
 
-#: crates/rolid-ssh/src/lib.rs:220
-#: crates/rolid-ssh/src/lib.rs:247
+#: crates/rolid-ssh/src/lib.rs:299
+#: crates/rolid-ssh/src/lib.rs:516
 msgid "connection failed: {error}"
 msgstr "připojení selhalo: {error}"
 
-#: crates/rolid-ssh/src/lib.rs:316
+#: crates/rolid-ssh/src/lib.rs:411
 msgid "the command on the server did not answer within {n} s"
 msgstr "příkaz na serveru neodpověděl do {n} s"
 
-#: crates/rolid-ssh/src/lib.rs:555
+#: crates/rolid-ssh/src/lib.rs:716
 msgid "{name}: unexpected answer from the server"
 msgstr "{name}: neočekávaná odpověď serveru"
 
-#: crates/rolid-ssh/src/link.rs:88
+#: crates/rolid-ssh/src/link.rs:107
 msgid "the server does not respond (timeout)"
 msgstr "server neodpovídá (časový limit)"
 
-#: crates/rolid-ssh/src/link.rs:89
-#: crates/rolid-ssh/src/link.rs:91
-#: crates/rolid-ssh/src/link.rs:457
+#: crates/rolid-ssh/src/link.rs:108
+msgid "the server's listing of the folder does not end (more than {count} entries): it was stopped"
+msgstr "výpis složky ze serveru nekončí (víc než {count} položek): byl zastaven"
+
+#: crates/rolid-ssh/src/link.rs:112
+#: crates/rolid-ssh/src/link.rs:114
+#: crates/rolid-ssh/src/link.rs:514
 msgid "connection interrupted: {error}"
 msgstr "spojení přerušeno: {error}"
 
-#: crates/rolid-ssh/src/link.rs:128
+#: crates/rolid-ssh/src/link.rs:151
 msgid "connected"
 msgstr "připojeno"
 
-#: crates/rolid-ssh/src/link.rs:130
+#: crates/rolid-ssh/src/link.rs:153
 msgid "Reconnecting (attempt {attempt})…"
 msgstr "Znovu se připojuje (pokus {attempt})…"
 
-#: crates/rolid-ssh/src/link.rs:134
+#: crates/rolid-ssh/src/link.rs:157
 msgid "Connection lost – reconnecting (attempt {attempt} in {secs} s)"
 msgstr "Spojení ztraceno – znovu se připojuje (pokus {attempt} za {secs} s)"
 
-#: crates/rolid-ssh/src/link.rs:137
+#: crates/rolid-ssh/src/link.rs:160
 msgid "Unlock the saved passwords to restore the connection"
 msgstr "Pro obnovení spojení je potřeba odemknout uložená hesla"
 
-#: crates/rolid-ssh/src/link.rs:140
+#: crates/rolid-ssh/src/link.rs:163
 msgid "Enter the login details to restore the connection"
 msgstr "Pro obnovení spojení je potřeba zadat údaje"
 
-#: crates/rolid-ssh/src/link.rs:143
+#: crates/rolid-ssh/src/link.rs:166
 msgid "The connection cannot be restored: the server key needs to be verified"
 msgstr "Spojení nejde obnovit: klíč serveru je potřeba ověřit"
 
-#: crates/rolid-ssh/src/link.rs:145
+#: crates/rolid-ssh/src/link.rs:168
 msgid "Disconnected (reconnecting stopped)"
 msgstr "Odpojeno (obnovování zastaveno)"
 
-#: crates/rolid-ssh/src/link.rs:242
-#: crates/rolid-ssh/src/link.rs:477
+#: crates/rolid-ssh/src/link.rs:265
+#: crates/rolid-ssh/src/link.rs:534
 msgid "the connection to the server was interrupted"
 msgstr "spojení se serverem se přerušilo"
 
-#: crates/rolid-ssh/src/link.rs:389
+#: crates/rolid-ssh/src/link.rs:411
+msgid "nothing came from the server for {seconds} s"
+msgstr "ze serveru nic nepřišlo {seconds} s"
+
+#: crates/rolid-ssh/src/link.rs:437
 msgid "The connection to server {server} is interrupted ({error}). {state}"
 msgstr "Spojení se serverem {server} je přerušené ({error}). {state}"
 
-#: crates/rolid-ssh/src/link.rs:395
+#: crates/rolid-ssh/src/link.rs:443
 msgid "The connection to server {server} is interrupted. {state}"
 msgstr "Spojení se serverem {server} je přerušené. {state}"
 
-#: crates/rolid-ssh/src/link.rs:577
+#: crates/rolid-ssh/src/link.rs:701
 msgid "the connection to the server was interrupted: {error}"
 msgstr "spojení se serverem se přerušilo: {error}"
 

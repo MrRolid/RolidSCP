@@ -460,7 +460,7 @@ msgstr "Orkidé"
 msgid "Pearl"
 msgstr "Perle"
 
-#: crates/rolid-core/src/copy.rs:154
+#: crates/rolid-core/src/copy.rs:164
 #: crates/rolid-ui/src/app.rs:2861
 #: crates/rolid-ui/src/pane.rs:1938
 msgid "{n} file"
@@ -468,47 +468,51 @@ msgid_plural "{n} files"
 msgstr[0] "{n} fil"
 msgstr[1] "{n} filer"
 
-#: crates/rolid-core/src/copy.rs:154
+#: crates/rolid-core/src/copy.rs:164
 msgid "file {num}"
 msgstr "fil {num}"
 
-#: crates/rolid-core/src/copy.rs:159
+#: crates/rolid-core/src/copy.rs:169
 msgid "file {num} of {total}"
 msgstr "fil {num} av {total}"
 
-#: crates/rolid-core/src/copy.rs:161
+#: crates/rolid-core/src/copy.rs:171
 msgid "file {num} of {total}+"
 msgstr "fil {num} av {total}+"
 
-#: crates/rolid-core/src/copy.rs:409
+#: crates/rolid-core/src/copy.rs:419
 msgid "{error} (the name is not valid UTF-8, it cannot be transferred)"
 msgstr "{error} (navnet er ikke gyldig UTF-8, det kan ikke overføres)"
 
-#: crates/rolid-core/src/copy.rs:470
+#: crates/rolid-core/src/copy.rs:480
 msgid "{error} (the transfer gave up after {n} attempt – try it again manually)"
 msgid_plural "{error} (the transfer gave up after {n} attempts – try it again manually)"
 msgstr[0] "{error} (overføringen ga opp etter {n} forsøk – prøv igjen manuelt)"
 msgstr[1] "{error} (overføringen ga opp etter {n} forsøk – prøv igjen manuelt)"
 
-#: crates/rolid-core/src/copy.rs:507
+#: crates/rolid-core/src/copy.rs:517
 msgid "“{name}”: the name is not valid UTF-8, it cannot be transferred to the server"
 msgstr "«{name}»: navnet er ikke gyldig UTF-8, det kan ikke overføres til serveren"
 
-#: crates/rolid-core/src/copy.rs:533
+#: crates/rolid-core/src/copy.rs:543
 msgid "“{name}” is a symbolic link: it cannot be moved between disks (copy it and delete it manually)"
 msgstr "«{name}» er en symbolsk lenke: den kan ikke flyttes mellom disker (kopier den og slett den manuelt)"
 
-#: crates/rolid-core/src/copy.rs:957
+#: crates/rolid-core/src/copy.rs:990
 msgid "The disk quota on the target is used up ({error}). Free some space there or ask for a bigger quota, then press “Try again”: the transfer continues where it stopped."
 msgstr "Diskkvoten på målet er brukt opp ({error}). Frigjør plass der eller be om en større kvote, og trykk så «Prøv igjen»: overføringen fortsetter der den stoppet."
 
-#: crates/rolid-core/src/copy.rs:962
+#: crates/rolid-core/src/copy.rs:995
 msgid "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Måldisken er full ({error}). Frigjør plass der, og trykk så «Prøv igjen»: overføringen fortsetter der den stoppet."
 
-#: crates/rolid-core/src/copy.rs:969
+#: crates/rolid-core/src/copy.rs:1002
 msgid "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Serveren nektet å skrive ({error}). Disken kan være full, eller diskkvoten din er brukt opp: frigjør plass der, og trykk så «Prøv igjen»: overføringen fortsetter der den stoppet."
+
+#: crates/rolid-core/src/copy.rs:1035
+msgid "“{name}”: the server sends much more than the size of the file ({size} B); the file was not taken"
+msgstr "«{name}»: serveren sender mye mer enn filens størrelse ({size} B); filen ble ikke tatt imot"
 
 #: crates/rolid-core/src/eta.rs:80
 msgid "remaining: calculating"
@@ -883,88 +887,96 @@ msgstr "keyboard-interactive med brukerens svar"
 msgid "too many rounds of prompts"
 msgstr "for mange runder med spørsmål"
 
-#: crates/rolid-ssh/src/lib.rs:82
+#: crates/rolid-ssh/src/lib.rs:89
 msgid "unknown server key {host}:{port} ({algorithm}) {fingerprint}"
 msgstr "ukjent servernøkkel {host}:{port} ({algorithm}) {fingerprint}"
 
-#: crates/rolid-ssh/src/lib.rs:89
+#: crates/rolid-ssh/src/lib.rs:96
 msgid "WARNING: the key of server {host}:{port} has changed compared to known_hosts! It may be a man-in-the-middle attack. Connection refused."
 msgstr "ADVARSEL: nøkkelen til serveren {host}:{port} er endret sammenlignet med known_hosts! Det kan være et mellommannsangrep. Tilkoblingen er avvist."
 
-#: crates/rolid-ssh/src/lib.rs:94
+#: crates/rolid-ssh/src/lib.rs:101
 msgid "login failed. {report}"
 msgstr "innlogging mislyktes. {report}"
 
-#: crates/rolid-ssh/src/lib.rs:219
-#: crates/rolid-ssh/src/lib.rs:229
+#: crates/rolid-ssh/src/lib.rs:281
+#: crates/rolid-ssh/src/lib.rs:517
 msgid "the connection timed out"
 msgstr "tidsavbrudd for tilkoblingen"
 
-#: crates/rolid-ssh/src/lib.rs:220
-#: crates/rolid-ssh/src/lib.rs:247
+#: crates/rolid-ssh/src/lib.rs:299
+#: crates/rolid-ssh/src/lib.rs:516
 msgid "connection failed: {error}"
 msgstr "tilkoblingen mislyktes: {error}"
 
-#: crates/rolid-ssh/src/lib.rs:316
+#: crates/rolid-ssh/src/lib.rs:411
 msgid "the command on the server did not answer within {n} s"
 msgstr "kommandoen på serveren svarte ikke innen {n} s"
 
-#: crates/rolid-ssh/src/lib.rs:555
+#: crates/rolid-ssh/src/lib.rs:716
 msgid "{name}: unexpected answer from the server"
 msgstr "{name}: uventet svar fra serveren"
 
-#: crates/rolid-ssh/src/link.rs:88
+#: crates/rolid-ssh/src/link.rs:107
 msgid "the server does not respond (timeout)"
 msgstr "serveren svarer ikke (tidsavbrudd)"
 
-#: crates/rolid-ssh/src/link.rs:89
-#: crates/rolid-ssh/src/link.rs:91
-#: crates/rolid-ssh/src/link.rs:457
+#: crates/rolid-ssh/src/link.rs:108
+msgid "the server's listing of the folder does not end (more than {count} entries): it was stopped"
+msgstr "serverens oppføring av mappen slutter ikke (mer enn {count} elementer): den ble stoppet"
+
+#: crates/rolid-ssh/src/link.rs:112
+#: crates/rolid-ssh/src/link.rs:114
+#: crates/rolid-ssh/src/link.rs:514
 msgid "connection interrupted: {error}"
 msgstr "tilkoblingen ble brutt: {error}"
 
-#: crates/rolid-ssh/src/link.rs:128
+#: crates/rolid-ssh/src/link.rs:151
 msgid "connected"
 msgstr "tilkoblet"
 
-#: crates/rolid-ssh/src/link.rs:130
+#: crates/rolid-ssh/src/link.rs:153
 msgid "Reconnecting (attempt {attempt})…"
 msgstr "Kobler til på nytt (forsøk {attempt}) …"
 
-#: crates/rolid-ssh/src/link.rs:134
+#: crates/rolid-ssh/src/link.rs:157
 msgid "Connection lost – reconnecting (attempt {attempt} in {secs} s)"
 msgstr "Tilkoblingen ble brutt – kobler til på nytt (forsøk {attempt} om {secs} s)"
 
-#: crates/rolid-ssh/src/link.rs:137
+#: crates/rolid-ssh/src/link.rs:160
 msgid "Unlock the saved passwords to restore the connection"
 msgstr "Lås opp de lagrede passordene for å gjenopprette tilkoblingen"
 
-#: crates/rolid-ssh/src/link.rs:140
+#: crates/rolid-ssh/src/link.rs:163
 msgid "Enter the login details to restore the connection"
 msgstr "Skriv inn innloggingsdetaljene for å gjenopprette tilkoblingen"
 
-#: crates/rolid-ssh/src/link.rs:143
+#: crates/rolid-ssh/src/link.rs:166
 msgid "The connection cannot be restored: the server key needs to be verified"
 msgstr "Tilkoblingen kan ikke gjenopprettes: servernøkkelen må bekreftes"
 
-#: crates/rolid-ssh/src/link.rs:145
+#: crates/rolid-ssh/src/link.rs:168
 msgid "Disconnected (reconnecting stopped)"
 msgstr "Frakoblet (ny tilkobling stoppet)"
 
-#: crates/rolid-ssh/src/link.rs:242
-#: crates/rolid-ssh/src/link.rs:477
+#: crates/rolid-ssh/src/link.rs:265
+#: crates/rolid-ssh/src/link.rs:534
 msgid "the connection to the server was interrupted"
 msgstr "tilkoblingen til serveren ble brutt"
 
-#: crates/rolid-ssh/src/link.rs:389
+#: crates/rolid-ssh/src/link.rs:411
+msgid "nothing came from the server for {seconds} s"
+msgstr "ingenting kom fra serveren på {seconds} s"
+
+#: crates/rolid-ssh/src/link.rs:437
 msgid "The connection to server {server} is interrupted ({error}). {state}"
 msgstr "Tilkoblingen til serveren {server} er brutt ({error}). {state}"
 
-#: crates/rolid-ssh/src/link.rs:395
+#: crates/rolid-ssh/src/link.rs:443
 msgid "The connection to server {server} is interrupted. {state}"
 msgstr "Tilkoblingen til serveren {server} er brutt. {state}"
 
-#: crates/rolid-ssh/src/link.rs:577
+#: crates/rolid-ssh/src/link.rs:701
 msgid "the connection to the server was interrupted: {error}"
 msgstr "tilkoblingen til serveren ble brutt: {error}"
 

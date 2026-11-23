@@ -463,7 +463,7 @@ msgstr "Orchideowy"
 msgid "Pearl"
 msgstr "Perłowy"
 
-#: crates/rolid-core/src/copy.rs:154
+#: crates/rolid-core/src/copy.rs:164
 #: crates/rolid-ui/src/app.rs:2861
 #: crates/rolid-ui/src/pane.rs:1938
 msgid "{n} file"
@@ -472,48 +472,52 @@ msgstr[0] "{n} plik"
 msgstr[1] "{n} pliki"
 msgstr[2] "{n} plików"
 
-#: crates/rolid-core/src/copy.rs:154
+#: crates/rolid-core/src/copy.rs:164
 msgid "file {num}"
 msgstr "plik {num}"
 
-#: crates/rolid-core/src/copy.rs:159
+#: crates/rolid-core/src/copy.rs:169
 msgid "file {num} of {total}"
 msgstr "plik {num} z {total}"
 
-#: crates/rolid-core/src/copy.rs:161
+#: crates/rolid-core/src/copy.rs:171
 msgid "file {num} of {total}+"
 msgstr "plik {num} z {total}+"
 
-#: crates/rolid-core/src/copy.rs:409
+#: crates/rolid-core/src/copy.rs:419
 msgid "{error} (the name is not valid UTF-8, it cannot be transferred)"
 msgstr "{error} (nazwa nie jest poprawnym UTF-8, nie można jej przesłać)"
 
-#: crates/rolid-core/src/copy.rs:470
+#: crates/rolid-core/src/copy.rs:480
 msgid "{error} (the transfer gave up after {n} attempt – try it again manually)"
 msgid_plural "{error} (the transfer gave up after {n} attempts – try it again manually)"
 msgstr[0] "{error} (przesyłanie przerwano po {n} próbie – spróbuj ponownie ręcznie)"
 msgstr[1] "{error} (przesyłanie przerwano po {n} próbach – spróbuj ponownie ręcznie)"
 msgstr[2] "{error} (przesyłanie przerwano po {n} próbach – spróbuj ponownie ręcznie)"
 
-#: crates/rolid-core/src/copy.rs:507
+#: crates/rolid-core/src/copy.rs:517
 msgid "“{name}”: the name is not valid UTF-8, it cannot be transferred to the server"
 msgstr "„{name}”: nazwa nie jest poprawnym UTF-8, nie można jej przesłać na serwer"
 
-#: crates/rolid-core/src/copy.rs:533
+#: crates/rolid-core/src/copy.rs:543
 msgid "“{name}” is a symbolic link: it cannot be moved between disks (copy it and delete it manually)"
 msgstr "„{name}” jest dowiązaniem symbolicznym: nie można go przenieść między dyskami (skopiuj go i usuń ręcznie)"
 
-#: crates/rolid-core/src/copy.rs:957
+#: crates/rolid-core/src/copy.rs:990
 msgid "The disk quota on the target is used up ({error}). Free some space there or ask for a bigger quota, then press “Try again”: the transfer continues where it stopped."
 msgstr "Limit dyskowy w miejscu docelowym jest wyczerpany ({error}). Zwolnij tam miejsce lub poproś o większy limit, a potem naciśnij „Spróbuj ponownie”: transfer będzie kontynuowany tam, gdzie się zatrzymał."
 
-#: crates/rolid-core/src/copy.rs:962
+#: crates/rolid-core/src/copy.rs:995
 msgid "The target disk is full ({error}). Free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Dysk docelowy jest pełny ({error}). Zwolnij tam miejsce, a potem naciśnij „Spróbuj ponownie”: transfer będzie kontynuowany tam, gdzie się zatrzymał."
 
-#: crates/rolid-core/src/copy.rs:969
+#: crates/rolid-core/src/copy.rs:1002
 msgid "The server refused to write ({error}). Its disk may be full or your disk quota used up: free some space there, then press “Try again”: the transfer continues where it stopped."
 msgstr "Serwer odmówił zapisu ({error}). Jego dysk może być pełny lub Twój limit dyskowy wyczerpany: zwolnij tam miejsce, a potem naciśnij „Spróbuj ponownie”: transfer będzie kontynuowany tam, gdzie się zatrzymał."
+
+#: crates/rolid-core/src/copy.rs:1035
+msgid "“{name}”: the server sends much more than the size of the file ({size} B); the file was not taken"
+msgstr "„{name}”: serwer wysyła znacznie więcej niż wynosi rozmiar pliku ({size} B); plik nie został przyjęty"
 
 #: crates/rolid-core/src/eta.rs:80
 msgid "remaining: calculating"
@@ -892,88 +896,96 @@ msgstr "keyboard-interactive z odpowiedzią użytkownika"
 msgid "too many rounds of prompts"
 msgstr "zbyt wiele rund pytań"
 
-#: crates/rolid-ssh/src/lib.rs:82
+#: crates/rolid-ssh/src/lib.rs:89
 msgid "unknown server key {host}:{port} ({algorithm}) {fingerprint}"
 msgstr "nieznany klucz serwera {host}:{port} ({algorithm}) {fingerprint}"
 
-#: crates/rolid-ssh/src/lib.rs:89
+#: crates/rolid-ssh/src/lib.rs:96
 msgid "WARNING: the key of server {host}:{port} has changed compared to known_hosts! It may be a man-in-the-middle attack. Connection refused."
 msgstr "OSTRZEŻENIE: klucz serwera {host}:{port} zmienił się w porównaniu z known_hosts! Może to być atak man-in-the-middle. Połączenie odrzucone."
 
-#: crates/rolid-ssh/src/lib.rs:94
+#: crates/rolid-ssh/src/lib.rs:101
 msgid "login failed. {report}"
 msgstr "logowanie nie powiodło się. {report}"
 
-#: crates/rolid-ssh/src/lib.rs:219
-#: crates/rolid-ssh/src/lib.rs:229
+#: crates/rolid-ssh/src/lib.rs:281
+#: crates/rolid-ssh/src/lib.rs:517
 msgid "the connection timed out"
 msgstr "przekroczono limit czasu połączenia"
 
-#: crates/rolid-ssh/src/lib.rs:220
-#: crates/rolid-ssh/src/lib.rs:247
+#: crates/rolid-ssh/src/lib.rs:299
+#: crates/rolid-ssh/src/lib.rs:516
 msgid "connection failed: {error}"
 msgstr "połączenie nie powiodło się: {error}"
 
-#: crates/rolid-ssh/src/lib.rs:316
+#: crates/rolid-ssh/src/lib.rs:411
 msgid "the command on the server did not answer within {n} s"
 msgstr "polecenie na serwerze nie odpowiedziało w ciągu {n} s"
 
-#: crates/rolid-ssh/src/lib.rs:555
+#: crates/rolid-ssh/src/lib.rs:716
 msgid "{name}: unexpected answer from the server"
 msgstr "{name}: nieoczekiwana odpowiedź serwera"
 
-#: crates/rolid-ssh/src/link.rs:88
+#: crates/rolid-ssh/src/link.rs:107
 msgid "the server does not respond (timeout)"
 msgstr "serwer nie odpowiada (limit czasu)"
 
-#: crates/rolid-ssh/src/link.rs:89
-#: crates/rolid-ssh/src/link.rs:91
-#: crates/rolid-ssh/src/link.rs:457
+#: crates/rolid-ssh/src/link.rs:108
+msgid "the server's listing of the folder does not end (more than {count} entries): it was stopped"
+msgstr "lista folderu z serwera nie kończy się (ponad {count} elementów): została zatrzymana"
+
+#: crates/rolid-ssh/src/link.rs:112
+#: crates/rolid-ssh/src/link.rs:114
+#: crates/rolid-ssh/src/link.rs:514
 msgid "connection interrupted: {error}"
 msgstr "połączenie przerwane: {error}"
 
-#: crates/rolid-ssh/src/link.rs:128
+#: crates/rolid-ssh/src/link.rs:151
 msgid "connected"
 msgstr "połączono"
 
-#: crates/rolid-ssh/src/link.rs:130
+#: crates/rolid-ssh/src/link.rs:153
 msgid "Reconnecting (attempt {attempt})…"
 msgstr "Ponowne łączenie (próba {attempt})…"
 
-#: crates/rolid-ssh/src/link.rs:134
+#: crates/rolid-ssh/src/link.rs:157
 msgid "Connection lost – reconnecting (attempt {attempt} in {secs} s)"
 msgstr "Utracono połączenie – ponowne łączenie (próba {attempt} za {secs} s)"
 
-#: crates/rolid-ssh/src/link.rs:137
+#: crates/rolid-ssh/src/link.rs:160
 msgid "Unlock the saved passwords to restore the connection"
 msgstr "Aby przywrócić połączenie, odblokuj zapisane hasła"
 
-#: crates/rolid-ssh/src/link.rs:140
+#: crates/rolid-ssh/src/link.rs:163
 msgid "Enter the login details to restore the connection"
 msgstr "Aby przywrócić połączenie, podaj dane logowania"
 
-#: crates/rolid-ssh/src/link.rs:143
+#: crates/rolid-ssh/src/link.rs:166
 msgid "The connection cannot be restored: the server key needs to be verified"
 msgstr "Nie można przywrócić połączenia: trzeba zweryfikować klucz serwera"
 
-#: crates/rolid-ssh/src/link.rs:145
+#: crates/rolid-ssh/src/link.rs:168
 msgid "Disconnected (reconnecting stopped)"
 msgstr "Rozłączono (ponowne łączenie zatrzymane)"
 
-#: crates/rolid-ssh/src/link.rs:242
-#: crates/rolid-ssh/src/link.rs:477
+#: crates/rolid-ssh/src/link.rs:265
+#: crates/rolid-ssh/src/link.rs:534
 msgid "the connection to the server was interrupted"
 msgstr "połączenie z serwerem zostało przerwane"
 
-#: crates/rolid-ssh/src/link.rs:389
+#: crates/rolid-ssh/src/link.rs:411
+msgid "nothing came from the server for {seconds} s"
+msgstr "z serwera nic nie przyszło przez {seconds} s"
+
+#: crates/rolid-ssh/src/link.rs:437
 msgid "The connection to server {server} is interrupted ({error}). {state}"
 msgstr "Połączenie z serwerem {server} jest przerwane ({error}). {state}"
 
-#: crates/rolid-ssh/src/link.rs:395
+#: crates/rolid-ssh/src/link.rs:443
 msgid "The connection to server {server} is interrupted. {state}"
 msgstr "Połączenie z serwerem {server} jest przerwane. {state}"
 
-#: crates/rolid-ssh/src/link.rs:577
+#: crates/rolid-ssh/src/link.rs:701
 msgid "the connection to the server was interrupted: {error}"
 msgstr "połączenie z serwerem zostało przerwane: {error}"
 
