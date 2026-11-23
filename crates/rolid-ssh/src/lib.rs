@@ -374,9 +374,9 @@ impl SshConnection {
             .await
             .map_err(other)?;
         let cfg = russh_sftp::client::Config {
-            max_concurrent_reads: 64,
-            max_concurrent_writes: 64,
-            request_timeout_secs: 30,
+            max_concurrent_reads: SFTP_READS_IN_FLIGHT,
+            max_concurrent_writes: SFTP_WRITES_IN_FLIGHT,
+            request_timeout_secs: SFTP_REQUEST_TIMEOUT.as_secs(),
             ..Default::default()
         };
         let sftp = SftpSession::new_with_config(channel.into_stream(), cfg)
@@ -398,11 +398,31 @@ impl SshConnection {
         let channel = self.handle.channel_open_session().await.map_err(other)?;
         channel.request_subsystem(true, "sftp").await.map_err(other)?;
         let raw = russh_sftp::client::RawSftpSession::new(channel.into_stream());
-        raw.set_timeout(30);
+        raw.set_timeout(SFTP_REQUEST_TIMEOUT.as_secs());
         let version = raw.init().await.map_err(other)?;
         Ok((raw, version))
     }
 }
+
+/// Read requests of a transfer sent ahead. OpenSSH answers up to 255 kB each,
+/// so about 4 MB are on the way: enough for a fast line far away (40 MB/s at
+/// a round trip of 0.1 s), twice what OpenSSH's own `sftp` keeps.
+pub const SFTP_READS_IN_FLIGHT: usize = 16;
+/// Write requests sent ahead (32 kB each: 2 MB on the way).
+pub const SFTP_WRITES_IN_FLIGHT: usize = 64;
+/// How long one SFTP request may wait for its answer. The answers come in
+/// order, so on a slow line the last request sent ahead waits for all the
+/// data before it: with 64 reads of 255 kB and 30 s, every line slower than
+/// about 0.5 MB/s "timed out" and was reconnected while it still worked
+/// (found with the bad-line test of 0.8.17). A dead connection is noticed by
+/// the keepalive anyway (3 × 15 s) and then fails every request at once.
+pub const SFTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(90);
+/// The data a transfer keeps on the way, in bytes (the larger direction).
+pub const SFTP_BYTES_IN_FLIGHT: u64 = {
+    let r = SFTP_READS_IN_FLIGHT as u64 * 255 * 1024;
+    let w = SFTP_WRITES_IN_FLIGHT as u64 * 32 * 1024;
+    if r > w { r } else { w }
+};
 
 /// How often an operation in progress checks that its connection still exists.
 pub const CLOSED_POLL: Duration = Duration::from_millis(100);
@@ -720,5 +740,18 @@ mod tests {
         assert_eq!(posix_parent("/home/u"), Some("/home".into()));
         assert_eq!(posix_parent("/home"), Some("/".into()));
         assert_eq!(posix_parent("/"), None);
+    }
+
+    #[test]
+    fn a_slow_line_does_not_time_out_a_working_transfer() {
+        // The last request sent ahead is answered after all the data before
+        // it: that must fit the timeout on a line of 512 kbit/s (64 kB/s)…
+        let slowest = SFTP_BYTES_IN_FLIGHT / SFTP_REQUEST_TIMEOUT.as_secs();
+        assert!(slowest < 64 * 1024, "only lines over {slowest} B/s finish in time");
+        // …while a dead connection is still noticed by the keepalive sooner.
+        let keepalive = link::KEEPALIVE_INTERVAL * link::KEEPALIVE_MAX as u32;
+        assert!(keepalive < SFTP_REQUEST_TIMEOUT);
+        // And a fast line far away still has enough on the way (0.1 s round trip, 30 MB/s).
+        assert!(SFTP_READS_IN_FLIGHT as u64 * 255 * 1024 >= 3 * 1024 * 1024);
     }
 }

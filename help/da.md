@@ -143,7 +143,9 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
 - Gemte adgangskoder låses igen en valgt tid efter sidste brug (menuen Indstillinger → hovedadgangskode,
   60 sekunder som standard); statuslinjen viser den resterende tid. Låsning glemmer også adgangskoderne,
   der holdes til genforbindelse.
-- Når forbindelsen afbrydes, forbinder RolidSCP igen af sig selv, og afbrudte overførsler fortsætter.
+- Når forbindelsen afbrydes, forbinder RolidSCP igen af sig selv, og afbrudte overførsler
+  fortsætter. En overførsel fortsætter, så længe den kommer videre mellem afbrydelserne; efter fem
+  afbrydelser i træk uden fremskridt stopper den, og du kan starte den igen fra køen.
 - **Ctrl+P** åbner systemets terminal (`$TERMINAL` eller `x-terminal-emulator`) i panelets mappe. På en
   server kører den `ssh` ind i mappen med samme kontrol af værtsnøglen som RolidSCP (en ukendt eller
   ændret nøgle afslutter forbindelsen). En gemt adgangskode overføres af en engangshjælper

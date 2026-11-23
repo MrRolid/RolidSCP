@@ -135,7 +135,9 @@ klávesových zkratek je na druhé stránce tohoto okna.
 - Uložená hesla se znovu zamknou po nastavené době od posledního použití (nabídka Nastavení → hlavní
   heslo, výchozí 60 sekund); stavový řádek ukazuje zbývající čas. Zamčení smaže i hesla držená pro
   znovupřipojení.
-- Když spojení spadne, RolidSCP se sám připojí znovu a přerušené přenosy pokračují.
+- Když spojení spadne, RolidSCP se sám připojí znovu a přerušené přenosy pokračují. Přenos
+  pokračuje, dokud se mezi výpadky posouvá; po pěti výpadcích za sebou bez posunu se zastaví a
+  můžete ho spustit znovu z fronty.
 - **Ctrl+P** otevře systémový terminál (`$TERMINAL` nebo `x-terminal-emulator`) ve složce panelu.
   Na serveru spustí `ssh` do této složky se stejnou kontrolou klíče serveru jako RolidSCP (neznámý
   nebo změněný klíč spojení ukončí). Uložené heslo předá jednorázový pomocník (`SSH_ASKPASS`), který

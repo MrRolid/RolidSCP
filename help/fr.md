@@ -165,7 +165,8 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
   utilisation (menu Paramètres → mot de passe principal, 60 secondes par défaut) ; la barre d'état
   affiche le temps restant. Le verrouillage efface aussi les mots de passe gardés pour la reconnexion.
 - Si la connexion est coupée, RolidSCP se reconnecte de lui-même et les transferts interrompus
-  reprennent.
+  reprennent. Un transfert continue tant qu'il progresse entre les coupures ; après cinq coupures
+  d'affilée sans progrès, il s'arrête et vous pouvez le relancer depuis la file d'attente.
 - **Ctrl+P** ouvre le terminal du système (`$TERMINAL` ou `x-terminal-emulator`) dans le dossier du
   panneau. Sur un serveur, il lance `ssh` dans ce dossier, avec la même vérification de la clé du
   serveur que RolidSCP (une clé inconnue ou modifiée met fin à la connexion). Un mot de passe

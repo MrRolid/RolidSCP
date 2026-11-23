@@ -141,7 +141,9 @@ hurtigtaster står på den andre siden i dette vinduet.
 - Lagrede passord låses igjen en valgt tid etter siste bruk (menyen Innstillinger → hovedpassord, 60
   sekunder som standard); statuslinjen viser gjenværende tid. Låsing glemmer også passordene som holdes
   for gjentilkobling.
-- Når tilkoblingen brytes, kobler RolidSCP til på nytt av seg selv, og avbrutte overføringer fortsetter.
+- Når tilkoblingen brytes, kobler RolidSCP til på nytt av seg selv, og avbrutte overføringer
+  fortsetter. En overføring fortsetter så lenge den kommer videre mellom bruddene; etter fem brudd
+  på rad uten fremgang stopper den, og du kan starte den igjen fra køen.
 - **Ctrl+P** åpner systemterminalen (`$TERMINAL` eller `x-terminal-emulator`) i panelets mappe. På en
   server kjører den `ssh` inn i mappen, med samme kontroll av vertsnøkkelen som RolidSCP (en ukjent
   eller endret nøkkel avslutter forbindelsen). Et lagret passord sendes av en engangshjelper

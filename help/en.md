@@ -139,7 +139,9 @@ shortcuts is on the second page of this window.
 - Saved passwords lock again a set time after their last use (Settings menu → master password, 60
   seconds by default); the status bar shows the time left. Locking also forgets the passwords kept for
   reconnecting.
-- When the connection drops, RolidSCP connects again by itself and interrupted transfers continue.
+- When the connection drops, RolidSCP connects again by itself and interrupted transfers continue. A
+  transfer goes on as long as it gets further between the drop-outs; after five drop-outs in a row
+  without progress it stops, and you can start it again from the queue.
 - **Ctrl+P** opens the system terminal (`$TERMINAL` or `x-terminal-emulator`) in the panel's folder.
   On a server it runs `ssh` into the folder, with the same host key check as RolidSCP (an unknown or
   changed key ends the connection). A saved password is passed by a one-time helper (`SSH_ASKPASS`)

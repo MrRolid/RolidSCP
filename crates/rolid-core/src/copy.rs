@@ -253,6 +253,8 @@ pub struct CopyJob<'a> {
     not_resumed: Vec<String>,
     /// Bytes of the file being written that `progress.bytes_done` counts.
     in_flight_counted: u64,
+    /// Bytes of the file being written that `progress.bytes_resumed` counts.
+    in_flight_resumed: u64,
 }
 
 enum Plan {
@@ -294,6 +296,7 @@ impl<'a> CopyJob<'a> {
             verify: false,
             not_resumed: Vec::new(),
             in_flight_counted: 0,
+            in_flight_resumed: 0,
         }
     }
 
@@ -445,6 +448,10 @@ impl<'a> CopyJob<'a> {
         Fut: std::future::Future<Output = bool>,
     {
         let mut retries = 0;
+        // Where the last break happened: a break after progress (a file
+        // finished or more bytes written) starts the count again, so a long
+        // transfer over a line that keeps breaking goes on as long as it moves.
+        let mut last_break: Option<(u64, u64)> = None;
         let mut i = 0;
         while i < items.len() {
             let (dir, name) = &items[i];
@@ -453,6 +460,12 @@ impl<'a> CopyJob<'a> {
             match r {
                 Ok(()) => i += 1,
                 Err(e) if e.is_connection_lost() && !self.cancel.load(Ordering::Relaxed) && max_retries > 0 => {
+                    let p = &self.progress;
+                    let here = (p.files_done + p.files_skipped, p.bytes_done + p.bytes_resumed);
+                    if last_break.is_some_and(|b| here.0 > b.0 || here.1 > b.1) {
+                        retries = 0;
+                    }
+                    last_break = Some(here);
                     if retries >= max_retries {
                         return Err(VfsError::ConnectionLost(txtn!(
                             "{error} (the transfer gave up after {n} attempt – try it again manually)",
@@ -805,11 +818,14 @@ impl<'a> CopyJob<'a> {
 
         // Continuing the file this job was writing when the connection broke:
         // what was counted for it is counted again as resumed from the part
-        // file (the window showed 140 MB of a 100 MB file).
+        // file (the window showed 140 MB of a 100 MB file) – also what an
+        // earlier continuation counted as resumed.
         if self.state.in_flight.as_deref() == Some(dst_path) {
             self.progress.bytes_done = self.progress.bytes_done.saturating_sub(self.in_flight_counted);
+            self.progress.bytes_resumed = self.progress.bytes_resumed.saturating_sub(self.in_flight_resumed);
         }
         self.in_flight_counted = 0;
+        self.in_flight_resumed = offset;
         self.state.in_flight = Some(dst_path.to_owned());
         let info = info_path(dst_path);
         let with_info = offset == 0 && src.size >= RESUME_INFO_MIN;

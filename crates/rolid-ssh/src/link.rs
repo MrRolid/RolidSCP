@@ -468,7 +468,7 @@ impl RemoteFs {
         let (gen, s) = self.sftp().await?;
         // An SFTP request sent just as the connection ends may never be woken
         // (russh-sftp clears its waiting requests when the transport stops, and
-        // one registered right after that waits for its 30 s timeout): when the
+        // one registered right after that waits for its request timeout): when the
         // connection is gone, the operation fails at once.
         let conn = s.connection().clone();
         let r = tokio::select! {

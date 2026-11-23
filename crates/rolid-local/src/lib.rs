@@ -787,6 +787,46 @@ mod tests {
         std::fs::remove_dir_all(&base).unwrap();
     }
 
+    /// Copy s/big.bin (`len` bytes) into d/ from `src` with `max` automatic
+    /// retries; (result, waits, progress).
+    async fn copy_flaky(base: &Path, src: &FlakyFs, max: u32) -> (VfsResult<()>, Vec<u32>, rolid_core::copy::Progress) {
+        let cb = |_: &rolid_core::copy::Progress| {};
+        let mut job = CopyJob::new(src, &LocalFs, Arc::new(AtomicBool::new(false)), &cb);
+        let s = base.join("s").to_string_lossy().into_owned();
+        let mut waits = Vec::new();
+        let r = job
+            .copy_items_retrying(&[(s, "big.bin".into())], base.join("d").to_str().unwrap(), max, |n| {
+                waits.push(n);
+                async { true }
+            })
+            .await;
+        (r, waits, job.progress().clone())
+    }
+
+    #[tokio::test]
+    async fn a_line_that_breaks_often_but_moves_on_is_not_given_up() {
+        // A file of 8 MB on a line that breaks after every 1 MB: 7 breaks, more
+        // than the automatic retries, but each attempt gets further.
+        let base = tmpdir("retry-progress");
+        let big: Vec<u8> = (0..8_000_000u32).map(|i| (i * 11 % 251) as u8).collect();
+        std::fs::write(base.join("s/big.bin"), &big).unwrap();
+        let (r, waits, p) = copy_flaky(&base, &flaky(7), 5).await;
+        r.unwrap();
+        assert_eq!(waits.len(), 7);
+        assert!(waits.iter().all(|&n| n == 1), "every break after progress starts the count again: {waits:?}");
+        assert_eq!(std::fs::read(base.join("d/big.bin")).unwrap(), big);
+        // The window counts every byte once, however many times the file was continued.
+        assert_eq!(p.bytes_done + p.bytes_resumed, big.len() as u64, "{p:?}");
+
+        // A line that breaks before any byte gets through: given up after the retries.
+        std::fs::remove_file(base.join("d/big.bin")).unwrap();
+        let dead = FlakyFs { fail_after: 0, failures: std::sync::atomic::AtomicU32::new(100), opens: Default::default() };
+        let (r, waits, _) = copy_flaky(&base, &dead, 5).await;
+        assert!(r.unwrap_err().to_string().contains("gave up after 5 attempts"));
+        assert_eq!(waits, [1, 2, 3, 4, 5]);
+        std::fs::remove_dir_all(&base).unwrap();
+    }
+
     /// LocalFs whose writers keep data in memory until flushed (like
     /// `tokio::fs::File` with a write still in flight, or a pipelined SFTP
     /// writer).
@@ -866,9 +906,11 @@ mod tests {
     #[tokio::test]
     async fn gives_up_after_the_retry_limit() {
         let base = tmpdir("giveup");
-        // Every attempt gets 1 MB further: 20 MB need more than 5 retries.
+        // The line breaks before any byte gets through, every time (a line
+        // that breaks but gets further each time goes on: see
+        // a_line_that_breaks_often_but_moves_on_is_not_given_up).
         std::fs::write(base.join("s/big.bin"), vec![1u8; 20_000_000]).unwrap();
-        let src = flaky(100);
+        let src = FlakyFs { fail_after: 0, failures: std::sync::atomic::AtomicU32::new(100), opens: Default::default() };
         let cb = |_: &rolid_core::copy::Progress| {};
         let mut job = CopyJob::new(&src, &LocalFs, Arc::new(AtomicBool::new(false)), &cb);
         let items = vec![(base.join("s").to_string_lossy().into_owned(), "big.bin".to_string())];

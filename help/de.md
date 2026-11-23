@@ -159,7 +159,9 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
   verbleibende Zeit. Beim Sperren werden auch die für die Wiederverbindung gehaltenen Passwörter
   vergessen.
 - Bricht die Verbindung ab, verbindet sich RolidSCP von selbst neu, und unterbrochene Übertragungen
-  laufen weiter.
+  laufen weiter. Eine Übertragung läuft weiter, solange sie zwischen den Abbrüchen vorankommt; nach
+  fünf Abbrüchen in Folge ohne Fortschritt hält sie an, und Sie können sie in der Warteschlange
+  erneut starten.
 - **Ctrl+P** öffnet das Systemterminal (`$TERMINAL` oder `x-terminal-emulator`) im Ordner des Felds.
   Auf einem Server startet es `ssh` in diesen Ordner, mit derselben Prüfung des Serverschlüssels wie
   RolidSCP (ein unbekannter oder geänderter Schlüssel beendet die Verbindung). Ein gespeichertes

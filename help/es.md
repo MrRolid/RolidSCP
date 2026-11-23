@@ -158,7 +158,8 @@ de teclado está en la segunda página de esta ventana.
   Configuración → contraseña maestra, 60 segundos por defecto); la barra de estado muestra el tiempo
   restante. Al bloquear también se olvidan las contraseñas guardadas para reconectar.
 - Si se pierde la conexión, RolidSCP vuelve a conectarse solo y las transferencias interrumpidas
-  continúan.
+  continúan. Una transferencia sigue mientras avance entre los cortes; tras cinco cortes seguidos
+  sin avanzar se detiene y puede iniciarla de nuevo desde la cola.
 - **Ctrl+P** abre el terminal del sistema (`$TERMINAL` o `x-terminal-emulator`) en la carpeta del
   panel. En un servidor ejecuta `ssh` a esa carpeta, con la misma comprobación de la clave del
   servidor que RolidSCP (una clave desconocida o cambiada termina la conexión). Una contraseña

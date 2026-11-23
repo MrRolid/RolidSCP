@@ -147,7 +147,8 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
   główne, domyślnie 60 sekund); pasek stanu pokazuje pozostały czas. Zablokowanie usuwa też hasła
   przechowywane do ponownego łączenia.
 - Gdy połączenie zostanie zerwane, RolidSCP sam łączy się ponownie, a przerwane transfery są
-  kontynuowane.
+  kontynuowane. Transfer trwa, dopóki posuwa się naprzód między przerwami; po pięciu przerwach z
+  rzędu bez postępu zatrzymuje się i można go uruchomić ponownie z kolejki.
 - **Ctrl+P** otwiera terminal systemowy (`$TERMINAL` lub `x-terminal-emulator`) w folderze panelu. Na
   serwerze uruchamia `ssh` do tego folderu z tym samym sprawdzaniem klucza serwera co RolidSCP
   (nieznany lub zmieniony klucz kończy połączenie). Zapisane hasło przekazuje jednorazowy pomocnik
