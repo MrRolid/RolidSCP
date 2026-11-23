@@ -54,10 +54,12 @@ chmod +x RolidSCP-*-x86_64.AppImage
 ./RolidSCP-*-x86_64.AppImage
 ```
 
-It contains only the program and uses the graphics, input and font libraries of the system
-(X11 or Wayland, EGL or Vulkan, xkbcommon, fontconfig), which every desktop has. It needs FUSE to
-run (the `fuse3` package on most systems); without FUSE start it with `--appimage-extract-and-run`.
-It does not add itself to the application menu.
+It uses the graphics and font libraries of the system (X11 or Wayland, EGL or Vulkan, fontconfig),
+which every desktop has, and carries the keyboard, cursor and input libraries a minimal system may
+lack. It needs FUSE to run (the `fuse3` package on most systems); without FUSE start it with
+`--appimage-extract-and-run`. It does not add itself to the application menu. It can be updated
+with [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) (or a tool built on it),
+which downloads only the changed parts of the newest release, pre-releases included.
 
 - **Supported systems:** glibc 2.35 or newer. Every package of the release is installed or started
   in a clean system by the build ([workflow](.github/workflows/build.yml)): the `.deb` on Debian 12,
@@ -397,14 +399,14 @@ Tests: `cargo test --workspace`
 
 The packages are built by scripts in `packaging/`. All of them need `cargo-about` (license
 notices of all bundled libraries, refreshed on every build) and `python3`; the `.rpm` also needs
-`rpmbuild` (`sudo apt install rpm`), the AppImage `mksquashfs` (`sudo apt install squashfs-tools`)
+`rpmbuild` (`sudo apt install rpm`), the AppImage `mksquashfs` and `zsyncmake` (`sudo apt install squashfs-tools zsync`)
 and downloads the AppImage runtime from a fixed release, checked against its SHA-256:
 
 ```sh
 cargo install cargo-about --locked --features cli
 packaging/build-deb.sh        # target/debian/rolidscp_<version>_amd64.deb
 packaging/build-rpm.sh        # target/rpm/rolidscp-<version>-1.x86_64.rpm
-packaging/build-appimage.sh   # target/appimage/RolidSCP-<version>-x86_64.AppImage
+packaging/build-appimage.sh   # target/appimage/RolidSCP-<version>-x86_64.AppImage and .zsync
 sudo apt install ./target/debian/rolidscp_*_amd64.deb
 ```
 

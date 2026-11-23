@@ -45,10 +45,12 @@ chmod +x RolidSCP-*-x86_64.AppImage
 ./RolidSCP-*-x86_64.AppImage
 ```
 
-Obsahuje jen samotný program a používá grafické, vstupní a písmové knihovny systému (X11 nebo
-Wayland, EGL nebo Vulkan, xkbcommon, fontconfig), které má každé pracovní prostředí. Ke spuštění
-potřebuje FUSE (na většině systémů balíček `fuse3`); bez FUSE ho spusť s
-`--appimage-extract-and-run`. Do nabídky aplikací se sám nepřidá.
+Používá grafické a písmové knihovny systému (X11 nebo Wayland, EGL nebo Vulkan, fontconfig), které
+má každé pracovní prostředí, a knihovny klávesnice, kurzoru a vstupu, které minimálnímu systému
+mohou chybět, nese s sebou. Ke spuštění potřebuje FUSE (na většině systémů balíček `fuse3`); bez
+FUSE ho spusť s `--appimage-extract-and-run`. Do nabídky aplikací se sám nepřidá. Aktualizovat ho
+jde nástrojem [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) (nebo jiným,
+který na něm stojí); stáhne jen změněné části nejnovějšího vydání, i předběžného.
 
 - **Podporované systémy:** glibc 2.35 nebo novější. Každý balíček vydání se při sestavení
   ([workflow](../.github/workflows/build.yml)) nainstaluje nebo spustí v čistém systému: `.deb` na

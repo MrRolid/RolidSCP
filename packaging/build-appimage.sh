@@ -11,14 +11,25 @@
 # copied from the building system (Ubuntu 22.04 in CI, so they need no newer
 # glibc than the program), with their copyright files.
 #
-# Needs mksquashfs (squashfs-tools) and the AppImage type 2 runtime, downloaded
-# from a fixed release and checked against its SHA-256 (or given as
-# APPIMAGE_RUNTIME=<file>, which is checked the same way).
+# The runtime carries the update information for AppImageUpdate (UPDATE_INFO
+# below: the newest release of MrRolid/RolidSCP on GitHub, pre-releases
+# included, and its .zsync file), and the AppImage gets its .zsync file next to
+# it, to be published with it. APPIMAGE_UPDATE_INFO=<text> replaces the update
+# information (for tests); empty leaves it out, and the .zsync file too.
+#
+# Needs mksquashfs (squashfs-tools), zsyncmake (zsync), readelf (binutils) and
+# the AppImage type 2 runtime, downloaded from a fixed release and checked
+# against its SHA-256 (or given as APPIMAGE_RUNTIME=<file>, which is checked
+# the same way).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 RUNTIME_URL=https://github.com/AppImage/type2-runtime/releases/download/20251108/runtime-x86_64
 RUNTIME_SHA256=2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d
+
+# "latest-all": the newest release, also when it is marked as a pre-release
+# (GitHub's "latest" leaves pre-releases out, and every beta is one).
+UPDATE_INFO=${APPIMAGE_UPDATE_INFO-"gh-releases-zsync|MrRolid|RolidSCP|latest-all|RolidSCP-*-x86_64.AppImage.zsync"}
 
 VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
 STAGE=target/appimage-stage
@@ -67,6 +78,26 @@ SQUASHFS=$STAGE/rolidscp.squashfs
 rm -f "$SQUASHFS"
 mksquashfs "$APPDIR" "$SQUASHFS" -root-owned -noappend -comp zstd -quiet >/dev/null
 OUT="target/appimage/RolidSCP-${VERSION}-x86_64.AppImage"
-cat "$RUNTIME" "$SQUASHFS" > "$OUT"
+rm -f "$OUT" "$OUT.zsync"
+# The update information goes into the runtime's .upd_info section (as
+# appimagetool -u does), in a copy of the runtime.
+RT=$STAGE/runtime-with-update-info
+cp "$RUNTIME" "$RT"
+if [ -n "$UPDATE_INFO" ]; then
+    # "[23] .upd_info PROGBITS <address> <offset> <size> ...", in hex.
+    read -r off size < <(readelf -S -W "$RT" | sed -n 's/.*\] \.upd_info  *[A-Z]*  *[0-9a-f]*  *\([0-9a-f]*\)  *\([0-9a-f]*\) .*/\1 \2/p')
+    if [ -z "${off:-}" ] || [ "${#UPDATE_INFO}" -ge "$((16#$size))" ]; then
+        echo "the runtime has no .upd_info section, or the update information is too long" >&2
+        exit 1
+    fi
+    printf '%s' "$UPDATE_INFO" | dd of="$RT" bs=1 seek="$((16#$off))" conv=notrunc status=none
+fi
+cat "$RT" "$SQUASHFS" > "$OUT"
 chmod 755 "$OUT"
 echo "$OUT"
+if [ -n "$UPDATE_INFO" ]; then
+    # The AppImage's address in the .zsync file is its bare name: the tools
+    # look for it next to the .zsync file (on the release page).
+    (cd target/appimage && zsyncmake -u "$(basename "$OUT")" -o "$(basename "$OUT").zsync" "$(basename "$OUT")" >/dev/null)
+    echo "$OUT.zsync"
+fi

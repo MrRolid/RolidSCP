@@ -88,6 +88,10 @@ catch it again.
   settings from older versions, going back to an older version and damaged settings files.
   Keyboard-only use, screen readers and long translated texts. Signed checksums of the release files
   and reproducible builds.
+  - Done: the AppImage carries update information for AppImageUpdate (the newest release on
+    GitHub, pre-releases included) and every release has its `.zsync` file, listed in
+    `SHA256SUMS` (suggested by the AppImage catalog). Checked on every build: an older AppImage
+    finds the update and updating it gives the new AppImage byte for byte.
 
 ## 0.9.x: small new features
 

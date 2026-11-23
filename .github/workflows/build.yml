@@ -2,9 +2,10 @@
 #
 # Every push to main: build, all tests, clippy, the .deb, .rpm and AppImage,
 # each package installed or started in a clean system, the AppImage also on a
-# minimal system without network, packages kept as artifacts of the run.
-# A pushed tag v<version>: the same, then a release with the packages and
-# SHA256SUMS. The tag must match the version in Cargo.toml and the release
+# minimal system without network and its update with AppImageUpdate,
+# packages kept as artifacts of the run.
+# A pushed tag v<version>: the same, then a release with the packages, the
+# AppImage's .zsync file and SHA256SUMS. The tag must match the version in Cargo.toml and the release
 # text is docs/releases/<version>.md (see docs/releases/README.md).
 name: Build
 
@@ -64,9 +65,9 @@ jobs:
       - name: System packages
         run: |
           sudo apt-get update -q
-          # rpm and squashfs-tools for the packages, openssh-server for the SFTP tests,
-          # and the libraries the AppImage carries (crates/rolid-ui/src/bundled_libs.rs).
-          sudo apt-get install -y -q --no-install-recommends rpm squashfs-tools fakeroot openssh-server \
+          # rpm, squashfs-tools and zsync for the packages, openssh-server for the SFTP
+          # tests, and the libraries the AppImage carries (crates/rolid-ui/src/bundled_libs.rs).
+          sudo apt-get install -y -q --no-install-recommends rpm squashfs-tools zsync fakeroot openssh-server \
             libxkbcommon0 libxkbcommon-x11-0 libxcb-xkb1 libxcursor1 libxrender1 libxfixes3 libxi6 libxext6 \
             libwayland-cursor0 libwayland-egl1
 
@@ -126,7 +127,8 @@ jobs:
           packaging/build-rpm.sh
           packaging/build-appimage.sh
           mkdir dist
-          cp target/debian/rolidscp_*.deb target/rpm/rolidscp-*.rpm target/appimage/RolidSCP-*.AppImage dist/
+          cp target/debian/rolidscp_*.deb target/rpm/rolidscp-*.rpm target/appimage/RolidSCP-*.AppImage \
+            target/appimage/RolidSCP-*.AppImage.zsync dist/
           cd dist
           sha256sum -- * > SHA256SUMS
           cat SHA256SUMS
@@ -207,6 +209,8 @@ jobs:
         run: |
           chmod +x dist/*.AppImage
           bash packaging/ci/smoke-test.sh "$VERSION" "$(ls "$PWD"/dist/*.AppImage)"
+      - name: Update information and .zsync file (AppImageUpdate)
+        run: bash packaging/ci/appimage-update.sh "$(ls "$PWD"/dist/*.AppImage)"
 
   test-appimage-minimal:
     name: Start the AppImage on a minimal system without network
