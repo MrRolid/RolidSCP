@@ -35,11 +35,16 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
   ulubione (★). W archiwum lista zaczyna się od folderu, w którym leży archiwum; w wynikach
   wyszukiwania jest niedostępna. **Widok → Pasek nad panelami** ukrywa pasek; przyciski `/ .. ~ *`
   wracają wtedy do wiersza ze ścieżką.
-- Kliknięcie ścieżki pozwala wpisać inną. Po prawej wiersz ze ścieżką pokazuje wolne miejsce na dysku
-  (cienki pasek i „Wolne: X z Y”), jego system plików (ext4, btrfs, nfs4, fuse.sshfs…) oraz, dla dysków
-  tego komputera, plakietkę ze stanem dysku; w wąskim panelu znika najpierw „Wolne:”, potem rozmiar
-  dysku, a potem system plików. W archiwum pokazuje dysk, na którym leży archiwum. Kliknięcie otwiera
-  szczegóły.
+- Każda część ścieżki jest przyciskiem: kliknięcie otwiera ten folder (także na serwerze i w
+  archiwum; kliknięcie folderu, w którym jesteś, odświeża go), środkowy przycisk otwiera go w nowej
+  karcie obok bieżącej, a część pod myszą jest podświetlona. Ścieżka za długa na wiersz jest
+  skracana od lewej wielokropkiem „…” (kliknięcie go otwiera listę rozwijaną ścieżki); ostatnia
+  część zawsze jest widoczna w całości. Aby wpisać ścieżkę, kliknij dwukrotnie pustą część wiersza,
+  kliknij ołówek na jego końcu albo naciśnij **Ctrl+G**.
+- Po prawej wiersz ze ścieżką pokazuje wolne miejsce na dysku (cienki pasek i „Wolne: X z Y”), jego
+  system plików (ext4, btrfs, nfs4, fuse.sshfs…) oraz, dla dysków tego komputera, plakietkę ze
+  stanem dysku; w wąskim panelu znika najpierw „Wolne:”, potem rozmiar dysku, a potem system plików.
+  W archiwum pokazuje dysk, na którym leży archiwum. Kliknięcie otwiera szczegóły.
 - Prawy przycisk na pustym miejscu listy (lub na `..`) oferuje **Nowy plik…**, **Nowy folder**,
   **Odśwież**, **Dodaj folder do ulubionych**, **Otwórz terminal tutaj** i **Właściwości dysku…**
   (wolne miejsce, system plików i stan dysku).
@@ -71,6 +76,10 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
   upuszczaniu plików je przenosi (sam Shift+klik nigdy niczego nie przenosi).
 - **Num+** zaznacza grupę wg maski, np. `*.jpg;*.png`, **Alt+−** odznacza grupę, **Alt+I**
   odwraca zaznaczenie.
+- Okna maski **Num+** i **Alt+−** pamiętają ostatnią maskę i to, czy opcja **Uwzględnij foldery**
+  jest włączona, każde osobno, także po ponownym uruchomieniu. Na serwerze oznaczonym jako
+  produkcyjny opcja **Uwzględnij foldery** jest zawsze wyłączona przy otwarciu okna, a wybór
+  dokonany w nim nie jest zapamiętywany.
 - Wiersz pod listą pokazuje, ile elementów jest zaznaczonych i jaki mają rozmiar.
 - **Alt+Space** (lub **Shift+Space**) oblicza rozmiar folderu pod kursorem lub zaznaczonych
   folderów, **Alt+Shift+Enter** wszystkich folderów w panelu.
@@ -203,6 +212,8 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
   (zip i 7z).
 - **Alt+F9** rozpakowuje archiwum do drugiego panelu, z ochroną przed niebezpiecznymi ścieżkami
   i bombami archiwalnymi. **Alt+Shift+F9** testuje archiwum.
+- Pakowanie lub rozpakowywanie przerwane awarią albo zabiciem programu zostawia swój niedokończony
+  plik `.filepart` tylko do następnego uruchomienia programu, które go usuwa.
 - **Enter** na archiwum otwiera je jako folder tylko do odczytu; **F5** kopiuje z niego pliki.
 
 ## Wyszukiwanie i sumy kontrolne

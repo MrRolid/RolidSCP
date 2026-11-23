@@ -3620,114 +3620,119 @@ msgstr "Neuigkeiten"
 
 #: crates/rolid-ui/src/app/menu.rs:717
 msgctxt "news"
+msgid "0.8.17 bad connections: every part of the path above a panel is a button (a click opens that folder, the middle button opens it in a new tab) and the path is edited by a double click on the empty part of the row, the pencil or Ctrl+G; bigger colored icons in the bar above the panels; the mask dialogs remember the mask and Include folders (never on a production server); a pack or extract killed in the middle no longer leaves a .filepart file behind; the first key of the quick filter in a folder of a million files takes under 0.1 s; transfers tested over a line with latency, jitter, packet loss, a changing speed, outages and a frozen connection, every file checked by checksum; the news translated into all languages"
+msgstr "0.8.17 schlechte Verbindungen: Jeder Teil des Pfads über einem Panel ist eine Schaltfläche (ein Klick öffnet diesen Ordner, die mittlere Maustaste öffnet ihn in einem neuen Tab), und der Pfad wird per Doppelklick auf den leeren Teil der Zeile, mit dem Stift oder mit Ctrl+G bearbeitet; größere farbige Symbole in der Leiste über den Panels; die Maskendialoge merken sich die Maske und „Ordner einbeziehen“ (nie auf einem Produktionsserver); ein mittendrin beendetes Packen oder Entpacken hinterlässt keine .filepart-Datei mehr; der erste Tastendruck im Schnellfilter in einem Ordner mit einer Million Dateien dauert unter 0,1 s; Übertragungen über eine Leitung mit Latenz, Jitter, Paketverlust, wechselnder Geschwindigkeit, Ausfällen und einer eingefrorenen Verbindung getestet, jede Datei per Prüfsumme geprüft; die Neuigkeiten in alle Sprachen übersetzt"
+
+#: crates/rolid-ui/src/app/menu.rs:728
+msgctxt "news"
 msgid "0.8.16 big files and marking: Shift+click and Shift with the arrows, PgUp, PgDn, Home and End mark a range from the last clicked item and going back unmarks only that range, a click without a key keeps the marks, Ctrl+A marks all and a second press unmarks (Tools → Select to the top / to the bottom); marking stays fast in a folder of a million files and survives a refresh, sorting and the filter; a full disk or a used-up quota is named and “Try again” continues where the transfer stopped; a move continued after the program was killed finishes and leaves no helper files; after a lost connection the progress no longer counts the resumed part twice; the remaining time shows days; sizes of petabytes and more are added up without overflowing; the journal of replaced files and the records of F4 copies are flushed to the disk."
 msgstr "0.8.16 große Dateien und Markieren: Shift+Klick sowie Shift mit den Pfeiltasten, PgUp, PgDn, Home und End markieren einen Bereich ab dem zuletzt angeklickten Eintrag, und der Weg zurück hebt nur diesen Bereich auf, ein Klick ohne Taste behält die Markierungen, Ctrl+A markiert alles und ein zweiter Druck hebt die Markierung auf (Werkzeuge → Bis zum Anfang auswählen / Bis zum Ende auswählen); das Markieren bleibt auch in einem Ordner mit einer Million Dateien schnell und übersteht Aktualisieren, Sortieren und den Filter; ein voller Datenträger oder ein aufgebrauchtes Kontingent wird benannt und „Erneut versuchen“ setzt dort fort, wo die Übertragung aufgehört hat; ein nach dem Abbruch des Programms fortgesetztes Verschieben wird abgeschlossen und hinterlässt keine Hilfsdateien; nach einem Verbindungsabbruch zählt der Fortschritt den fortgesetzten Teil nicht mehr doppelt; die Restzeit zeigt Tage an; Größen ab Petabytes werden ohne Überlauf addiert; das Protokoll ersetzter Dateien und die Aufzeichnungen der F4-Kopien werden auf den Datenträger geschrieben."
 
-#: crates/rolid-ui/src/app/menu.rs:730
+#: crates/rolid-ui/src/app/menu.rs:741
 msgctxt "news"
 msgid "0.8.15 many files: copying many small files to and from a server is several times faster (the target folder is listed once, several files go at a time), deleting is a job in the queue with progress and Cancel, big folders are listed, sorted and filtered several times faster and refresh without stalling the window, folder listings over SFTP are much faster; pipes, sockets, devices and broken links are skipped with a message instead of hanging or stopping the copy; names with invalid UTF-8, backslashes, line breaks or 255 bytes are copied exactly and shown readably; very deep folder trees no longer crash the program; search, folder sizes and checksums use commands on the server again instead of the slow walk over SFTP."
 msgstr "0.8.15 viele Dateien: Das Kopieren vieler kleiner Dateien zu und von einem Server ist um ein Mehrfaches schneller (der Zielordner wird einmal aufgelistet, mehrere Dateien gehen gleichzeitig), Löschen ist ein Auftrag in der Warteschlange mit Fortschritt und Abbrechen, große Ordner werden um ein Mehrfaches schneller aufgelistet, sortiert und gefiltert und aktualisiert, ohne das Fenster anzuhalten, Ordnerlisten über SFTP sind viel schneller; Pipes, Sockets, Geräte und defekte Links werden mit einer Meldung übersprungen, statt hängen zu bleiben oder das Kopieren abzubrechen; Namen mit ungültigem UTF-8, Backslashes, Zeilenumbrüchen oder 255 Bytes werden exakt kopiert und lesbar angezeigt; sehr tiefe Ordnerbäume bringen das Programm nicht mehr zum Absturz; Suche, Ordnergrößen und Prüfsummen nutzen wieder Befehle auf dem Server statt des langsamen Durchlaufs über SFTP."
 
-#: crates/rolid-ui/src/app/menu.rs:741
+#: crates/rolid-ui/src/app/menu.rs:752
 msgctxt "news"
 msgid "0.8.14 data protection: on a production server copying, uploading, moving and a new folder never start with Overwrite and Enter does not confirm them; a move deletes the source only when it did not change meanwhile, and to a server only after the checksums match; an interrupted transfer is resumed only from a part file of the same source; a file replaced on a server without atomic rename is repaired at the next connection after a cut-off; F4 copies are kept on disk, a failed upload is tried again, the time of the upload has seconds; starts without system fonts; slow server shells no longer hold up search and checksums."
 msgstr "0.8.14 Datenschutz: Auf einem Produktionsserver beginnen Kopieren, Hochladen, Verschieben und ein neuer Ordner nie mit Überschreiben, und Enter bestätigt sie nicht; ein Verschieben löscht die Quelle nur, wenn sie sich inzwischen nicht geändert hat, und auf einen Server erst, wenn die Prüfsummen übereinstimmen; eine unterbrochene Übertragung wird nur aus einer Teildatei derselben Quelle fortgesetzt; eine auf einem Server ohne atomares Umbenennen ersetzte Datei wird nach einem Abbruch bei der nächsten Verbindung repariert; F4-Kopien werden auf dem Datenträger aufbewahrt, ein fehlgeschlagenes Hochladen wird erneut versucht, die Uhrzeit des Hochladens hat Sekunden; startet ohne Systemschriften; langsame Server-Shells halten Suche und Prüfsummen nicht mehr auf."
 
-#: crates/rolid-ui/src/app/menu.rs:751
+#: crates/rolid-ui/src/app/menu.rs:762
 msgctxt "news"
 msgid "0.8.13 listings refresh by themselves: local folders at once, server folders when you come back to them and every 30 s while the window is active (View → Automatic refresh), the cursor and the marks stay; thin lines between the columns, drag them to change the width (a double click fits the content), kept for each panel; names that do not fit end with “…”; the disk health badge shows the reason; dragging files into Thunar works; hovering changes only colors."
 msgstr "0.8.13 Listen aktualisieren sich von selbst: lokale Ordner sofort, Serverordner, wenn Sie zu ihnen zurückkehren, und alle 30 s, solange das Fenster aktiv ist (Ansicht → Automatisch aktualisieren), Cursor und Markierungen bleiben erhalten; dünne Linien zwischen den Spalten, ziehen Sie sie, um die Breite zu ändern (ein Doppelklick passt sie an den Inhalt an), für jedes Panel gespeichert; Namen, die nicht passen, enden mit „…“; das Abzeichen für den Datenträgerzustand zeigt den Grund an; Ziehen von Dateien nach Thunar funktioniert; Darüberfahren ändert nur die Farben."
 
-#: crates/rolid-ui/src/app/menu.rs:759
+#: crates/rolid-ui/src/app/menu.rs:770
 msgctxt "news"
 msgid "0.8.12 a bar above each panel: the folders on the path and the disks in a drop-down (Alt+↓), back, forward, up, root, home, refresh and favorites; the free space, file system and disk health moved into the path row; a right click on the empty space of a panel offers a new file, a new folder, a terminal and the disk properties."
 msgstr "0.8.12 eine Leiste über jedem Panel: die Ordner im Pfad und die Laufwerke in einer Ausklappliste (Alt+↓), zurück, vor, nach oben, Wurzel, Home-Ordner, Aktualisieren und Favoriten; freier Speicher, Dateisystem und Datenträgerzustand sind in die Pfadzeile gewandert; ein Rechtsklick auf die leere Fläche eines Panels bietet eine neue Datei, einen neuen Ordner, ein Terminal und die Laufwerkseigenschaften an."
 
-#: crates/rolid-ui/src/app/menu.rs:766
+#: crates/rolid-ui/src/app/menu.rs:777
 msgctxt "news"
 msgid "0.8.11 files and folders can be dragged out of the window to other applications (X11), from a server or an archive they are downloaded first; Shift+F4 creates a new file in the external editor; favorite folders can be added, renamed and removed in the new tab menu; stricter disk temperature and wear limits, the temperature is checked every 5 minutes."
 msgstr "0.8.11 Dateien und Ordner lassen sich aus dem Fenster in andere Anwendungen ziehen (X11), von einem Server oder aus einem Archiv werden sie zuerst heruntergeladen; Shift+F4 erstellt eine neue Datei im externen Editor; Favoritenordner lassen sich im Menü für neue Tabs hinzufügen, umbenennen und entfernen; strengere Grenzwerte für Temperatur und Verschleiß der Datenträger, die Temperatur wird alle 5 Minuten geprüft."
 
-#: crates/rolid-ui/src/app/menu.rs:773
+#: crates/rolid-ui/src/app/menu.rs:784
 msgctxt "news"
 msgid "0.8.10 the free-space row shows the file system type and the disk health (SMART) with a detail in plain language; Ctrl+P opens a terminal in the panel's folder, on a server ssh with the saved password; the tab and server switcher moved to Ctrl+K."
 msgstr "0.8.10 die Zeile mit dem freien Speicher zeigt den Dateisystemtyp und den Datenträgerzustand (SMART) mit einer verständlichen Erläuterung; Ctrl+P öffnet ein Terminal im Ordner des Panels, auf einem Server ssh mit dem gespeicherten Passwort; der Umschalter für Tabs und Server liegt jetzt auf Ctrl+K."
 
-#: crates/rolid-ui/src/app/menu.rs:779
+#: crates/rolid-ui/src/app/menu.rs:790
 msgctxt "news"
 msgid "0.8.9 built-in viewer (F3) in a window of its own: files of any size, also on a server without downloading them whole, syntax highlighting, encodings, hex, following a growing log, searching with the ripgrep engine (on a server with grep over SSH) and images (JPEG, PNG, animated GIF, WebP, BMP) with zoom, rotation and next / previous image."
 msgstr "0.8.9 eingebauter Betrachter (F3) in einem eigenen Fenster: Dateien beliebiger Größe, auch auf einem Server, ohne sie ganz herunterzuladen, Syntaxhervorhebung, Kodierungen, Hex, Verfolgen eines wachsenden Logs, Suche mit der ripgrep-Engine (auf einem Server mit grep über SSH) und Bilder (JPEG, PNG, animiertes GIF, WebP, BMP) mit Zoom, Drehung und nächstem / vorherigem Bild."
 
-#: crates/rolid-ui/src/app/menu.rs:786
+#: crates/rolid-ui/src/app/menu.rs:797
 msgctxt "news"
 msgid "0.8.8 new tab menu (Ctrl+T: home folder, favorites, servers, recent places), favorite folders (Ctrl+D), tab menu (duplicate, color, close others), dragging files inside the app (Shift moves, Esc cancels), saved passwords lock again after a set time, one look for all dialogs and a target history with Browse… when copying and moving."
 msgstr "0.8.8 Menü für neue Tabs (Ctrl+T: Home-Ordner, Favoriten, Server, zuletzt besuchte Orte), Favoritenordner (Ctrl+D), Tab-Menü (duplizieren, Farbe, andere schließen), Ziehen von Dateien innerhalb der Anwendung (Shift verschiebt, Esc bricht ab), gespeicherte Passwörter sperren sich nach einer festgelegten Zeit wieder, ein einheitliches Aussehen aller Dialoge und ein Zielverlauf mit Durchsuchen… beim Kopieren und Verschieben."
 
-#: crates/rolid-ui/src/app/menu.rs:793
+#: crates/rolid-ui/src/app/menu.rs:804
 msgctxt "news"
 msgid "0.8.7 in eight languages: English, Czech, German, French, Polish, Spanish, Norwegian and Danish (by the system or in Settings, switches at once; your own translation in ~/.config/rolidscp/lang), numbers and dates written as the language does (or ISO), help on F1."
 msgstr "0.8.7 in acht Sprachen: Englisch, Tschechisch, Deutsch, Französisch, Polnisch, Spanisch, Norwegisch und Dänisch (nach dem System oder in den Einstellungen, wechselt sofort; eigene Übersetzung in ~/.config/rolidscp/lang), Zahlen und Datumsangaben so geschrieben, wie es die Sprache tut (oder ISO), Hilfe mit F1."
 
-#: crates/rolid-ui/src/app/menu.rs:799
+#: crates/rolid-ui/src/app/menu.rs:810
 msgctxt "news"
 msgid "0.8.6 sharper text: strong hinting puts the vertical strokes of letters on whole pixels (the default, together with higher contrast); table lines stay sharp at 125% and 150% scaling too."
 msgstr "0.8.6 schärferer Text: starkes Hinting legt die senkrechten Striche der Buchstaben auf ganze Pixel (die Voreinstellung, zusammen mit höherem Kontrast); Tabellenlinien bleiben auch bei 125 % und 150 % Skalierung scharf."
 
-#: crates/rolid-ui/src/app/menu.rs:804
+#: crates/rolid-ui/src/app/menu.rs:815
 msgctxt "news"
 msgid "0.8.5 rename right in the list (F2, Shift+F6), move to the other panel (F6), also between disks and servers, rename a tab by double-clicking it, font size in whole points (default 14), font Hinting and Contrast options in Settings, the bottom bar adapts to the window width."
 msgstr "0.8.5 Umbenennen direkt in der Liste (F2, Shift+F6), Verschieben in das andere Panel (F6), auch zwischen Laufwerken und Servern, Umbenennen eines Tabs per Doppelklick, Schriftgröße in ganzen Punkten (Standard 14), Optionen für Hinting und Schriftkontrast in den Einstellungen, die untere Leiste passt sich der Fensterbreite an."
 
-#: crates/rolid-ui/src/app/menu.rs:810
+#: crates/rolid-ui/src/app/menu.rs:821
 msgctxt "news"
 msgid "0.8.4 GPL-3.0-or-later license and source code on GitHub, sharper Noto Sans font (system font and text size can be chosen in Settings), size of the folder under the cursor (Alt+Space or Shift+Space), more readable colors on the cursor row."
 msgstr "0.8.4 Lizenz GPL-3.0-or-later und Quellcode auf GitHub, schärfere Schrift Noto Sans (Systemschrift und Textgröße lassen sich in den Einstellungen wählen), Größe des Ordners unter dem Cursor (Alt+Space oder Shift+Space), besser lesbare Farben in der Cursorzeile."
 
-#: crates/rolid-ui/src/app/menu.rs:816
+#: crates/rolid-ui/src/app/menu.rs:827
 msgctxt "news"
 msgid "0.8.3 Enter opens a file in the default application (for a program or script it asks: editor / Run), more precise drop target when dragging, compression on all cores (a No compression level; already compressed files are only stored), estimated time remaining, folders in [square brackets], selecting by mask also for folders, folder sizes (Alt+Shift+Enter, on a server via du), MD5/SHA/BLAKE3/CRC32 checksums saved in a format compatible with sha256sum -c."
 msgstr "0.8.3 Enter öffnet eine Datei in der Standardanwendung (bei einem Programm oder Skript wird gefragt: Editor / Ausführen), genaueres Ablageziel beim Ziehen, Kompression auf allen Kernen (eine Stufe Ohne Kompression; bereits komprimierte Dateien werden nur gespeichert), geschätzte Restzeit, Ordner in [eckigen Klammern], Auswahl per Maske auch für Ordner, Ordnergrößen (Alt+Shift+Enter, auf einem Server über du), Prüfsummen MD5/SHA/BLAKE3/CRC32, gespeichert in einem mit sha256sum -c kompatiblen Format."
 
-#: crates/rolid-ui/src/app/menu.rs:824
+#: crates/rolid-ui/src/app/menu.rs:835
 msgctxt "news"
 msgid "0.8.2 archives: pack (Alt+F5: zip, 7z, tar, tar.gz, tar.zst, AES-256 password for zip and 7z), extract (Alt+F9) with protection against zip-slip and zip bombs, archive test (Alt+Shift+F9), Enter opens an archive as a read-only folder (F5 copies out, also from a server)."
 msgstr "0.8.2 Archive: Packen (Alt+F5: zip, 7z, tar, tar.gz, tar.zst, AES-256-Passwort für zip und 7z), Entpacken (Alt+F9) mit Schutz vor Zip-Slip und Zip-Bomben, Archivtest (Alt+Shift+F9), Enter öffnet ein Archiv als schreibgeschützten Ordner (F5 kopiert heraus, auch von einem Server)."
 
-#: crates/rolid-ui/src/app/menu.rs:830
+#: crates/rolid-ui/src/app/menu.rs:841
 msgctxt "news"
 msgid "0.8.1 toolbar, brief view and image thumbnails, folder history (Alt+←/→), selecting a group by mask, a distinct header for the active panel, free space, selection summary, file type icons and colors, exact drop target highlighting while dragging on X11."
 msgstr "0.8.1 Werkzeugleiste, Kurzansicht und Bildvorschauen, Ordnerverlauf (Alt+←/→), Auswahl einer Gruppe per Maske, eine eigene Kopfzeile für das aktive Panel, freier Speicher, Auswahlübersicht, Dateityp-Symbole und -Farben, exakte Hervorhebung des Ablageziels beim Ziehen unter X11."
 
-#: crates/rolid-ui/src/app/menu.rs:836
+#: crates/rolid-ui/src/app/menu.rs:847
 msgctxt "news"
 msgid "0.8.0 context menu (Open with, permissions, copying the path to the clipboard), default choice on conflict, consistent dialog look with icons, the queue shows “file 3 of 120”."
 msgstr "0.8.0 Kontextmenü (Öffnen mit…, Rechte, Kopieren des Pfads in die Zwischenablage), Standardauswahl bei Konflikten, einheitliches Aussehen der Dialoge mit Symbolen, die Warteschlange zeigt „Datei 3 von 120“."
 
-#: crates/rolid-ui/src/app/menu.rs:846
+#: crates/rolid-ui/src/app/menu.rs:857
 msgid "❤ Support development"
 msgstr "❤ Entwicklung unterstützen"
 
-#: crates/rolid-ui/src/app/menu.rs:847
+#: crates/rolid-ui/src/app/menu.rs:858
 msgid "RolidSCP is free and has no ads. If it saves you time, you can support its further development with a bitcoin donation of any amount. Thank you!"
 msgstr "RolidSCP ist kostenlos und werbefrei. Wenn es Ihnen Zeit spart, können Sie die Weiterentwicklung mit einer Bitcoin-Spende in beliebiger Höhe unterstützen. Vielen Dank!"
 
-#: crates/rolid-ui/src/app/menu.rs:856
+#: crates/rolid-ui/src/app/menu.rs:867
 msgid "Bitcoin (BTC):"
 msgstr "Bitcoin (BTC):"
 
-#: crates/rolid-ui/src/app/menu.rs:859
+#: crates/rolid-ui/src/app/menu.rs:870
 msgid "Copy address"
 msgstr "Adresse kopieren"
 
-#: crates/rolid-ui/src/app/menu.rs:862
+#: crates/rolid-ui/src/app/menu.rs:873
 msgid "₿ Open in wallet"
 msgstr "₿ In Wallet öffnen"
 
-#: crates/rolid-ui/src/app/menu.rs:864
+#: crates/rolid-ui/src/app/menu.rs:875
 msgid "🔎 Address on mempool.space"
 msgstr "🔎 Adresse auf mempool.space"
 
-#: crates/rolid-ui/src/app/menu.rs:868
+#: crates/rolid-ui/src/app/menu.rs:879
 msgid "Scan the QR code with a mobile wallet."
 msgstr "Den QR-Code mit einer mobilen Wallet scannen."
 

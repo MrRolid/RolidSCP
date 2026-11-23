@@ -39,11 +39,18 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
   liste commence par le dossier où se trouve l'archive ; dans les résultats d'une recherche, elle n'est
   pas disponible. **Affichage → Barre au-dessus des panneaux** masque la barre ; les boutons `/ .. ~ *`
   reviennent alors dans la ligne du chemin.
-- Un clic sur le chemin permet d'en saisir un autre. À droite, la ligne du chemin montre l'espace libre
-  du disque (une fine barre et « Libre : X sur Y »), son système de fichiers (ext4, btrfs, nfs4,
-  fuse.sshfs…) et, pour les disques de cet ordinateur, un badge avec l'état du disque ; dans un panneau
-  étroit, « Libre : » disparaît d'abord, puis la taille du disque, puis le système de fichiers. Dans
-  une archive, elle montre le disque où se trouve l'archive. Un clic ouvre le détail.
+- Chaque partie du chemin est un bouton : un clic ouvre ce dossier (aussi sur un serveur et dans une
+  archive ; un clic sur le dossier où vous êtes l'actualise), le bouton du milieu l'ouvre dans un
+  nouvel onglet à côté de l'onglet actuel, et la partie sous la souris est mise en évidence. Un
+  chemin trop long pour la ligne est raccourci par la gauche avec « … » (un clic dessus ouvre la
+  liste déroulante du chemin) ; la dernière partie reste toujours entière. Pour saisir un chemin,
+  double-cliquez sur la partie vide de la ligne, cliquez sur le crayon à son extrémité ou appuyez
+  sur **Ctrl+G**.
+- À droite, la ligne du chemin montre l'espace libre du disque (une fine barre et « Libre : X sur Y
+  »), son système de fichiers (ext4, btrfs, nfs4, fuse.sshfs…) et, pour les disques de cet
+  ordinateur, un badge avec l'état du disque ; dans un panneau étroit, « Libre : » disparaît
+  d'abord, puis la taille du disque, puis le système de fichiers. Dans une archive, elle montre le
+  disque où se trouve l'archive. Un clic ouvre le détail.
 - Un clic droit sur l'espace vide de la liste (ou sur `..`) propose **Nouveau fichier…**, **Nouveau
   dossier**, **Actualiser**, **Ajouter le dossier aux favoris**, **Ouvrir un terminal ici** et
   **Propriétés du disque…** (espace libre, système de fichiers et état du disque).
@@ -78,6 +85,10 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
   déplace (Shift+clic seul ne déplace jamais rien).
 - **Num+** sélectionne un groupe par un masque comme `*.jpg;*.png`, **Alt+−** désélectionne un
   groupe, **Alt+I** inverse la sélection.
+- Les dialogues de masque de **Num+** et **Alt+−** retiennent le dernier masque et l'état de
+  **Inclure les dossiers**, chacun pour soi et aussi après un redémarrage. Sur un serveur marqué
+  comme production, **Inclure les dossiers** est toujours désactivé à l'ouverture du dialogue, et le
+  choix fait alors n'est pas retenu.
 - La ligne sous la liste indique le nombre d'éléments sélectionnés et leur taille.
 - **Alt+Space** (ou **Shift+Space**) calcule la taille du dossier sous le curseur ou des dossiers
   sélectionnés, **Alt+Shift+Enter** celle de tous les dossiers du panneau.
@@ -221,6 +232,9 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
   passe en option (zip et 7z).
 - **Alt+F9** extrait une archive dans l'autre panneau, avec une protection contre les chemins
   dangereux et les bombes d'archive. **Alt+Shift+F9** teste une archive.
+- Une compression ou une extraction interrompue par un plantage ou l'arrêt forcé du programme ne
+  laisse son fichier `.filepart` inachevé que jusqu'au prochain démarrage du programme, qui le
+  supprime.
 - **Enter** sur une archive l'ouvre comme dossier en lecture seule ; **F5** en copie des fichiers vers
   l'extérieur.
 

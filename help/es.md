@@ -37,11 +37,17 @@ de teclado está en la segunda página de esta ventana.
   (**Ctrl+H**), Actualizar y los favoritos (★). Dentro de un archivo comprimido la lista empieza por la
   carpeta en la que está; en los resultados de una búsqueda no está disponible. **Ver → Barra sobre los
   paneles** oculta la barra; los botones `/ .. ~ *` vuelven entonces a la fila de la ruta.
-- Un clic en la ruta permite escribir otra. A la derecha, la fila de la ruta muestra el espacio libre
-  del disco (una barra fina y «Libre: X de Y»), su sistema de archivos (ext4, btrfs, nfs4, fuse.sshfs…)
-  y, en los discos de este ordenador, una insignia con el estado del disco; en un panel estrecho se
-  omite primero «Libre:», luego el tamaño del disco y luego el sistema de archivos. Dentro de un
-  archivo comprimido muestra el disco en el que está. Un clic abre los detalles.
+- Cada parte de la ruta es un botón: un clic abre esa carpeta (también en un servidor y dentro de un
+  archivo comprimido; un clic en la carpeta en la que está la actualiza), el botón central la abre
+  en una pestaña nueva junto a la actual y la parte bajo el ratón se resalta. Una ruta demasiado
+  larga para la fila se acorta por la izquierda con «…» (un clic en ellos abre la lista desplegable
+  de la ruta); la última parte siempre se ve entera. Para escribir una ruta, haga doble clic en la
+  parte vacía de la fila, pulse el lápiz al final o pulse **Ctrl+G**.
+- A la derecha, la fila de la ruta muestra el espacio libre del disco (una barra fina y «Libre: X de
+  Y»), su sistema de archivos (ext4, btrfs, nfs4, fuse.sshfs…) y, en los discos de este ordenador,
+  una insignia con el estado del disco; en un panel estrecho se omite primero «Libre:», luego el
+  tamaño del disco y luego el sistema de archivos. Dentro de un archivo comprimido muestra el disco
+  en el que está. Un clic abre los detalles.
 - Un clic derecho en el espacio vacío de la lista (o en `..`) ofrece **Archivo nuevo…**, **Nueva
   carpeta**, **Actualizar**, **Añadir carpeta a favoritos**, **Abrir terminal aquí** y **Propiedades
   del disco…** (espacio libre, sistema de archivos y estado del disco).
@@ -75,6 +81,10 @@ de teclado está en la segunda página de esta ventana.
   mueve nada).
 - **Num+** marca un grupo según una máscara como `*.jpg;*.png`, **Alt+−** lo desmarca, **Alt+I**
   invierte la selección.
+- Los diálogos de máscara de **Num+** y **Alt+−** recuerdan la última máscara y si
+  **Incluir carpetas** está activado, cada uno por separado y también tras reiniciar. En un servidor
+  marcado como de producción, **Incluir carpetas** siempre está desactivado al abrir el diálogo y lo
+  que elija allí no se recuerda.
 - La línea bajo la lista muestra cuántos elementos están marcados y su tamaño.
 - **Alt+Space** (o **Shift+Space**) calcula el tamaño de la carpeta bajo el cursor o de las carpetas
   marcadas, **Alt+Shift+Enter** el de todas las carpetas del panel.
@@ -213,6 +223,8 @@ de teclado está en la segunda página de esta ventana.
   contraseña (zip y 7z).
 - **Alt+F9** extrae un archivo comprimido en el otro panel, con protección contra rutas peligrosas y
   bombas de compresión. **Alt+Shift+F9** prueba un archivo comprimido.
+- Un empaquetado o una extracción interrumpidos por un fallo o por matar el programa dejan su
+  archivo `.filepart` sin terminar solo hasta el siguiente inicio del programa, que lo borra.
 - **Enter** sobre un archivo comprimido lo abre como carpeta de solo lectura; **F5** copia archivos
   fuera de él.
 

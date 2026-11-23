@@ -716,6 +716,17 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
             for news in [
                 trc!(
                     "news",
+                    "0.8.17 bad connections: every part of the path above a panel is a button (a click opens that \
+                     folder, the middle button opens it in a new tab) and the path is edited by a double click on \
+                     the empty part of the row, the pencil or Ctrl+G; bigger colored icons in the bar above the \
+                     panels; the mask dialogs remember the mask and Include folders (never on a production server); \
+                     a pack or extract killed in the middle no longer leaves a .filepart file behind; the first key \
+                     of the quick filter in a folder of a million files takes under 0.1 s; transfers tested over a \
+                     line with latency, jitter, packet loss, a changing speed, outages and a frozen connection, \
+                     every file checked by checksum; the news translated into all languages"
+                ),
+                trc!(
+                    "news",
                     "0.8.16 big files and marking: Shift+click and Shift with the arrows, PgUp, PgDn, Home and End \
                      mark a range from the last clicked item and going back unmarks only that range, a click without \
                      a key keeps the marks, Ctrl+A marks all and a second press unmarks (Tools → Select to the top / \

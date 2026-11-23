@@ -36,11 +36,18 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
   dem Ordner, in dem das Archiv liegt; in Suchergebnissen ist sie nicht verfügbar. **Ansicht → Leiste
   über den Feldern** blendet die Leiste aus; die Schaltflächen `/ .. ~ *` kehren dann in die Pfadzeile
   zurück.
-- Ein Klick auf den Pfad erlaubt, einen anderen einzugeben. Rechts zeigt die Pfadzeile den freien Platz
-  der Platte (ein schmaler Balken und „Frei: X von Y“), ihr Dateisystem (ext4, btrfs, nfs4,
-  fuse.sshfs…) und bei Platten dieses Computers ein Abzeichen mit ihrem Zustand; in einem schmalen
-  Panel entfallen zuerst „Frei:“, dann die Größe der Platte und dann das Dateisystem. In einem Archiv
-  zeigt sie die Platte, auf der das Archiv liegt. Ein Klick öffnet die Details.
+- Jeder Teil des Pfads ist eine Schaltfläche: Ein Klick öffnet diesen Ordner (auch auf einem Server
+  und in einem Archiv; ein Klick auf den Ordner, in dem Sie sind, aktualisiert ihn), die mittlere
+  Maustaste öffnet ihn in einem neuen Tab neben dem aktuellen, und der Teil unter der Maus wird
+  hervorgehoben. Ein Pfad, der zu lang für die Zeile ist, wird von links mit „…“ gekürzt (ein Klick
+  darauf öffnet die Liste des Pfads); der letzte Teil bleibt immer ganz sichtbar. Um einen Pfad
+  einzugeben, doppelklicken Sie auf den leeren Teil der Zeile, klicken auf den Stift an ihrem Ende
+  oder drücken **Ctrl+G**.
+- Rechts zeigt die Pfadzeile den freien Platz der Platte (ein schmaler Balken und „Frei: X von Y“),
+  ihr Dateisystem (ext4, btrfs, nfs4, fuse.sshfs…) und bei Platten dieses Computers ein Abzeichen
+  mit ihrem Zustand; in einem schmalen Panel entfallen zuerst „Frei:“, dann die Größe der Platte und
+  dann das Dateisystem. In einem Archiv zeigt sie die Platte, auf der das Archiv liegt. Ein Klick
+  öffnet die Details.
 - Ein Rechtsklick auf die leere Fläche der Liste (oder auf `..`) bietet **Neue Datei…**, **Neuer
   Ordner**, **Aktualisieren**, **Ordner zu Favoriten hinzufügen**, **Terminal hier öffnen** und
   **Laufwerkseigenschaften…** (freier Platz, Dateisystem und Zustand der Platte).
@@ -74,6 +81,10 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
   (Shift+Klick allein verschiebt nie etwas).
 - **Num+** wählt eine Gruppe per Maske wie `*.jpg;*.png` aus, **Alt+−** wählt eine ab, **Alt+I**
   kehrt die Auswahl um.
+- Die Maskendialoge von **Num+** und **Alt+−** merken sich die letzte Maske und ob
+  **Ordner einbeziehen** an ist, jeder für sich und auch nach einem Neustart. Auf einem als
+  Produktion markierten Server ist **Ordner einbeziehen** beim Öffnen des Dialogs immer aus, und die
+  Wahl dort wird nicht gemerkt.
 - Die Zeile unter der Liste zeigt, wie viele Elemente ausgewählt sind und wie groß sie sind.
 - **Alt+Space** (oder **Shift+Space**) berechnet die Größe des Ordners unter dem Cursor oder der
   ausgewählten Ordner, **Alt+Shift+Enter** die aller Ordner im Panel.
@@ -214,6 +225,8 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
   Passwort (zip und 7z).
 - **Alt+F9** entpackt ein Archiv ins andere Panel, mit Schutz vor gefährlichen Pfaden und
   Archivbomben. **Alt+Shift+F9** testet ein Archiv.
+- Ein Packen oder Entpacken, das durch einen Absturz oder ein Beenden des Programms abbricht, lässt
+  seine unfertige `.filepart`-Datei nur bis zum nächsten Start des Programms zurück, der sie löscht.
 - **Enter** auf einem Archiv öffnet es als schreibgeschützten Ordner; **F5** kopiert Dateien heraus.
 
 ## Suche und Prüfsummen

@@ -33,10 +33,16 @@ hurtigtaster står på den andre siden i dette vinduet.
   (**Ctrl+H**), Oppdater og favorittene (★). I et arkiv begynner listen med mappen arkivet ligger i; i
   søkeresultater er den ikke tilgjengelig. **Vis → Linje over panelene** skjuler linjen; knappene `/ ..
   ~ *` kommer da tilbake i stiraden.
-- Klikk på stien for å skrive inn en annen. Til høyre viser stiraden den ledige plassen på disken (en
-  tynn stolpe og «Ledig: X av Y»), filsystemet (ext4, btrfs, nfs4, fuse.sshfs…) og, for disker i denne
-  datamaskinen, et merke med diskens helse; i et smalt panel utelates først «Ledig:», så diskens
-  størrelse og så filsystemet. I et arkiv viser den disken arkivet ligger på. Klikk for detaljer.
+- Hver del av stien er en knapp: et klikk åpner den mappen (også på en server og i et arkiv; et
+  klikk på mappen du står i, oppdaterer den), midtknappen åpner den i en ny fane ved siden av den
+  gjeldende, og delen under musen utheves. En sti som er for lang for raden, forkortes fra venstre
+  med «…» (et klikk på den åpner nedtrekkslisten med stien); den siste delen vises alltid hel. For å
+  skrive inn en sti dobbeltklikker du på den tomme delen av raden, klikker på blyanten i enden av
+  den eller trykker **Ctrl+G**.
+- Til høyre viser stiraden den ledige plassen på disken (en tynn stolpe og «Ledig: X av Y»),
+  filsystemet (ext4, btrfs, nfs4, fuse.sshfs…) og, for disker i denne datamaskinen, et merke med
+  diskens helse; i et smalt panel utelates først «Ledig:», så diskens størrelse og så filsystemet. I
+  et arkiv viser den disken arkivet ligger på. Klikk for detaljer.
 - Et høyreklikk på den tomme plassen i listen (eller på `..`) gir **Ny fil…**, **Ny mappe**,
   **Oppdater**, **Legg til mappen i favoritter**, **Åpne terminal her** og **Diskegenskaper…** (ledig
   plass, filsystem og diskens helse).
@@ -68,6 +74,9 @@ hurtigtaster står på den andre siden i dette vinduet.
   slippes, flytter dem (Shift+klikk alene flytter aldri noe).
 - **Num+** merker en gruppe etter en maske som `*.jpg;*.png`, **Alt+−** fjerner merkingen av en gruppe,
   **Alt+I** inverterer merkingen.
+- Maskedialogene for **Num+** og **Alt+−** husker den siste masken og om **Ta med mapper** er på,
+  hver for seg og også etter en omstart. På en server merket som produksjon er **Ta med mapper**
+  alltid av når dialogen åpnes, og valget der blir ikke husket.
 - Linjen under listen viser hvor mange elementer som er merket, og størrelsen deres.
 - **Alt+Space** (eller **Shift+Space**) beregner størrelsen på mappen under markøren eller på de merkede
   mappene, **Alt+Shift+Enter** på alle mapper i panelet.
@@ -194,6 +203,8 @@ hurtigtaster står på den andre siden i dette vinduet.
   (zip og 7z).
 - **Alt+F9** pakker ut et arkiv i det andre panelet, med beskyttelse mot farlige stier og
   arkivbomber. **Alt+Shift+F9** tester et arkiv.
+- Pakking eller utpakking som stoppes av et krasj eller av at programmet drepes, etterlater sin
+  uferdige `.filepart`-fil bare til neste oppstart av programmet, som sletter den.
 - **Enter** på et arkiv åpner det som en skrivebeskyttet mappe; **F5** kopierer filer ut av det.
 
 ## Søk og kontrollsummer

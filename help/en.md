@@ -33,11 +33,16 @@ shortcuts is on the second page of this window.
   favorites (★). Inside an archive the drop-down starts with the folder the archive is in; in search
   results it is not available. **View → Bar above the panels** hides the bar; the `/ .. ~ *` buttons
   then return to the path row.
-- Click the path to type another one. On its right the path row shows the free space of the disk (a
-  thin bar and “Free: X of Y”), its file system (ext4, btrfs, nfs4, fuse.sshfs…) and, for disks of this
-  computer, a badge with the disk health; in a narrow panel “Free:”, then the size of the disk and then
-  the file system are left out. Inside an archive it shows the disk the archive is on. Click it for the
-  details.
+- Every part of the path is a button: a click opens that folder (also on a server and inside an
+  archive; a click on the folder you are in refreshes it), the middle button opens it in a new tab
+  next to the current one, and the part under the mouse is highlighted. A path too long for the row
+  is shortened from the left with “…” (a click on it opens the drop-down of the path); the last part
+  always stays whole. To type a path, double-click the empty part of the row, click the pencil at
+  its end or press **Ctrl+G**.
+- On its right the path row shows the free space of the disk (a thin bar and “Free: X of Y”), its
+  file system (ext4, btrfs, nfs4, fuse.sshfs…) and, for disks of this computer, a badge with the
+  disk health; in a narrow panel “Free:”, then the size of the disk and then the file system are
+  left out. Inside an archive it shows the disk the archive is on. Click it for the details.
 - A right click on the empty space of the list (or on `..`) offers **New file…**, **New folder**,
   **Refresh**, **Add folder to favorites**, **Open terminal here** and **Disk properties…** (free
   space, file system and disk health).
@@ -68,6 +73,10 @@ shortcuts is on the second page of this window.
   them (Shift+click alone never moves anything).
 - **Num+** marks a group by a mask such as `*.jpg;*.png`, **Alt+−** unmarks one, **Alt+I**
   inverts the selection.
+- The mask dialogs of **Num+** and **Alt+−** remember the last mask and whether **Include folders**
+  is on, each for itself and also after a restart. On a server marked as production
+  **Include folders** is always off when the dialog opens, and the choice made there is not
+  remembered.
 - The line under the list shows how many items are marked and their size.
 - **Alt+Space** (or **Shift+Space**) counts the size of the folder under the cursor or of the marked
   folders, **Alt+Shift+Enter** of all folders in the panel.
@@ -192,6 +201,8 @@ shortcuts is on the second page of this window.
   (zip and 7z).
 - **Alt+F9** extracts an archive into the other panel, with protection against dangerous paths and
   archive bombs. **Alt+Shift+F9** tests an archive.
+- Packing or extracting stopped by a crash or a kill leaves its unfinished `.filepart` file only
+  until the next start of the program, which deletes it.
 - **Enter** on an archive opens it as a read-only folder; **F5** copies files out of it.
 
 ## Search and checksums

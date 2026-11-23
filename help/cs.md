@@ -32,10 +32,15 @@ klávesových zkratek je na druhé stránce tohoto okna.
   Vpřed, O úroveň výš, Kořenová složka (**`Ctrl+\`**), Domovská složka (**Ctrl+H**), Obnovit a oblíbené
   (★). V archivu začíná pole složkou, ve které archiv leží; ve výsledcích hledání není dostupné.
   **Zobrazit → Lišta nad panely** lištu skryje; tlačítka `/ .. ~ *` se pak vrátí do řádku s cestou.
-- Kliknutím na cestu lze napsat jinou. Vpravo řádek s cestou ukazuje volné místo na disku (tenký pruh a
-  „Volné: X z Y“), jeho souborový systém (ext4, btrfs, nfs4, fuse.sshfs…) a u disků tohoto počítače
-  odznak se stavem disku; v úzkém panelu se vynechá nejdřív „Volné:“, pak velikost disku a pak
-  souborový systém. V archivu ukazuje disk, na kterém archiv leží. Kliknutím se otevřou podrobnosti.
+- Každá část cesty je tlačítko: kliknutí otevře tu složku (i na serveru a v archivu; kliknutí na
+  složku, ve které jste, ji obnoví), prostřední tlačítko ji otevře v nové záložce vedle aktuální a
+  část pod myší se zvýrazní. Cesta delší než řádek se zkrátí zleva třemi tečkami „…“ (kliknutí na ně
+  otevře rozbalovací pole cesty); poslední část zůstane vždy celá. Cestu napíšete po dvojkliku na
+  prázdné místo řádku, kliknutím na tužku na jeho konci nebo zkratkou **Ctrl+G**.
+- Vpravo řádek s cestou ukazuje volné místo na disku (tenký pruh a „Volné: X z Y“), jeho souborový
+  systém (ext4, btrfs, nfs4, fuse.sshfs…) a u disků tohoto počítače odznak se stavem disku; v úzkém
+  panelu se vynechá nejdřív „Volné:“, pak velikost disku a pak souborový systém. V archivu ukazuje
+  disk, na kterém archiv leží. Kliknutím se otevřou podrobnosti.
 - Pravé tlačítko na prázdném místě seznamu (nebo na `..`) nabídne **Nový soubor…**, **Nová složka**,
   **Obnovit**, **Přidat složku do oblíbených**, **Otevřít terminál zde** a **Vlastnosti disku…** (volné
   místo, souborový systém a stav disku).
@@ -65,6 +70,9 @@ klávesových zkratek je na druhé stránce tohoto okna.
   nikdy nic nepřesouvá).
 - **Num+** označí skupinu podle masky, např. `*.jpg;*.png`, **Alt+−** označení skupiny zruší,
   **Alt+I** obrátí výběr.
+- Dialogy masky **Num+** a **Alt+−** si pamatují poslední masku a volbu **Včetně složek**, každý
+  zvlášť a i po restartu. Na serveru označeném jako produkční se dialog otevře vždy s vypnutou
+  volbou **Včetně složek** a to, co v něm zvolíte, se nezapamatuje.
 - Řádek pod seznamem ukazuje počet označených položek a jejich velikost.
 - **Alt+mezerník** (nebo **Shift+mezerník**) spočítá velikost složky pod kurzorem nebo označených
   složek, **Alt+Shift+Enter** všech složek v panelu.
@@ -186,6 +194,8 @@ klávesových zkratek je na druhé stránce tohoto okna.
   (zip a 7z).
 - **Alt+F9** rozbalí archiv do druhého panelu s ochranou proti nebezpečným cestám a archivním
   bombám. **Alt+Shift+F9** archiv otestuje.
+- Balení nebo rozbalování ukončené pádem nebo zabitím programu nechá svůj nedokončený soubor
+  `.filepart` jen do příštího spuštění programu, které ho smaže.
 - **Enter** na archivu ho otevře jako složku jen pro čtení; **F5** z něj kopíruje soubory ven.
 
 ## Hledání a kontrolní součty
