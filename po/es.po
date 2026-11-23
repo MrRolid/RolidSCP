@@ -6308,7 +6308,7 @@ msgstr "Elegir una aplicación en Windows…"
 msgid "Other application…"
 msgstr "Otra aplicación…"
 
-#: crates/rolid-ui/src/startup_error.rs:38
+#: crates/rolid-ui/src/startup_error.rs:55
 msgid ""
 "RolidSCP could not open its window.\n"
 "\n"
@@ -6326,7 +6326,7 @@ msgstr ""
 "\n"
 "El registro: {log}"
 
-#: crates/rolid-ui/src/startup_error.rs:55
+#: crates/rolid-ui/src/startup_error.rs:72
 msgid "RolidSCP could not start"
 msgstr "RolidSCP no pudo iniciarse"
 

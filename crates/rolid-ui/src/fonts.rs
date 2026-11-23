@@ -332,7 +332,8 @@ impl GuardedFontProvider {
         if self.broken.load(Ordering::Relaxed) {
             return fallback;
         }
-        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)) {
+        let r = crate::startup_error::caught(|| std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)));
+        match r {
             Ok(v) => v,
             Err(_) => {
                 self.broken.store(true, Ordering::Relaxed);

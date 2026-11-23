@@ -15,13 +15,30 @@ pub fn started() {
     STARTED.store(true, Ordering::Relaxed);
 }
 
+thread_local! {
+    /// Inside [`caught`]: a panic there is handled by the caller.
+    static CAUGHT: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Runs `f`, whose panics the caller catches: they are no start errors.
+pub fn caught<T>(f: impl FnOnce() -> T) -> T {
+    let before = CAUGHT.with(|c| c.replace(true));
+    let r = f();
+    CAUGHT.with(|c| c.set(before));
+    r
+}
+
 /// Shows start errors from panics too (a library that cannot be loaded makes
 /// winit's keyboard handling panic).
 pub fn install_panic_hook() {
     let previous = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
         previous(info);
-        if !STARTED.load(Ordering::Relaxed) {
+        // Only the main thread: there winit and the graphics start. Panics of
+        // helper threads are caught by their owners (the system font lookup
+        // panics on a system without fonts, and the program goes on).
+        let main = std::thread::current().name() == Some("main");
+        if main && !CAUGHT.with(|c| c.get()) && !STARTED.load(Ordering::Relaxed) {
             let what = info
                 .payload()
                 .downcast_ref::<&str>()
@@ -198,6 +215,16 @@ mod xlib {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A panic the caller catches is marked as such, also when nested, and
+    /// the mark ends with the call.
+    #[test]
+    fn a_caught_panic_is_marked_only_inside() {
+        assert!(!CAUGHT.with(|c| c.get()));
+        let inner = caught(|| caught(|| CAUGHT.with(|c| c.get())) && CAUGHT.with(|c| c.get()));
+        assert!(inner);
+        assert!(!CAUGHT.with(|c| c.get()));
+    }
 
     #[test]
     fn wrapping_keeps_words_and_cuts_only_what_is_too_long() {
