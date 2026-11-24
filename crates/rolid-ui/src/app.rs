@@ -374,6 +374,7 @@ pub struct App {
     next_id: u64,
     /// Ctrl+Tab cycling in the active panel: (MRU snapshot, index).
     switching: Option<(Vec<TabId>, usize)>,
+    menu_keys: menu::MenuKeys,
     renaming: Option<(TabId, String, bool)>,
     dialog: Dialog,
     /// Disk health (SMART) of the disks shown in the panels.
@@ -508,6 +509,7 @@ impl App {
             active_side: 0,
             next_id: 1,
             switching: None,
+            menu_keys: Default::default(),
             renaming: None,
             dialog: Dialog::None,
             disks: Default::default(),
@@ -1682,6 +1684,7 @@ impl App {
             || self.vault.blocks_input()
             || self.edits_blocks_input()
             || self.drop.show_report.is_some()
+            || self.menu_keys.on
             || self.renaming.is_some()
             || path_editing
             || inline_renaming
@@ -1727,6 +1730,10 @@ impl App {
             on!(Modifiers::ALT, Key::F5, |a: &mut Self| a.ask_pack());
             on!(Modifiers::ALT | Modifiers::SHIFT, Key::F9, |a: &mut Self| a.ask_archive(unpack_ui::Purpose::Test));
             on!(Modifiers::ALT, Key::F9, |a: &mut Self| a.ask_archive(unpack_ui::Purpose::Extract));
+            on!(Modifiers::NONE, Key::F10, |a: &mut Self| {
+                a.menu_keys.on = true;
+                a.menu_keys.start = true;
+            });
             // Num+ (only the numeric keypad: on the main keyboard "+" is typed into
             // the quick filter, e.g. on the Czech layout it is the "1" key).
             let mut num_plus = false;

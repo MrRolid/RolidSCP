@@ -26,6 +26,17 @@ fn open_in_file_manager(path: &std::path::Path) -> std::io::Result<()> {
     std::process::Command::new(prog).arg(path).spawn().map(|_| ())
 }
 
+/// The menu bar driven by the keyboard (F10).
+#[derive(Default)]
+pub(super) struct MenuKeys {
+    /// The keyboard is in the menu bar.
+    pub on: bool,
+    /// Open the first menu in this frame.
+    pub start: bool,
+    /// The menu names of the last frame.
+    pub ids: Vec<egui::Id>,
+}
+
 impl App {
     pub(super) fn menu_bar(&mut self, ui: &mut egui::Ui) {
         let mut act: Option<Action> = None;
@@ -49,8 +60,12 @@ impl App {
             .map(|p| (p.history.can_back() && p.search.is_none(), p.history.can_forward() && p.search.is_none()))
             .unwrap_or((false, false));
 
+        // Before the menus are drawn: an arrow handled here must not also
+        // move the focus inside the open menu (see `menu_keyboard`).
+        self.menu_keyboard(ui.ctx());
+        let mut tops: Vec<egui::Id> = Vec::new();
         egui::MenuBar::new().ui(ui, |ui| {
-            ui.menu_button(trc!("menu", "File"), |ui| {
+            tops.push(ui.menu_button(trc!("menu", "File"), |ui| {
                 if keyed(ui, tr!("New tab…"), "Ctrl+T") {
                     set(Box::new(|a| a.open_new_tab_menu(a.active_side)));
                 }
@@ -158,9 +173,9 @@ impl App {
                 if keyed(ui, tr!("Quit"), "Ctrl+Q") {
                     ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
                 }
-            });
+            }).response.id);
 
-            ui.menu_button(trc!("menu", "Settings"), |ui| {
+            tops.push(ui.menu_button(trc!("menu", "Settings"), |ui| {
                 if keyed(ui, tr!("Settings…"), "") {
                     set(Box::new(|a| a.open_settings()));
                 }
@@ -254,9 +269,9 @@ impl App {
                         set(Box::new(|a| a.ask_reset()));
                     }
                 });
-            });
+            }).response.id);
 
-            ui.menu_button(trc!("menu", "View"), |ui| {
+            tops.push(ui.menu_button(trc!("menu", "View"), |ui| {
                 if keyed(ui, tr!("Refresh"), "Ctrl+R") {
                     set(Box::new(|a| a.refresh_or_rerun()));
                 }
@@ -367,9 +382,9 @@ impl App {
                 if keyed(ui, tr!("Tab and server switcher…"), "Ctrl+K") {
                     set(Box::new(|a| a.open_switcher()));
                 }
-            });
+            }).response.id);
 
-            ui.menu_button(trc!("menu", "Tools"), |ui| {
+            tops.push(ui.menu_button(trc!("menu", "Tools"), |ui| {
                 if keyed(ui, tr!("Find files…"), "Ctrl+F7 / Ctrl+F") {
                     set(Box::new(|a| a.open_search_dialog()));
                 }
@@ -434,9 +449,9 @@ impl App {
                         }
                     }));
                 }
-            });
+            }).response.id);
 
-            ui.menu_button(trc!("menu", "Help"), |ui| {
+            tops.push(ui.menu_button(trc!("menu", "Help"), |ui| {
                 if keyed(ui, tr!("Help"), "F1") {
                     set(Box::new(|a| a.dialog = Dialog::Help(false)));
                 }
@@ -454,11 +469,69 @@ impl App {
                 if keyed(ui, tr!("About RolidSCP"), "") {
                     set(Box::new(|a| a.dialog = Dialog::About));
                 }
-            });
+            }).response.id);
 
         });
+        self.menu_keys.ids = tops;
         if let Some(a) = act {
+            // A pick by Enter does not close the menu by itself (a click does),
+            // and the same Enter must not press the button of a dialog it opens.
+            egui::Popup::close_all(ui.ctx());
+            ui.ctx().input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Enter));
+            self.menu_keys.on = false;
             a(self);
+        }
+    }
+
+    /// The menu bar by keyboard: F10 opens the first menu with the focus on
+    /// it; ↓ goes into the menu, ↑ ↓ through the items, → into a submenu,
+    /// ← back (egui does these); ← → on the menu names go to the next menu,
+    /// Enter picks, Esc closes. Panels take no keys meanwhile. Runs before
+    /// the bar is drawn, with the menu names of the last frame.
+    fn menu_keyboard(&mut self, ctx: &egui::Context) {
+        if !self.menu_keys.on {
+            return;
+        }
+        // The id egui gives the menu of a button (`Popup::default_response_id`).
+        let popup = |id: egui::Id| id.with("popup");
+        let ids = self.menu_keys.ids.clone();
+        if std::mem::take(&mut self.menu_keys.start) {
+            if let Some(&first) = ids.first() {
+                ctx.memory_mut(|m| m.request_focus(first));
+                egui::Popup::open_id(ctx, popup(first));
+            }
+            return;
+        }
+        let focused = ctx.memory(|m| m.focused());
+        let open = ids.iter().position(|&id| egui::Popup::is_id_open(ctx, popup(id)));
+        if let Some(i) = focused.and_then(|f| ids.iter().position(|&id| id == f)) {
+            // On a menu name: ← → move between the names (egui), the menu follows.
+            let (left, right, down) = ctx.input(|inp| {
+                (inp.key_pressed(egui::Key::ArrowLeft), inp.key_pressed(egui::Key::ArrowRight), inp.key_pressed(egui::Key::ArrowDown))
+            });
+            let n = ids.len();
+            let target = if left {
+                Some((i + n - 1) % n)
+            } else if right {
+                Some((i + 1) % n)
+            } else {
+                None
+            };
+            if let Some(t) = target {
+                ctx.memory_mut(|m| {
+                    m.move_focus(egui::FocusDirection::None);
+                    m.request_focus(ids[t]);
+                });
+                egui::Popup::open_id(ctx, popup(ids[t]));
+            } else if down && open != Some(i) {
+                ctx.memory_mut(|m| m.move_focus(egui::FocusDirection::None));
+                egui::Popup::open_id(ctx, popup(ids[i]));
+            }
+            ctx.request_repaint();
+            return;
+        }
+        if focused.is_none() && open.is_none() && !egui::Popup::is_any_open(ctx) {
+            self.menu_keys.on = false;
         }
     }
 }
@@ -495,6 +568,7 @@ const SHORTCUTS: &[(&str, &[(&str, &str)])] = &[
             ("Ctrl+← / Ctrl+→", n!("open folder in the left / right panel")),
             ("Ctrl+R", n!("refresh")),
             (nc!("keys", "right-click a file"), n!("context menu")),
+            ("F10", n!("the menu bar: ← → menus, ↑ ↓ items, → submenu, Enter picks, Esc closes")),
         ],
     ),
     (

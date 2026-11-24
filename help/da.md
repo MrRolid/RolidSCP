@@ -5,6 +5,9 @@ et faneblad er ét sted (en lokal mappe eller en mappe på en server) med sit eg
 Alle funktioner findes i menuerne, de fleste også på værktøjslinjen og på linjen med funktionstaster
 nederst. Listen over alle tastaturgenveje står på den anden side i dette vindue.
 
+**F10** åbner menulinjen uden mus: **←** **→** skifter mellem menuerne, **↑** **↓** går gennem punkterne,
+**→** ind i en undermenu, **Enter** vælger et punkt, **Esc** lukker menuen.
+
 ## Paneler og faneblade
 
 - **Tab** skifter mellem venstre og højre panel. Det aktive panel har en tydeligere overskrift.

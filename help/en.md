@@ -5,6 +5,9 @@ one place (a local folder or a folder on a server) with its own name and color. 
 the menus, most also on the toolbar and the function-key bar at the bottom. The list of all keyboard
 shortcuts is on the second page of this window.
 
+**F10** opens the menu bar without the mouse: **←** **→** go between the menus, **↑** **↓** through the
+items, **→** into a submenu, **Enter** picks an item, **Esc** closes the menu.
+
 ## Panels and tabs
 
 - **Tab** switches between the left and the right panel. The active panel has a stronger header.

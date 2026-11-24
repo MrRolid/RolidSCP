@@ -5,6 +5,9 @@ ett sted (en lokal mappe eller en mappe på en server) med eget navn og egen far
 menyene, de fleste også på verktøylinjen og funksjonstastlinjen nederst. Listen over alle
 hurtigtaster står på den andre siden i dette vinduet.
 
+**F10** åpner menylinjen uten mus: **←** **→** bytter mellom menyene, **↑** **↓** går gjennom elementene,
+**→** inn i en undermeny, **Enter** velger et element, **Esc** lukker menyen.
+
 ## Paneler og faner
 
 - **Tab** bytter mellom venstre og høyre panel. Det aktive panelet har en tydeligere overskrift.

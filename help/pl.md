@@ -5,6 +5,9 @@ karta to jedno miejsce (folder lokalny lub folder na serwerze) z własną nazwą
 jest w menu, większość także na pasku narzędzi i na pasku klawiszy funkcyjnych na dole. Listę
 wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
 
+**F10** otwiera pasek menu bez myszy: **←** **→** przechodzą między menu, **↑** **↓** po pozycjach,
+**→** do podmenu, **Enter** wybiera pozycję, **Esc** zamyka menu.
+
 ## Panele i karty
 
 - **Tab** przełącza między lewym i prawym panelem. Aktywny panel ma wyraźniejszy nagłówek.

@@ -6,6 +6,10 @@ serveur) avec son propre nom et sa propre couleur. Toutes les fonctions se trouv
 plupart aussi dans la barre d'outils et dans la barre des touches de fonction en bas. La liste de tous
 les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
 
+**F10** ouvre la barre de menus sans souris : **←** **→** passent d'un menu à l'autre, **↑** **↓**
+parcourent les éléments, **→** entre dans un sous-menu, **Entrée** choisit un élément, **Échap** ferme
+le menu.
+
 ## Panneaux et onglets
 
 - **Tab** passe du panneau gauche au panneau droit et inversement. Le panneau actif a un en-tête plus

@@ -5,6 +5,9 @@ záložka je jedno místo (lokální složka nebo složka na serveru) s vlastní
 funkce jsou v menu, většina i na nástrojové liště a ve spodní liště funkčních kláves. Seznam všech
 klávesových zkratek je na druhé stránce tohoto okna.
 
+**F10** otevře lištu menu bez myši: **←** **→** přechází mezi menu, **↑** **↓** po položkách, **→** do
+podnabídky, **Enter** položku vybere, **Esc** menu zavře.
+
 ## Panely a záložky
 
 - **Tab** přepíná mezi levým a pravým panelem. Aktivní panel má výraznější hlavičku.

@@ -5,6 +5,9 @@ ein Tab ist ein Ort (ein lokaler Ordner oder ein Ordner auf einem Server) mit ei
 Farbe. Jede Funktion ist in den Menüs zu finden, die meisten auch in der Werkzeugleiste und in der
 Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten Seite dieses Fensters.
 
+**F10** öffnet die Menüleiste ohne Maus: **←** **→** wechseln zwischen den Menüs, **↑** **↓** durch die
+Einträge, **→** in ein Untermenü, **Enter** wählt einen Eintrag, **Esc** schließt das Menü.
+
 ## Panels und Tabs
 
 - **Tab** wechselt zwischen linkem und rechtem Panel. Das aktive Panel hat einen kräftigeren Kopf.

@@ -6,6 +6,9 @@ propio nombre y color. Todas las funciones están en los menús, y la mayoría t
 herramientas y en la barra de teclas de función de la parte inferior. La lista de todos los atajos
 de teclado está en la segunda página de esta ventana.
 
+**F10** abre la barra de menús sin ratón: **←** **→** pasan de un menú a otro, **↑** **↓** recorren los
+elementos, **→** entra en un submenú, **Enter** elige un elemento, **Esc** cierra el menú.
+
 ## Paneles y pestañas
 
 - **Tab** cambia entre el panel izquierdo y el derecho. El panel activo tiene un encabezado más
