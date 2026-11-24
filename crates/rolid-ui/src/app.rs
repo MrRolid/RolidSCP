@@ -1681,6 +1681,7 @@ impl App {
             || !self.auth_prompts.is_empty()
             || self.vault.blocks_input()
             || self.edits_blocks_input()
+            || self.drop.show_report.is_some()
             || self.renaming.is_some()
             || path_editing
             || inline_renaming

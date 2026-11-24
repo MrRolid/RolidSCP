@@ -688,20 +688,25 @@ impl App {
             self.drop.show_report = None;
             return;
         };
-        let mut open = true;
-        egui::Window::new(tr!("Transfer error summary")).open(&mut open).default_width(640.0).show(ctx, |ui| {
-            ui.label(&r.title);
-            ui.weak(tr!("These items were not transferred, the rest of the transfer finished:"));
-            egui::ScrollArea::vertical().max_height(320.0).show(ui, |ui| {
-                for f in &r.failures {
-                    ui.horizontal_wrapped(|ui| {
-                        ui.monospace(&f.path);
-                        ui.colored_label(Color32::from_rgb(190, 20, 20), rolid_i18n::t(&f.error));
-                    });
-                }
+        let close = crate::dialog::window(("report", id), tr!("Transfer error summary"))
+            .icon(crate::look::Role::Info)
+            .min_width(560.0)
+            .max_width(760.0)
+            .show(ctx, |ui| {
+                crate::dialog::lead(ui, &r.title);
+                crate::dialog::note(ui, tr!("These items were not transferred, the rest of the transfer finished:"));
+                let red = if ui.visuals().dark_mode { Color32::from_rgb(0xff, 0x7a, 0x7a) } else { Color32::from_rgb(190, 20, 20) };
+                egui::ScrollArea::vertical().max_height(320.0).show(ui, |ui| {
+                    for f in &r.failures {
+                        ui.horizontal_wrapped(|ui| {
+                            ui.monospace(&f.path);
+                            ui.colored_label(red, rolid_i18n::t(&f.error));
+                        });
+                    }
+                });
+                crate::dialog::buttons(ui, [crate::dialog::close().default(true)])[0]
             });
-        });
-        if !open || ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
+        if close {
             self.drop.show_report = None;
         }
     }
