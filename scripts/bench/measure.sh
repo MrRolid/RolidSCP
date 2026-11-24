@@ -115,6 +115,8 @@ EOF
 
   bench ref.du_sb_ms "$(ms_of du -sb "$BASE/tree")" ms
   bench ref.du_sb.bytes "$(du -sb "$BASE/tree" | cut -f1)" B
+  # The files alone: du before coreutils 9.2 (Ubuntu 22.04) also counts the folders.
+  bench ref.files.bytes "$(find "$BASE/tree" -type f -printf '%s\n' | awk '{ s += $1 } END { printf "%d", s }')" B
   bench ref.find_ms "$(ms_of find "$BASE/tree" -name 'f??00000')" ms
   bench ref.ssh_du_ms "$(ms_of SSH "du -sb '$BASE/tree'")" ms
   bench ref.ssh_find_ms "$(ms_of SSH "find '$BASE/tree' -name 'f??00000'")" ms
