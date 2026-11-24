@@ -14,6 +14,10 @@ use eframe::egui::{self, Color32, FontFamily, RichText};
 pub const FAMILY: &str = "phosphor";
 pub const FONT: &[u8] = include_bytes!("../assets/phosphor/Phosphor.ttf");
 pub const SET: &str = "Phosphor Icons 2.1 (MIT, © 2023 Phosphor Icons)";
+/// The symbols of the texts (⚠, 🔒, ✎, ⌂…) drawn as icons of the same set
+/// (made by `scripts/make-symbols.py`); used after the text fonts, so the
+/// symbols do not depend on the system's fonts.
+pub const SYMBOLS: &[u8] = include_bytes!("../assets/phosphor/RolidSymbols.ttf");
 
 // Dialog actions.
 pub const COPY: &str = "\u{E1CA}";

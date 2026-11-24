@@ -42,6 +42,7 @@ const BASE_SIZE: f32 = 13.5;
 /// Name of the text font in the font definitions.
 const TEXT: &str = "rolid-text";
 const MONO: &str = "Hack";
+const SYMBOLS: &str = "rolid-symbols";
 
 static SCALE: AtomicU32 = AtomicU32::new(0x3f80_0000); // 1.0
 /// Screen pixels per point the font sizes were rounded for.
@@ -281,13 +282,16 @@ pub fn apply(ctx: &egui::Context, spec: &Spec) -> Applied {
         None => (font_data(NOTO.to_vec(), 0, spec.hinting), tr!("built-in: {font}", font = NOTO_NAME)),
     };
     // egui's own fonts are not built in (no Ubuntu Light): proportional text in
-    // our font, monospace in Hack falling back to it; symbols the two lack come
-    // from the system fonts (eframe "system_fonts").
+    // our font, monospace in Hack, each falling back to the other, then the program's
+    // symbols; what all of them lack (CJK, Arabic… in file names) comes from
+    // the system fonts (eframe "system_fonts").
     let mut defs = FontDefinitions::empty();
     defs.font_data.insert(TEXT.into(), Arc::new(data));
     defs.font_data.insert(MONO.into(), Arc::new(font_data(HACK.to_vec(), 0, spec.hinting)));
-    defs.families.insert(FontFamily::Proportional, vec![TEXT.into()]);
-    defs.families.insert(FontFamily::Monospace, vec![MONO.into(), TEXT.into()]);
+    defs.font_data.insert(SYMBOLS.into(), Arc::new(font_data(crate::icons::SYMBOLS.to_vec(), 0, spec.hinting)));
+    // Hack also after the text font: it has symbols Noto Sans lacks (▲ ▼).
+    defs.families.insert(FontFamily::Proportional, vec![TEXT.into(), MONO.into(), SYMBOLS.into()]);
+    defs.families.insert(FontFamily::Monospace, vec![MONO.into(), TEXT.into(), SYMBOLS.into()]);
     crate::icons::add_to(&mut defs);
     ctx.set_fonts(defs);
     set_styles(ctx, Some(spec.contrast));
@@ -360,6 +364,77 @@ mod tests {
 
     /// The scale is global: the tests that change it take turns.
     pub static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    /// Every character of the program's texts (string literals outside the
+    /// tests, the translations, the help) has a glyph in the built-in fonts
+    /// (both families fall back to all three),
+    /// so nothing depends on the system's fonts; a new symbol needs its icon
+    /// in `scripts/make-symbols.py`.
+    #[test]
+    fn every_symbol_of_the_texts_has_a_glyph() {
+        use skrifa::MetadataProvider;
+        let mut have = std::collections::HashSet::new();
+        for data in [NOTO, HACK, crate::icons::SYMBOLS] {
+            let f = skrifa::FontRef::new(data).unwrap();
+            have.extend(f.charmap().mappings().map(|(c, _)| c));
+        }
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mut missing = std::collections::BTreeMap::<char, String>::new();
+        let mut check = |text: &str, at: &dyn Fn() -> String| {
+            for c in text.chars() {
+                // Control and format characters are not drawn.
+                if c as u32 > 0x7f && !have.contains(&(c as u32)) && !c.is_control() && !matches!(c, '\u{200b}'..='\u{200f}' | '\u{fe0f}') {
+                    missing.entry(c).or_insert_with(at);
+                }
+            }
+        };
+        let mut files = Vec::new();
+        for krate in std::fs::read_dir(root.join("crates")).unwrap() {
+            let src = krate.unwrap().path().join("src");
+            let mut stack = vec![src];
+            while let Some(d) = stack.pop() {
+                for e in std::fs::read_dir(&d).into_iter().flatten().flatten() {
+                    let p = e.path();
+                    if p.is_dir() {
+                        stack.push(p);
+                    } else if p.extension().is_some_and(|x| x == "rs") && !p.file_name().is_some_and(|n| n == "tests.rs" || n.to_string_lossy().starts_with("bench")) {
+                        files.push(p);
+                    }
+                }
+            }
+        }
+        assert!(files.len() > 50, "{}", files.len());
+        for p in &files {
+            let text = std::fs::read_to_string(p).unwrap();
+            // The tests at the end of a file use any characters on purpose.
+            let code = text.split("#[cfg(test)]").next().unwrap();
+            for (n, line) in code.lines().enumerate() {
+                let line = line.trim_start();
+                if line.starts_with("//") {
+                    continue;
+                }
+                // String literals only (a comment after the code is left out).
+                for (i, part) in line.split('"').enumerate() {
+                    if i % 2 == 1 {
+                        check(part, &|| format!("{}:{}", p.display(), n + 1));
+                    }
+                }
+            }
+        }
+        for dir in ["po", "help"] {
+            for e in std::fs::read_dir(root.join(dir)).unwrap().flatten() {
+                let p = e.path();
+                let text = std::fs::read_to_string(&p).unwrap_or_default();
+                for (n, line) in text.lines().enumerate() {
+                    if dir == "po" && !line.starts_with("msgstr") && !line.starts_with('"') {
+                        continue;
+                    }
+                    check(line, &|| format!("{}:{}", p.display(), n + 1));
+                }
+            }
+        }
+        assert!(missing.is_empty(), "no glyph in the built-in fonts: {missing:#?}");
+    }
 
     #[test]
     fn sizes_and_the_built_in_font() {
