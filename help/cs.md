@@ -142,6 +142,8 @@ klávesových zkratek je na druhé stránce tohoto okna.
   se naváže znovu (krátká zkouška po 5 sekundách odliší pomalý server od mrtvé linky). V prvních
   třech minutách po výpadku se to zkouší každých pár sekund, pak každých 10 sekund, po deseti
   minutách každých 30 sekund. Nahrávání pokračuje od poslední části, kterou server potvrdil.
+- Totéž platí, když je síťový kabel na několik minut vytažený nebo server usne: program to zkouší
+  dál a přenos pokračuje, jakmile je server znovu dostupný.
 - Na serveru bez shellu nebo bez některých nástrojů (`du`, `find`, `df`, `sha256sum`, třeba BusyBox
   nebo účet jen pro SFTP) se vše dělá jen přes SFTP: velikosti složek a hledání procházením složek,
   kontrolní součty čtením souborů.
@@ -251,3 +253,6 @@ klávesových zkratek je na druhé stránce tohoto okna.
 
 - Konfigurace: `~/.config/rolidscp/` (čitelná jen pro vás).
 - Log: `~/.local/state/rolidscp/rolidscp.log` (menu Nápověda → Otevřít log). Nikdy neobsahuje hesla.
+- AppImage lze aktualizovat programem AppImageUpdate (nebo `appimageupdatetool
+  RolidSCP-<verze>-x86_64.AppImage`): najde nejnovější vydání na GitHubu a stáhne jen části, které
+  se změnily. Nový AppImage se uloží vedle původního pod názvem vydání, původní zůstane.

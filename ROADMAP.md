@@ -73,21 +73,12 @@ catch it again.
     cursor and input, Wayland cursor and EGL) and uses them only where the system has none, and a
     start that fails before the window opens shows its error in a window instead of ending
     silently. Both are checked on every build.
-  - Moved to a separate test machine and not done yet: a real file over 100 GB, a transfer running
-    overnight with memory checks, the computer going to sleep and waking up during a session, a
-    network cable pulled out, a Windows server and a NAS.
-  - Not done yet, moved to 0.8.19: X11 against Wayland, high-DPI screens, ACLs, extended
-    attributes, and time zones and server clocks that are off.
-- **0.8.19 Polish:** moved from 0.8.18: X11 against Wayland, high-DPI screens, ACLs, extended
-  attributes, and time zones and server clocks that are off. A few symbols of the window (the sort
-  arrow, the plus of the tabs, the disk and info signs) come from the system's fonts and are missing
-  on a system without any; they should come from the program's own icons. Consistent controls in
-  every dialog, fuzz testing of everything the program reads (archives, server listings,
-  `known_hosts`), a licence check of all dependencies and a check of the code for matches with other
-  projects, and performance measured on every build. Two copies of the program running at once;
-  settings from older versions, going back to an older version and damaged settings files.
-  Keyboard-only use, screen readers and long translated texts. Signed checksums of the release files
-  and reproducible builds.
+  - Moved to a separate test machine: a real file over 100 GB, a transfer running overnight with
+    memory checks, the computer going to sleep and waking up during a session, a network cable
+    pulled out (all done in 0.8.19), a Windows server and a NAS (not done yet).
+  - Not done yet, moved to 0.8.19 and then to 0.8.20: X11 against Wayland, high-DPI screens, ACLs,
+    extended attributes, and time zones and server clocks that are off.
+- **0.8.19 Updates and real hardware:** what was done:
   - Done: the AppImage carries update information for AppImageUpdate (the newest release on
     GitHub, pre-releases included) and every release has its `.zsync` file, listed in
     `SHA256SUMS` (suggested by the AppImage catalog). Checked on every build: an older AppImage
@@ -97,14 +88,24 @@ catch it again.
     half and resumed by a new process, every copy equal by SHA-256 (the upload at up to 117 MB/s,
     OpenSSH's `sftp` 116 MB/s; memory under 18 MB, 9 open files); the real window uploading 100 GiB
     through the night at its speed limit of 4 MiB/s for 7 hours, its memory constant (224 MB, less
-    than 0.2 MB more after 7 hours), 20 open files throughout, the copy equal; the AppImage of the
-    release started on the real system by an ordinary user, without installing it.
+    than 0.2 MB more after 7 hours), 20 open files throughout, the copy equal; the AppImage of 0.8.18
+    started on the real system by an ordinary user, without installing it.
   - Done on the same test machine, by hand, with the program's real window: its network cable
     pulled out for 30 seconds and for 5 minutes during an upload and during a download, and the
     test machine put to sleep and woken during an upload. Each time the program noticed the loss
     within 16 seconds, connected again within 7 seconds of the test machine being reachable,
     finished the transfer without the user, and the copy was equal by SHA-256.
   - Not done yet: a Windows server and a NAS.
+- **0.8.20 Polish:** moved from 0.8.18 and 0.8.19: X11 against Wayland, high-DPI screens, ACLs,
+  extended attributes, and time zones and server clocks that are off. A few symbols of the window
+  (the sort arrow, the plus of the tabs, the disk and info signs) come from the system's fonts and
+  are missing on a system without any; they should come from the program's own icons. Consistent
+  controls in every dialog, fuzz testing of everything the program reads (archives, server listings,
+  `known_hosts`), a licence check of all dependencies and a check of the code for matches with other
+  projects, and performance measured on every build. Two copies of the program running at once;
+  settings from older versions, going back to an older version and damaged settings files.
+  Keyboard-only use, screen readers and long translated texts. Signed checksums of the release files
+  and reproducible builds.
 
 ## 0.9.x: small new features
 

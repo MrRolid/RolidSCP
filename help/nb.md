@@ -149,6 +149,9 @@ hurtigtaster står på den andre siden i dette vinduet.
   server fra en død linje). De første tre minuttene etter et brudd prøves det med noen få sekunders
   mellomrom, deretter hvert 10. sekund, etter ti minutter hvert 30. sekund. En opplasting fortsetter
   fra den siste delen serveren bekreftet.
+- Det samme gjelder når nettverkskabelen er trukket ut i flere minutter eller serveren går i
+  hvilemodus: programmet fortsetter å prøve, og overføringen fortsetter så snart serveren kan nås
+  igjen.
 - På en server uten skall eller uten enkelte verktøy (`du`, `find`, `df`, `sha256sum`, for eksempel
   BusyBox eller en konto bare for SFTP) gjøres alt bare over SFTP: mappestørrelser og søk ved å gå
   gjennom mappene, kontrollsummer ved å lese filene.
@@ -263,3 +266,7 @@ hurtigtaster står på den andre siden i dette vinduet.
 
 - Konfigurasjon: `~/.config/rolidscp/` (kan bare leses av deg).
 - Logg: `~/.local/state/rolidscp/rolidscp.log` (Hjelp-menyen → Åpne logg (innloggingsdiagnostikk)). Den inneholder aldri passord.
+- AppImage-filen kan oppdateres med AppImageUpdate (eller `appimageupdatetool
+  RolidSCP-<versjon>-x86_64.AppImage`): den finner den nyeste utgivelsen på GitHub og laster ned
+  bare delene som er endret. Den nye AppImage-filen lagres ved siden av den gamle under utgivelsens
+  navn; den gamle blir værende.

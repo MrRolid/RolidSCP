@@ -151,6 +151,8 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
   server fra en død linje). I de første tre minutter efter et udfald forsøges det med få sekunders
   mellemrum, derefter hvert 10. sekund, efter ti minutter hvert 30. sekund. En upload fortsætter fra
   den sidste del, serveren bekræftede.
+- Det samme gælder, når netværkskablet er trukket ud i flere minutter, eller serveren går i dvale:
+  programmet bliver ved med at prøve, og overførslen fortsætter, så snart serveren kan nås igen.
 - På en server uden shell eller uden visse værktøjer (`du`, `find`, `df`, `sha256sum`, for eksempel
   BusyBox eller en konto kun til SFTP) klares alt over SFTP alene: mappestørrelser og søgning ved at
   gennemgå mapperne, kontrolsummer ved at læse filerne.
@@ -266,3 +268,7 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
 - Konfiguration: `~/.config/rolidscp/` (kun læsbar for dig).
 - Log: `~/.local/state/rolidscp/rolidscp.log` (menuen Hjælp → Åbn log (logindiagnostik)). Den
   indeholder aldrig adgangskoder.
+- AppImage-filen kan opdateres med AppImageUpdate (eller `appimageupdatetool
+  RolidSCP-<version>-x86_64.AppImage`): den finder den nyeste udgivelse på GitHub og henter kun de
+  dele, der er ændret. Den nye AppImage-fil gemmes ved siden af den gamle under udgivelsens navn;
+  den gamle bliver.

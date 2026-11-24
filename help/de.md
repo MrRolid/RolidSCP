@@ -167,6 +167,9 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
   langsamen Server von einer toten Leitung). In den ersten drei Minuten nach einem Ausfall wird es
   alle paar Sekunden versucht, dann alle 10 Sekunden, nach zehn Minuten alle 30 Sekunden. Ein
   Hochladen setzt beim letzten Teil fort, den der Server bestätigt hat.
+- Das gilt auch, wenn das Netzwerkkabel für Minuten gezogen ist oder der Server in den Ruhezustand
+  geht: Das Programm versucht es weiter, und die Übertragung geht weiter, sobald der Server wieder
+  erreichbar ist.
 - Auf einem Server ohne Shell oder ohne manche Werkzeuge (`du`, `find`, `df`, `sha256sum`, etwa
   BusyBox oder ein reines SFTP-Konto) geschieht alles nur über SFTP: Ordnergrößen und Suche durch
   Durchlaufen der Ordner, Prüfsummen durch Lesen der Dateien.
@@ -288,3 +291,7 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
 - Konfiguration: `~/.config/rolidscp/` (nur für den eigenen Benutzer lesbar).
 - Protokoll: `~/.local/state/rolidscp/rolidscp.log` (Menü Hilfe → Protokoll öffnen
   (Anmeldediagnose)). Es enthält nie Passwörter.
+- Das AppImage lässt sich mit AppImageUpdate aktualisieren (oder `appimageupdatetool
+  RolidSCP-<Version>-x86_64.AppImage`): Es findet die neueste Version auf GitHub und lädt nur die
+  geänderten Teile herunter. Das neue AppImage wird neben dem alten unter dem Namen der Version
+  gespeichert; das alte bleibt.

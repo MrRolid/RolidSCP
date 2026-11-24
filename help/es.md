@@ -165,6 +165,9 @@ de teclado está en la segunda página de esta ventana.
   distingue un servidor lento de una línea muerta). En los tres primeros minutos tras un corte se
   intenta cada pocos segundos, luego cada 10 segundos y, pasados diez minutos, cada 30 segundos. Una
   subida continúa desde la última parte que el servidor confirmó.
+- Lo mismo vale cuando el cable de red está desconectado durante minutos o el servidor se suspende:
+  el programa sigue intentándolo y la transferencia continúa en cuanto el servidor vuelve a estar
+  accesible.
 - En un servidor sin shell o sin algunas herramientas (`du`, `find`, `df`, `sha256sum`, por ejemplo
   BusyBox o una cuenta solo SFTP) todo se hace solo por SFTP: los tamaños de carpeta y la búsqueda
   recorriendo las carpetas, las sumas de comprobación leyendo los archivos.
@@ -285,3 +288,7 @@ de teclado está en la segunda página de esta ventana.
 - Configuración: `~/.config/rolidscp/` (legible solo por usted).
 - Registro: `~/.local/state/rolidscp/rolidscp.log` (menú Ayuda → Abrir registro (diagnóstico de
   inicio de sesión)). Nunca contiene contraseñas.
+- El AppImage se puede actualizar con AppImageUpdate (o `appimageupdatetool
+  RolidSCP-<versión>-x86_64.AppImage`): encuentra la versión más reciente en GitHub y descarga solo
+  las partes que han cambiado. El nuevo AppImage se guarda junto al anterior con el nombre de la
+  versión; el anterior se conserva.

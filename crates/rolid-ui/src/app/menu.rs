@@ -716,6 +716,16 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
             for news in [
                 trc!(
                     "news",
+                    "0.8.19 updates and real hardware: the AppImage carries update information, so AppImageUpdate \
+                     finds a new release on GitHub and downloads only what changed (a .zsync file comes with every \
+                     release); tested on a separate computer: a file of 110 GiB up and down over the network, \
+                     canceled and killed at half and continued, a transfer through the night for 7 hours with its \
+                     memory constant, the network cable pulled out for 30 s and for 5 minutes and the server put to \
+                     sleep during transfers: each time the program connected again by itself and the copy came out \
+                     whole"
+                ),
+                trc!(
+                    "news",
                     "0.8.18 servers and distributions: a connection on which nothing comes from the server for 15 s \
                      is made again at once, and in the first minutes after a drop-out it is tried every few seconds, \
                      so a line that keeps going down for 30 s is survived; an upload continues from the part the \

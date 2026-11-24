@@ -154,6 +154,9 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
   serwer od martwej linii). W pierwszych trzech minutach po zerwaniu próby są co kilka sekund, potem
   co 10 sekund, a po dziesięciu minutach co 30 sekund. Wysyłanie wznawia się od ostatniej części
   potwierdzonej przez serwer.
+- To samo dotyczy sytuacji, gdy kabel sieciowy jest wyjęty na kilka minut albo serwer przechodzi w
+  stan uśpienia: program próbuje dalej, a transfer jest kontynuowany, gdy tylko serwer znów jest
+  osiągalny.
 - Na serwerze bez powłoki lub bez niektórych narzędzi (`du`, `find`, `df`, `sha256sum`, np. BusyBox
   lub konto tylko do SFTP) wszystko odbywa się wyłącznie przez SFTP: rozmiary folderów i
   wyszukiwanie przez przechodzenie folderów, sumy kontrolne przez czytanie plików.
@@ -272,3 +275,7 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
 
 - Konfiguracja: `~/.config/rolidscp/` (czytelna tylko dla Ciebie).
 - Log: `~/.local/state/rolidscp/rolidscp.log` (menu Pomoc → Otwórz log). Nigdy nie zawiera haseł.
+- AppImage można zaktualizować programem AppImageUpdate (lub `appimageupdatetool
+  RolidSCP-<wersja>-x86_64.AppImage`): znajduje on najnowsze wydanie na GitHubie i pobiera tylko te
+  części, które się zmieniły. Nowy AppImage zapisuje się obok starego pod nazwą wydania; stary
+  zostaje.

@@ -147,6 +147,8 @@ shortcuts is on the second page of this window.
   dead line). In the first three minutes after a drop-out it is tried every few seconds, then every
   10 seconds, after ten minutes every 30 seconds. An upload continues from the last part the server
   confirmed.
+- The same holds when the network cable is pulled out for minutes or the server goes to sleep: the
+  program keeps trying, and the transfer continues as soon as the server can be reached again.
 - On a server without a shell or without some tools (`du`, `find`, `df`, `sha256sum`, for example
   BusyBox or an SFTP-only account), everything is done over SFTP alone: folder sizes and searching
   by walking the folders, checksums by reading the files.
@@ -261,3 +263,7 @@ shortcuts is on the second page of this window.
 
 - Configuration: `~/.config/rolidscp/` (readable only by you).
 - Log: `~/.local/state/rolidscp/rolidscp.log` (Help menu → Open log). It never contains passwords.
+- The AppImage can be updated with AppImageUpdate (or `appimageupdatetool
+  RolidSCP-<version>-x86_64.AppImage`): it finds the newest release on GitHub and downloads only the
+  parts that changed. The new AppImage is saved next to the old one under the name of the release;
+  the old one stays.

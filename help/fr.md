@@ -172,6 +172,9 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
   distingue un serveur lent d'une ligne morte). Dans les trois premières minutes après une coupure,
   une tentative a lieu toutes les quelques secondes, puis toutes les 10 secondes, et après dix
   minutes toutes les 30 secondes. Un envoi reprend à la dernière partie confirmée par le serveur.
+- Il en va de même quand le câble réseau est débranché pendant plusieurs minutes ou que le serveur
+  se met en veille : le programme continue d’essayer, et le transfert reprend dès que le serveur est
+  de nouveau joignable.
 - Sur un serveur sans shell ou sans certains outils (`du`, `find`, `df`, `sha256sum`, par exemple
   BusyBox ou un compte SFTP seul), tout passe par SFTP seul : la taille des dossiers et la recherche
   en parcourant les dossiers, les sommes de contrôle en lisant les fichiers.
@@ -295,3 +298,7 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
 - Configuration : `~/.config/rolidscp/` (lisible uniquement par vous).
 - Journal : `~/.local/state/rolidscp/rolidscp.log` (menu Aide → Ouvrir le journal (diagnostic de
   connexion)). Il ne contient jamais de mots de passe.
+- L’AppImage peut être mise à jour avec AppImageUpdate (ou `appimageupdatetool
+  RolidSCP-<version>-x86_64.AppImage`) : il trouve la version la plus récente sur GitHub et ne
+  télécharge que les parties qui ont changé. La nouvelle AppImage est enregistrée à côté de
+  l’ancienne sous le nom de la version ; l’ancienne reste.
