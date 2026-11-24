@@ -674,9 +674,9 @@ fn terabyte_through_the_copy_code() {
         while !stop2.load(Ordering::Relaxed) {
             std::thread::sleep(std::time::Duration::from_secs(1));
             let done = s2.done.load(Ordering::Relaxed);
-            win.sample(t0.elapsed(), done);
-            if let (rolid_core::eta::Eta::Secs(est), Some(speed)) = (win.eta(size - done), win.speed()) {
-                // Against what the steady speed of the window says.
+            win.sample(t0.elapsed(), done, Some(size - done));
+            if let (rolid_core::eta::Eta::Secs(est), Some(speed)) = (win.eta(), win.average()) {
+                // Against what the averaged speed says.
                 let real = (size - done) as f64 / speed;
                 worst = worst.max((est as f64 - real).abs());
                 samples += 1;
@@ -697,7 +697,7 @@ fn terabyte_through_the_copy_code() {
     println!("BENCH\tsynth.progress_calls\t{}\tcalls", seen.calls.load(Ordering::Relaxed));
     println!("BENCH\tsynth.counter_backwards\t{}\ttimes", seen.backwards.load(Ordering::Relaxed));
     println!("BENCH\tsynth.eta_samples\t{samples}\tsamples");
-    println!("BENCH\tsynth.eta_rounding_worst\t{worst:.1}\ts");
+    println!("BENCH\tsynth.eta_off_average_worst\t{worst:.1}\ts");
     assert_eq!(dst.size("/dst/t.bin"), Some(size));
     assert_eq!(dst.wrong(), 0);
     assert_eq!(seen.done.load(Ordering::Relaxed), size);

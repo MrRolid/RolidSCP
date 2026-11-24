@@ -18,6 +18,12 @@
 //!   `cancel` (canceled at `ROLIDSCP_BIG_AT` percent, default 50, then
 //!   continued by a new job with "Resume"), `resume` (continue a killed one)
 //! - `ROLIDSCP_BIG_TAG`: prefix of the reported names
+//! - `ROLIDSCP_BIG_TRACE`: a folder; each run writes `<tag>.tsv` there, the
+//!   seconds and bytes once a second (replayed by `rolid-core`'s
+//!   `eta_replay` test)
+//! - `ROLIDSCP_BIG_PROFILE`: speed limits one after another, `seconds:MB/s`
+//!   separated by commas, `0` MB/s for none (`180:30,0:0`: 30 MB/s for three
+//!   minutes, then as fast as the line goes); the last one stays
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
@@ -25,6 +31,7 @@ use std::time::{Duration, Instant};
 
 use rolid_core::copy::{Conflict, CopyJob, Progress};
 use rolid_core::eta::{Eta, Window};
+use rolid_core::rate::RateLimit;
 use rolid_core::Vfs;
 
 use crate::bench::{open_fds, report, status_kb};
@@ -67,8 +74,8 @@ struct Seen {
 }
 
 /// One sample a second: (seconds since start, bytes shown, remaining-time
-/// estimate in seconds, RSS kB, open files).
-type Sample = (f64, u64, Option<u64>, u64, usize);
+/// estimate in seconds, RSS kB, open files, bytes done by this run).
+type Sample = (f64, u64, Option<u64>, u64, usize, u64);
 
 struct Run {
     samples: Vec<Sample>,
@@ -112,24 +119,43 @@ fn run_job(rt: &tokio::runtime::Runtime, src: &dyn Vfs, dst: &dyn Vfs, dir: &str
             let start = *s3.started.lock().unwrap();
             let Some(start) = start else { continue };
             let (done, resumed) = (s3.done.load(Ordering::Relaxed), s3.resumed.load(Ordering::Relaxed));
-            win.sample(start.elapsed(), done);
-            let eta = match win.eta(size.saturating_sub(resumed).saturating_sub(done)) {
+            win.sample(start.elapsed(), done, Some(size.saturating_sub(resumed).saturating_sub(done)));
+            let eta = match win.eta() {
                 Eta::Secs(s) => Some(s),
                 _ => None,
             };
-            out.push((t0.elapsed().as_secs_f64(), done + resumed, eta, status_kb("VmRSS"), open_fds()));
+            out.push((t0.elapsed().as_secs_f64(), done + resumed, eta, status_kb("VmRSS"), open_fds(), done));
         }
         out
+    });
+    // The speed profile: the limit changed as the time goes.
+    let limit = Arc::new(RateLimit::new(0));
+    let profile = profile();
+    let (l2, stop3) = (limit.clone(), stop.clone());
+    let changer = std::thread::spawn(move || {
+        let t0 = Instant::now();
+        let mut until = 0u64;
+        for (secs, rate) in profile {
+            l2.set_rate(rate);
+            until += secs;
+            while (secs == 0 || t0.elapsed().as_secs() < until) && !stop3.load(Ordering::Relaxed) {
+                std::thread::sleep(Duration::from_millis(100));
+            }
+        }
     });
     *seen.started.lock().unwrap() = Some(Instant::now());
     let t = Instant::now();
     let result = rt.block_on(async {
-        let mut job = CopyJob::new(src, dst, cancel.clone(), &cb).with_conflict(conflict).with_target_name(Some(target.to_string()));
+        let mut job = CopyJob::new(src, dst, cancel.clone(), &cb)
+            .with_conflict(conflict)
+            .with_target_name(Some(target.to_string()))
+            .with_limit(limit.clone());
         job.copy_items_retrying(&[(dir.to_string(), name.to_string())], dst_dir, 0, |_| async { false }).await
     });
     let elapsed = t.elapsed();
     stop.store(true, Ordering::Relaxed);
     let samples = sampler.join().unwrap();
+    changer.join().unwrap();
     Run {
         samples,
         result: result.map_err(|e| rolid_i18n::t(&e.text())),
@@ -140,9 +166,29 @@ fn run_job(rt: &tokio::runtime::Runtime, src: &dyn Vfs, dst: &dyn Vfs, dir: &str
     }
 }
 
+/// `ROLIDSCP_BIG_PROFILE` as (seconds, bytes a second); one step without a
+/// limit when not set.
+fn profile() -> Vec<(u64, u64)> {
+    let Ok(p) = std::env::var("ROLIDSCP_BIG_PROFILE") else { return vec![(0, 0)] };
+    p.split(',')
+        .map(|step| {
+            let (secs, mbs) = step.split_once(':').expect("seconds:MB/s");
+            (secs.trim().parse().expect("seconds"), (mbs.trim().parse::<f64>().expect("MB/s") * 1e6) as u64)
+        })
+        .collect()
+}
+
 /// Speed, the remaining-time estimate against the real remaining time,
 /// memory and open files of a run that went to the end.
 fn report_run(tag: &str, size: u64, r: &Run) {
+    if let Ok(dir) = std::env::var("ROLIDSCP_BIG_TRACE") {
+        // The bytes of this run only: what the queue's estimate is fed.
+        let mut s = String::from("seconds\tbytes\n");
+        for x in &r.samples {
+            s += &format!("{:.0}\t{}\n", x.0, x.5);
+        }
+        std::fs::write(format!("{dir}/{tag}.tsv"), s).expect("trace");
+    }
     report(&format!("{tag}.seconds"), r.elapsed.as_secs_f64(), "s");
     report(&format!("{tag}.bytes_done"), r.done as f64, "B");
     report(&format!("{tag}.bytes_resumed"), r.resumed as f64, "B");

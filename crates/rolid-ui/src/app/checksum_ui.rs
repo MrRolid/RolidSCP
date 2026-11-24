@@ -176,7 +176,9 @@ impl App {
             SumDialog::Run(r) => {
                 let st = r.state.lock().unwrap();
                 let finished = st.finished;
-                r.eta.sample(r.started.elapsed(), st.done_bytes);
+                // While the files are still being listed the total grows: no remaining time yet.
+                let left = (!st.listing).then(|| st.total.saturating_sub(st.done_bytes));
+                r.eta.sample(r.started.elapsed(), st.done_bytes, left);
                 let other = find_other(&self.sides, r.at);
                 let title = tr!("Checksums – {algorithm}", algorithm = r.algo.label());
                 dialog::window("sum-run", title).icon(Role::Info).min_width(860.0).max_width(860.0).show(ctx, |ui| {
@@ -196,7 +198,7 @@ impl App {
                             None => tr!("speed: calculating"),
                         });
                         if !st.listing {
-                            parts.push(t(&rolid_core::eta::format_eta(r.eta.eta(st.total.saturating_sub(st.done_bytes)))));
+                            parts.push(t(&rolid_core::eta::format_eta(r.eta.eta())));
                         }
                     } else if r.cancel.load(Ordering::Relaxed) {
                         parts.push(tr!("canceled"));

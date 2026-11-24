@@ -15,7 +15,11 @@
 # REMOTE_DIR  a folder on the server that does not exist yet (made, deleted
 #             at the end); it needs GIB GiB free
 # GIB         size of the file in GiB (default 110)
-# STEPS       comma-separated subset of: up,upkill,ref (default: all)
+# STEPS       comma-separated subset of: up,upkill,ref,eta,etap (default:
+#             up,upkill,ref); eta copies the whole file once at full speed,
+#             etap once with the speed profile BIG_PROFILE (see bench_big.rs,
+#             ROLIDSCP_BIG_PROFILE), both for the remaining-time estimate
+#             (the bytes once a second go to BIG_TRACE, a folder, if set)
 # TEST_BIN    the test binary of the rolidscp crate (default: built with cargo)
 #
 # The server, from the environment (nothing is written to ~/.ssh; the host
@@ -31,7 +35,7 @@ while getopts "g:s:b:" o; do
   case $o in g) GIB=$OPTARG ;; s) STEPS=$OPTARG ;; b) TEST_BIN=$(realpath "$OPTARG") ;; *) exit 2 ;; esac
 done
 shift $((OPTIND - 1))
-[ $# -ge 2 ] || { sed -n '2,24p' "$0"; exit 2; }
+[ $# -ge 2 ] || { sed -n '2,28p' "$0"; exit 2; }
 : "${BIG_HOST:?}" "${BIG_USER:?}" "${BIG_KEY:?}" "${BIG_KNOWN_HOSTS:?}"
 BIG_PORT=${BIG_PORT:-22}
 BASE=$(realpath -m "$1")
@@ -78,6 +82,7 @@ for l in sys.stdin:
     if m.get("reason") == "compiler-artifact" and m.get("executable") and m["target"]["kind"] == ["bin"] and m["profile"]["test"]:
         print(m["executable"])')
 fi
+[ -n "${BIG_TRACE:-}" ] && mkdir -p "$BIG_TRACE" && export ROLIDSCP_BIG_TRACE=$(realpath "$BIG_TRACE")
 export ROLIDSCP_BIG_HOST=$BIG_HOST ROLIDSCP_BIG_SSH="$BIG_PORT|$BIG_USER|$BIG_KEY|$BIG_KNOWN_HOSTS" ROLIDSCP_BENCH_OUT="$OUT"
 
 SRC="$BASE/big.bin"
@@ -125,6 +130,15 @@ if has upkill; then
   bench big_remote.upkill.first.filepart "$(R "stat -c %s -- '$RDIR/big-k.bin.filepart' 2>/dev/null || echo 0")" B
   stage upkill.resume resume big-k.bin
   check big-k.bin upkill
+fi
+if has eta; then
+  stage eta copy big-e.bin
+  check big-e.bin eta
+fi
+if has etap; then
+  : "${BIG_PROFILE:?etap needs BIG_PROFILE}"
+  ROLIDSCP_BIG_PROFILE=$BIG_PROFILE stage etap copy big-p.bin
+  check big-p.bin etap
 fi
 if has ref; then
   note "reference: OpenSSH sftp put"

@@ -2343,10 +2343,10 @@ impl App {
                 _ => (p.bytes_done, total.filter(|_| job.count.is_none()).map(|t| t.saturating_sub(p.bytes_resumed))),
             };
             if let Some(start) = p.started {
-                win.sample(start.elapsed(), eta_done);
+                win.sample(start.elapsed(), eta_done, eta_total.map(|t| t.saturating_sub(eta_done)));
             }
             let speed = win.speed();
-            let eta_text = eta_total.map(|t| rolid_core::eta::format_eta(win.eta(t.saturating_sub(eta_done))));
+            let eta_text = eta_total.map(|_| rolid_core::eta::format_eta(win.eta()));
             ui.horizontal(|ui| {
                 ui.spinner();
                 let frac = if job.total_bytes > 0 {
