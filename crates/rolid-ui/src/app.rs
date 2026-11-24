@@ -2525,14 +2525,14 @@ impl App {
             let layout = egui::Layout::left_to_right(egui::Align::Center).with_main_wrap(mode == fbar::BarMode::Wrap);
             ui.allocate_ui_with_layout(Vec2::new(room, height), layout, |ui| {
                 ui.set_max_width(room);
-                for (k, t, f) in buttons {
+                for (i, (k, t, f)) in buttons.into_iter().enumerate() {
                     let mut job = egui::text::LayoutJob::default();
                     job.append(k, 0.0, egui::TextFormat {
                         font_id: font.clone(),
                         color: ui.visuals().strong_text_color(),
                         ..Default::default()
                     });
-                    if mode == fbar::BarMode::Full {
+                    if mode.text(i) {
                         job.append(&format!(" {t}"), 0.0, egui::TextFormat {
                             font_id: font.clone(),
                             color: ui.visuals().text_color(),
@@ -2541,7 +2541,7 @@ impl App {
                     }
                     let b = egui::Button::new(job).stroke(stroke).min_size(Vec2::new(0.0, height));
                     let mut r = ui.add(b);
-                    if mode != fbar::BarMode::Full {
+                    if !mode.text(i) {
                         r = r.on_hover_text(format!("{k} {t}"));
                     }
                     if r.clicked() {
