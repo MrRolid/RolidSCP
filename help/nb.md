@@ -291,6 +291,11 @@ om det er merket), knappene og dialogene sine navn.
   endrer dem, går ingenting tapt (der begge har endret det samme, gjelder den siste endringen).
   Hvert vindu lagrer sine egne faner; vinduet som lukkes sist, bestemmer hvilke faner som åpnes
   neste gang.
+- **En skadet innstillingsfil** (redigert for hånd, avkortet) koster ikke alt i den: det som kan
+  leses, brukes, resten nevnes i feillinjen, og filen slik den var, tas vare på ved siden av som
+  `<navn>.damaged`. Å gå tilbake til en eldre versjon og tilbake igjen beholder innstillingene
+  (testet tilbake til 0.8.13); fra 0.8.20 blir verdier som den eldre versjonen ikke kjenner, værende
+  i filene.
 - Logg: `~/.local/state/rolidscp/rolidscp.log` (Hjelp-menyen → Åpne logg (innloggingsdiagnostikk)). Den inneholder aldri passord.
 - AppImage-filen kan oppdateres med AppImageUpdate (eller `appimageupdatetool
   RolidSCP-<versjon>-x86_64.AppImage`): den finner den nyeste utgivelsen på GitHub og laster ned

@@ -787,16 +787,188 @@ pub fn log_path() -> PathBuf {
         .join("rolidscp.log")
 }
 
-fn load<T: for<'de> Deserialize<'de> + Default>(path: &Path) -> Result<T, String> {
-    match std::fs::read_to_string(path) {
-        Ok(s) => {
-            let v = toml::from_str(&s).map_err(|e| format!("{}: {e}", path.display()))?;
-            shared::remember(path, &s);
-            Ok(v)
+/// A configuration file that could not be read as a whole (damaged by hand,
+/// cut off, or written by a newer version with values this one does not know).
+#[derive(Debug, Clone, PartialEq)]
+pub struct Damaged {
+    pub file: PathBuf,
+    /// The reader's message.
+    pub error: String,
+    /// The untouched copy of the file, kept before anything is written over it.
+    pub backup: Option<PathBuf>,
+    /// The values left out (`key`, `key[2]` = the second item); empty when
+    /// nothing of the file could be read.
+    pub dropped: Vec<String>,
+}
+
+/// A loaded file, or what could be read of a damaged one (else the defaults)
+/// with what happened to it.
+pub type Loaded<T> = Result<T, Box<(T, Damaged)>>;
+
+fn load<T: for<'de> Deserialize<'de> + Default>(path: &Path) -> Loaded<T> {
+    let text = match std::fs::read_to_string(path) {
+        Ok(s) => s,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(T::default()),
+        Err(e) => {
+            let d = Damaged { file: path.to_owned(), error: e.to_string(), backup: None, dropped: Vec::new() };
+            return Err(Box::new((T::default(), d)));
         }
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(T::default()),
-        Err(e) => Err(format!("{}: {e}", path.display())),
+    };
+    let error = match toml::from_str::<T>(&text) {
+        Ok(v) => {
+            shared::remember(path, &text);
+            return Ok(v);
+        }
+        Err(e) => e.message().to_string(),
+    };
+    // Keep the file as it is before it is ever written over.
+    let backup = backup_damaged(path);
+    let (table, mut lines) = readable_lines(&text);
+    let (value, mut dropped) = match table {
+        Some(table) => salvage::<T>(table),
+        None => (T::default(), Vec::new()),
+    };
+    lines.append(&mut dropped);
+    let dropped = lines;
+    let d = Damaged { file: path.to_owned(), error, backup, dropped };
+    Err(Box::new((value, d)))
+}
+
+/// The TOML of a text with broken lines (a cut-off end, a quote left open):
+/// the line the reader stops at is left out, up to 20 times. Returns the
+/// table (`None` = nothing readable) and the lines left out (`line 7`).
+fn readable_lines(text: &str) -> (Option<toml::Table>, Vec<String>) {
+    let mut lines: Vec<(usize, &str)> = text.lines().enumerate().collect();
+    let mut left_out = Vec::new();
+    for _ in 0..20 {
+        let joined = lines.iter().map(|(_, l)| *l).collect::<Vec<_>>().join("\n");
+        match toml::from_str::<toml::Table>(&joined) {
+            Ok(t) => return (Some(t), left_out),
+            Err(e) => {
+                let Some(at) = e.span().map(|r| r.start) else { break };
+                let i = joined[..at.min(joined.len())].matches('\n').count();
+                if i >= lines.len() {
+                    break;
+                }
+                let (n, _) = lines.remove(i);
+                left_out.push(format!("line {}", n + 1)); // i18n-ok: a place in the file, like the key names
+            }
+        }
     }
+    (None, Vec::new())
+}
+
+/// Copy a damaged file to `<name>.damaged` (`.damaged-2`… if taken).
+fn backup_damaged(path: &Path) -> Option<PathBuf> {
+    let name = path.file_name()?.to_string_lossy().into_owned();
+    let free = (1..100).map(|n| path.with_file_name(if n == 1 { format!("{name}.damaged") } else { format!("{name}.damaged-{n}") })).find(|p| !p.exists())?;
+    std::fs::copy(path, &free).ok().map(|_| free)
+}
+
+/// What of a table that does not make a `T` can be read: keys one by one,
+/// items of lists one by one (a damaged server costs that server, not the
+/// list), tables key by key. Returns the value and the paths left out.
+fn salvage<T: for<'de> Deserialize<'de> + Default>(table: toml::Table) -> (T, Vec<String>) {
+    fn fits<T: for<'de> Deserialize<'de>>(root: &toml::Table) -> bool {
+        toml::Value::Table(root.clone()).try_into::<T>().is_ok()
+    }
+    /// The table at `path` inside `root`.
+    fn at<'a>(root: &'a mut toml::Table, path: &[String]) -> &'a mut toml::Table {
+        path.iter().fold(root, |t, k| t.get_mut(k).and_then(toml::Value::as_table_mut).expect("built on the way down"))
+    }
+    /// Insert `v` as `key` at `path` if the whole still makes a `T`.
+    fn try_put<T: for<'de> Deserialize<'de>>(root: &mut toml::Table, path: &[String], key: &str, v: toml::Value) -> bool {
+        let mut trial = root.clone();
+        at(&mut trial, path).insert(key.to_owned(), v);
+        let ok = fits::<T>(&trial);
+        if ok {
+            *root = trial;
+        }
+        ok
+    }
+    fn add<T: for<'de> Deserialize<'de>>(root: &mut toml::Table, path: &mut Vec<String>, key: String, v: toml::Value, dropped: &mut Vec<String>) {
+        let name = path.iter().chain(std::iter::once(&key)).cloned().collect::<Vec<_>>().join(".");
+        if try_put::<T>(root, path, &key, v.clone()) {
+            return;
+        }
+        match v {
+            toml::Value::Table(t) if try_put::<T>(root, path, &key, toml::Value::Table(toml::Table::new())) => {
+                path.push(key);
+                for (k, v) in t {
+                    add::<T>(root, path, k, v, dropped);
+                }
+                path.pop();
+            }
+            toml::Value::Array(items) if try_put::<T>(root, path, &key, toml::Value::Array(Vec::new())) => {
+                let mut good = Vec::new();
+                for (i, it) in items.into_iter().enumerate() {
+                    let mut with = good.clone();
+                    with.push(it);
+                    if try_put::<T>(root, path, &key, toml::Value::Array(with.clone())) {
+                        good = with;
+                    } else {
+                        dropped.push(format!("{name}[{}]", i + 1));
+                    }
+                }
+            }
+            _ => dropped.push(name),
+        }
+    }
+    let mut root = toml::Table::new();
+    let mut dropped = Vec::new();
+    if !fits::<T>(&root) {
+        return (T::default(), table.keys().cloned().collect());
+    }
+    for (k, v) in table {
+        add::<T>(&mut root, &mut Vec::new(), k, v, &mut dropped);
+    }
+    let value = toml::Value::Table(root).try_into::<T>().unwrap_or_default();
+    (value, dropped)
+}
+
+/// Put back into `out` (what this version writes) the values of the file on
+/// the disk that this version does not know (`known` = the disk file read
+/// and written again by this version): a newer version's settings survive
+/// a trip to an older one and back. Tables key by key, lists of items with
+/// an `id` (the servers) item by item.
+fn carry_unknown(out: &mut toml::Value, disk: &toml::Value, known: &toml::Value) {
+    match (out, disk, known) {
+        (toml::Value::Table(o), toml::Value::Table(d), toml::Value::Table(k)) => {
+            for (key, dv) in d {
+                match (o.get_mut(key), k.get(key)) {
+                    (None, None) => {
+                        o.insert(key.clone(), dv.clone());
+                    }
+                    (Some(ov), Some(kv)) => carry_unknown(ov, dv, kv),
+                    _ => {}
+                }
+            }
+        }
+        (toml::Value::Array(o), toml::Value::Array(d), toml::Value::Array(k)) => {
+            let id = |v: &toml::Value| v.get("id").and_then(toml::Value::as_str).map(str::to_owned);
+            for ov in o.iter_mut() {
+                let Some(i) = id(ov) else { continue };
+                if let (Some(dv), Some(kv)) = (d.iter().find(|v| id(v).as_ref() == Some(&i)), k.iter().find(|v| id(v).as_ref() == Some(&i))) {
+                    carry_unknown(ov, dv, kv);
+                }
+            }
+        }
+        _ => {}
+    }
+}
+
+/// The text to write for `value`, with what this version does not know of
+/// the file on the disk (see [`carry_unknown`]).
+fn text_keeping_unknown<T: Serialize + for<'de> Deserialize<'de>>(path: &Path, value: &T) -> Result<String, String> {
+    let mut out = toml::Value::try_from(value).map_err(|e| e.to_string())?;
+    let disk = std::fs::read_to_string(path).ok().and_then(|s| toml::from_str::<toml::Table>(&s).ok()).map(toml::Value::Table);
+    if let Some(disk) = disk {
+        // A file this version cannot read (damaged): nothing is carried over.
+        if let Ok(known) = disk.clone().try_into::<T>().and_then(|t| toml::Value::try_from(&t).map_err(serde::de::Error::custom)) {
+            carry_unknown(&mut out, &disk, &known);
+        }
+    }
+    toml::to_string_pretty(&out).map_err(|e| e.to_string())
 }
 
 /// Write atomically (temp file in the same directory + rename), readable only by the owner.
@@ -838,8 +1010,8 @@ pub fn write_atomic(path: &Path, data: &[u8]) -> Result<(), String> {
     r
 }
 
-fn save<T: Serialize>(path: &Path, value: &T) -> Result<(), String> {
-    let text = toml::to_string_pretty(value).map_err(|e| e.to_string())?;
+fn save<T: Serialize + for<'de> Deserialize<'de>>(path: &Path, value: &T) -> Result<(), String> {
+    let text = text_keeping_unknown(path, value)?;
     write_atomic(path, text.as_bytes())?;
     shared::remember(path, &text);
     Ok(())
@@ -878,7 +1050,7 @@ fn sync<T: Serialize + for<'de> Deserialize<'de>>(path: &Path, value: &mut T, al
             }
         }
     }
-    let text = toml::to_string_pretty(value).map_err(|e| e.to_string())?;
+    let text = text_keeping_unknown(path, value)?;
     if always || theirs.as_deref() != Some(text.as_str()) {
         write_atomic(path, text.as_bytes())?;
     }
@@ -887,12 +1059,12 @@ fn sync<T: Serialize + for<'de> Deserialize<'de>>(path: &Path, value: &mut T, al
 }
 
 /// Load any TOML file from the config dir (missing file = default).
-pub fn load_file<T: for<'de> Deserialize<'de> + Default>(name: &str) -> Result<T, String> {
+pub fn load_file<T: for<'de> Deserialize<'de> + Default>(name: &str) -> Loaded<T> {
     load(&config_dir().join(name))
 }
 
 /// Save any TOML file into the config dir (atomic, 0600).
-pub fn save_file<T: Serialize>(name: &str, value: &T) -> Result<(), String> {
+pub fn save_file<T: Serialize + for<'de> Deserialize<'de>>(name: &str, value: &T) -> Result<(), String> {
     save(&config_dir().join(name), value)
 }
 
@@ -909,7 +1081,7 @@ pub fn reload_file_shared<T: Serialize + for<'de> Deserialize<'de>>(name: &str, 
     sync(&config_dir().join(name), value, false)
 }
 
-pub fn load_profiles() -> Result<Profiles, String> {
+pub fn load_profiles() -> Loaded<Profiles> {
     load(&config_dir().join("profiles.toml"))
 }
 
@@ -931,10 +1103,17 @@ pub fn reload_profiles(p: &mut Profiles) -> Result<bool, String> {
     Ok(changed)
 }
 
-pub fn load_workspace() -> Result<Workspace, String> {
-    let mut w: Workspace = load(&config_dir().join("workspace.toml"))?;
-    w.migrate();
-    Ok(w)
+pub fn load_workspace() -> Loaded<Workspace> {
+    match load::<Workspace>(&config_dir().join("workspace.toml")) {
+        Ok(mut w) => {
+            w.migrate();
+            Ok(w)
+        }
+        Err(mut e) => {
+            e.0.migrate();
+            Err(e)
+        }
+    }
 }
 
 pub fn save_workspace(w: &Workspace) -> Result<(), String> {
@@ -988,6 +1167,85 @@ pub mod secrets {
 
 #[cfg(test)]
 mod tests {
+    fn s0(d: &tempfile::TempDir) -> std::path::PathBuf {
+        d.path().join("cut.toml")
+    }
+
+    /// A damaged file costs only what is damaged in it, and the original is
+    /// kept before anything is written over it.
+    #[test]
+    fn damaged_files_are_kept_and_read_as_far_as_possible() {
+        use super::*;
+        let d = tempfile::tempdir().unwrap();
+        // One server with a port that is not a number, between two good ones.
+        let p = d.path().join("profiles.toml");
+        let text = "[[profile]]\nid = \"a\"\nname = \"A\"\nhost = \"a.example.com\"\nport = 22\nuser = \"alex\"\n\n\
+                    [[profile]]\nid = \"b\"\nname = \"B\"\nhost = \"b.example.com\"\nport = \"x\"\nuser = \"alex\"\n\n\
+                    [[profile]]\nid = \"c\"\nname = \"C\"\nhost = \"c.example.com\"\nport = 2222\nuser = \"alex\"\n";
+        std::fs::write(&p, text).unwrap();
+        let (got, dmg) = *load::<Profiles>(&p).unwrap_err();
+        assert_eq!(got.list.iter().map(|p| p.id.as_str()).collect::<Vec<_>>(), ["a", "c"]);
+        assert_eq!(dmg.dropped, ["profile[2]"]);
+        assert_eq!(std::fs::read_to_string(dmg.backup.unwrap()).unwrap(), text);
+        // Cut off in the middle of a string: the broken line goes, and with it the
+        // server it leaves incomplete; a second copy of the file is kept.
+        std::fs::write(&p, "[[profile]]\nid = \"a").unwrap();
+        let (got, dmg) = *load::<Profiles>(&p).unwrap_err();
+        assert!(got.list.is_empty());
+        assert_eq!(dmg.dropped, ["line 2", "profile[1]"]);
+        assert_eq!(dmg.backup.unwrap().file_name().unwrap(), "profiles.toml.damaged-2");
+        // A quote left open: only that line is lost.
+        std::fs::write(s0(&d), "language = \"cs\"\neditor_command = \"mousepad\ndate_iso = true\n").unwrap();
+        let (got, dmg) = *load::<Settings>(&s0(&d)).unwrap_err();
+        assert_eq!((got.language.as_deref(), got.date_iso, got.editor_command), (Some("cs"), true, None));
+        assert_eq!(dmg.dropped, ["line 2"]);
+        // A setting of the wrong type: only that one is left out.
+        let s = d.path().join("settings.toml");
+        std::fs::write(&s, "speed_limit_kib = \"fast\"\nlanguage = \"cs\"\n[columns.full]\nsize = 90.0\ndate = \"wide\"\n").unwrap();
+        let (got, dmg) = *load::<Settings>(&s).unwrap_err();
+        assert_eq!(got.language.as_deref(), Some("cs"));
+        assert_eq!(got.columns.get("full").and_then(|c| c.size), Some(90.0));
+        assert_eq!(dmg.dropped, ["columns.full.date", "speed_limit_kib"]);
+        // A tab of a kind a newer version made: the other tabs stay.
+        let w = d.path().join("workspace.toml");
+        std::fs::write(&w, "[[left.tab]]\ncolor = \"#FFFFFF\"\n[left.tab.location]\nkind = \"local\"\npath = \"/tmp\"\n\
+                            [[left.tab]]\ncolor = \"#FFFFFF\"\n[left.tab.location]\nkind = \"cloud\"\npath = \"/x\"\n").unwrap();
+        let (got, dmg) = *load::<Workspace>(&w).unwrap_err();
+        assert_eq!(got.left.tabs.len(), 1);
+        assert_eq!(dmg.dropped, ["left.tab[2]"]);
+    }
+
+    /// What a newer version wrote and this one does not know stays in the
+    /// file when this version saves it (a trip to an older version and back).
+    #[test]
+    fn values_of_newer_versions_survive_a_save() {
+        use super::*;
+        let d = tempfile::tempdir().unwrap();
+        let s = d.path().join("settings.toml");
+        std::fs::write(&s, "language = \"cs\"\nspeed_limit_kib = 100\nfuture_option = 5\n[future_table]\nx = 1\n[columns.full]\nsize = 90.0\nfuture_width = 3.0\n").unwrap();
+        let mut v: Settings = load(&s).unwrap();
+        v.language = Some("de".into());
+        v.speed_limit_kib = None; // removed here: must not come back
+        save(&s, &v).unwrap();
+        let back: toml::Table = toml::from_str(&std::fs::read_to_string(&s).unwrap()).unwrap();
+        assert_eq!(back.get("language").and_then(|v| v.as_str()), Some("de"));
+        assert!(!back.contains_key("speed_limit_kib"));
+        assert_eq!(back.get("future_option").and_then(|v| v.as_integer()), Some(5));
+        assert!(back.get("future_table").is_some());
+        assert_eq!(back["columns"]["full"].get("future_width").and_then(|v| v.as_float()), Some(3.0));
+        // A server's field of a newer version, kept by id; a removed server stays removed.
+        let p = d.path().join("profiles.toml");
+        std::fs::write(&p, "[[profile]]\nid = \"a\"\nname = \"A\"\nhost = \"h\"\nport = 22\nuser = \"u\"\njump = \"bastion\"\n\
+                            [[profile]]\nid = \"b\"\nname = \"B\"\nhost = \"h\"\nport = 22\nuser = \"u\"\njump = \"x\"\n").unwrap();
+        let mut pr: Profiles = load(&p).unwrap();
+        pr.remove("b");
+        sync(&p, &mut pr, true).unwrap();
+        let back: toml::Table = toml::from_str(&std::fs::read_to_string(&p).unwrap()).unwrap();
+        let list = back["profile"].as_array().unwrap();
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].get("jump").and_then(|v| v.as_str()), Some("bastion"));
+    }
+
     /// Two running copies of the program (two processes: this test binary
     /// started twice) add servers to one `profiles.toml` at the same time and
     /// change the same settings file. No server is lost and the file is never

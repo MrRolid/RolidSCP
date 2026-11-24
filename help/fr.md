@@ -324,6 +324,11 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
   secondes, et si les deux les modifient, rien n'est perdu (là où les deux ont modifié la même
   chose, la modification la plus récente l'emporte). Chaque fenêtre enregistre ses propres onglets ;
   la fenêtre fermée en dernier décide des onglets ouverts la prochaine fois.
+- **Un fichier de paramètres endommagé** (modifié à la main, tronqué) ne coûte pas tout ce qu'il
+  contient : ce qui peut être lu est utilisé, le reste est cité dans la ligne d'erreur, et le
+  fichier tel qu'il était est conservé à côté sous `<nom>.damaged`. Revenir à une version antérieure
+  puis revenir conserve les paramètres (testé jusqu'à la 0.8.13) ; à partir de la 0.8.20, les
+  valeurs que la version antérieure ne connaît pas restent dans les fichiers.
 - Journal : `~/.local/state/rolidscp/rolidscp.log` (menu Aide → Ouvrir le journal (diagnostic de
   connexion)). Il ne contient jamais de mots de passe.
 - L’AppImage peut être mise à jour avec AppImageUpdate (ou `appimageupdatetool

@@ -292,6 +292,11 @@ det er markeret), knapperne og dialogerne deres navne.
   ændrer dem, går intet tabt (hvor begge har ændret det samme, gælder den seneste ændring). Hvert
   vindue gemmer sine egne faner; vinduet, der lukkes sidst, bestemmer, hvilke faner der åbnes næste
   gang.
+- **En beskadiget indstillingsfil** (redigeret i hånden, afkortet) koster ikke alt i den: det, der
+  kan læses, bruges, resten nævnes i fejllinjen, og filen, som den var, gemmes ved siden af som
+  `<navn>.damaged`. At gå tilbage til en ældre version og vende tilbage bevarer indstillingerne
+  (testet tilbage til 0.8.13); fra 0.8.20 bliver værdier, som den ældre version ikke kender, i
+  filerne.
 - Log: `~/.local/state/rolidscp/rolidscp.log` (menuen Hjælp → Åbn log (logindiagnostik)). Den
   indeholder aldrig adgangskoder.
 - AppImage-filen kan opdateres med AppImageUpdate (eller `appimageupdatetool

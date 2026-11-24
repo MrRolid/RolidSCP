@@ -300,6 +300,11 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
   nie ginie (tam, gdzie oba zmieniły to samo, obowiązuje późniejsza zmiana). Każde okno zapisuje
   własne karty; o tym, które karty otworzą się następnym razem, decyduje okno zamknięte jako
   ostatnie.
+- **Uszkodzony plik ustawień** (edytowany ręcznie, ucięty) nie kosztuje wszystkiego, co zawiera:
+  używane jest to, co da się odczytać, resztę wymienia wiersz błędu, a plik w pierwotnym stanie
+  zostaje obok jako `<nazwa>.damaged`. Powrót do starszej wersji i z powrotem zachowuje ustawienia
+  (sprawdzone aż do 0.8.13); od 0.8.20 w plikach zostają też wartości, których starsza wersja nie
+  zna.
 - Log: `~/.local/state/rolidscp/rolidscp.log` (menu Pomoc → Otwórz log). Nigdy nie zawiera haseł.
 - AppImage można zaktualizować programem AppImageUpdate (lub `appimageupdatetool
   RolidSCP-<wersja>-x86_64.AppImage`): znajduje on najnowsze wydanie na GitHubie i pobiera tylko te

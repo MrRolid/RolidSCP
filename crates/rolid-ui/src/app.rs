@@ -566,15 +566,22 @@ impl App {
         std::thread::spawn(archive_ui::clean_old_temps);
         match rolid_config::load_profiles() {
             Ok(p) => app.profiles = p,
-            Err(e) => app.last_error = Some(tr!("Cannot load the profiles: {error}", error = e)),
-        }
-        match rolid_config::load_workspace() {
-            Ok(ws) => {
-                app.saved_workspace = rolid_config::workspace_fingerprint(&ws);
-                app.restore_workspace(ws);
+            Err(e) => {
+                let (p, d) = *e;
+                app.profiles = p;
+                app.startup_error(tr!("Cannot load the profiles: {error}", error = damaged_text(&d)));
             }
-            Err(e) => app.last_error = Some(tr!("Cannot load the workspace: {error}", error = e)),
         }
+        let ws = match rolid_config::load_workspace() {
+            Ok(ws) => ws,
+            Err(e) => {
+                let (ws, d) = *e;
+                app.startup_error(tr!("Cannot load the workspace: {error}", error = damaged_text(&d)));
+                ws
+            }
+        };
+        app.saved_workspace = rolid_config::workspace_fingerprint(&ws);
+        app.restore_workspace(ws);
         for side in 0..2 {
             if app.sides[side].tabs.is_empty() {
                 let home = Self::home_dir();
@@ -615,13 +622,24 @@ impl App {
     }
 
     fn load_settings(&mut self) {
-        match rolid_config::load_file::<rolid_config::Settings>(SETTINGS_FILE) {
-            Ok(s) => self.settings = s,
-            Err(e) => self.last_error = Some(tr!("Settings: {error}", error = e)),
-        }
+        let damaged = match rolid_config::load_file::<rolid_config::Settings>(SETTINGS_FILE) {
+            Ok(s) => {
+                self.settings = s;
+                None
+            }
+            Err(e) => {
+                let (s, d) = *e;
+                self.settings = s;
+                Some(d)
+            }
+        };
         self.rate_limit
             .set_rate(self.settings.speed_limit_kib.unwrap_or(0).saturating_mul(1024));
         self.apply_language();
+        // In the language of what could be read of the settings.
+        if let Some(d) = damaged {
+            self.startup_error(tr!("Settings: {error}", error = damaged_text(&d)));
+        }
         self.apply_font();
         let (addr, changed) = menu::pick_donate_address(self.settings.donate_address.as_deref());
         self.donate_btc = addr;
@@ -657,6 +675,14 @@ impl App {
             self.last_error = Some(tr!("System font: {error}. The built-in {font} is used.", error = e.as_str(), font = crate::fonts::NOTO_NAME));
         }
         self.font_desc = a.desc;
+    }
+
+    /// A message from the start: several are shown together.
+    fn startup_error(&mut self, msg: String) {
+        self.last_error = Some(match self.last_error.take() {
+            Some(prev) => format!("{prev}\n{msg}"),
+            None => msg,
+        });
     }
 
     fn save_settings(&mut self) {
@@ -3167,6 +3193,38 @@ impl eframe::App for App {
         self.end_all_edits();
         self.drag_out_exit();
         self.save_workspace_if_changed();
+    }
+}
+
+/// What happened to a configuration file that could not be read as a whole.
+pub(crate) fn damaged_text(d: &rolid_config::Damaged) -> String {
+    tracing::warn!(file = %d.file.display(), error = %d.error, backup = ?d.backup, dropped = ?d.dropped, "damaged configuration file");
+    // Names only: the folder is in the help (Files and log) and in the log.
+    let name = |p: &std::path::Path| p.file_name().map_or_else(|| p.display().to_string(), |n| n.to_string_lossy().into_owned());
+    let file = name(&d.file);
+    match &d.backup {
+        None => tr!("{file}: {error}", file = file, error = d.error.as_str()),
+        Some(b) if d.dropped.is_empty() => tr!(
+            "{file} cannot be read ({error}). The defaults are used; the file is kept as {backup}.",
+            file = file,
+            error = d.error.as_str(),
+            backup = name(b)
+        ),
+        Some(b) => tr!(
+            "{file} is partly damaged ({error}). What can be read is used, without: {items}. The file is kept as {backup}.",
+            file = file,
+            error = d.error.as_str(),
+            items = d
+                .dropped
+                .iter()
+                .map(|i| match i.strip_prefix("line ") {
+                    Some(n) => tr!("line {number}", number = n),
+                    None => i.clone(),
+                })
+                .collect::<Vec<_>>()
+                .join(", "),
+            backup = name(b)
+        ),
     }
 }
 

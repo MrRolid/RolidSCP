@@ -286,6 +286,10 @@ and whether it is selected), the buttons and dialogs their names.
   passwords that one window saves appear in the other within a few seconds, and when both change
   them nothing is lost (where both changed the same thing, the later change counts). Each window
   saves its own tabs; the window closed last decides which tabs open next time.
+- **A damaged settings file** (edited by hand, cut off) does not cost everything in it: what can be
+  read is used, the rest is named in the error line, and the file as it was is kept next to it as
+  `<name>.damaged`. Going back to an older version and returning keeps the settings (tested back to
+  0.8.13); from 0.8.20 on, values that the older version does not know stay in the files.
 - Log: `~/.local/state/rolidscp/rolidscp.log` (Help menu → Open log). It never contains passwords.
 - The AppImage can be updated with AppImageUpdate (or `appimageupdatetool
   RolidSCP-<version>-x86_64.AppImage`): it finds the newest release on GitHub and downloads only the

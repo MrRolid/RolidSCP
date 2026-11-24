@@ -276,6 +276,10 @@ označená), tlačítka a dialogy své názvy.
   jedno okno uloží, se do několika sekund objeví i ve druhém, a když je mění obě, nic se neztratí
   (kde obě změnila totéž, platí pozdější změna). Panely si ukládá každé okno samo; které se otevřou
   příště, určí okno zavřené jako poslední.
+- **Poškozený soubor nastavení** (upravený ručně, useknutý) nestojí všechno, co v něm je: použije
+  se, co jde přečíst, zbytek vyjmenuje chybový řádek a soubor v původním stavu zůstane vedle jako
+  `<jméno>.damaged`. Návrat ke starší verzi a zpět nastavení zachová (vyzkoušeno až po 0.8.13); od
+  0.8.20 zůstávají v souborech i hodnoty, které starší verze nezná.
 - Log: `~/.local/state/rolidscp/rolidscp.log` (menu Nápověda → Otevřít log). Nikdy neobsahuje hesla.
 - AppImage lze aktualizovat programem AppImageUpdate (nebo `appimageupdatetool
   RolidSCP-<verze>-x86_64.AppImage`): najde nejnovější vydání na GitHubu a stáhne jen části, které

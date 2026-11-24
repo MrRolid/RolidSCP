@@ -316,6 +316,11 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
   im anderen, und wenn beide sie ändern, geht nichts verloren (wo beide dasselbe geändert haben,
   gilt die spätere Änderung). Jedes Fenster speichert seine eigenen Tabs; das zuletzt geschlossene
   Fenster bestimmt, welche Tabs beim nächsten Mal geöffnet werden.
+- **Eine beschädigte Einstellungsdatei** (von Hand bearbeitet, abgeschnitten) kostet nicht alles
+  darin: Was gelesen werden kann, wird verwendet, der Rest wird in der Fehlerzeile genannt, und die
+  Datei bleibt im alten Zustand daneben als `<Name>.damaged` erhalten. Der Wechsel zu einer älteren
+  Version und zurück behält die Einstellungen (getestet bis 0.8.13); ab 0.8.20 bleiben auch Werte,
+  die die ältere Version nicht kennt, in den Dateien.
 - Protokoll: `~/.local/state/rolidscp/rolidscp.log` (Menü Hilfe → Protokoll öffnen
   (Anmeldediagnose)). Es enthält nie Passwörter.
 - Das AppImage lässt sich mit AppImageUpdate aktualisieren (oder `appimageupdatetool

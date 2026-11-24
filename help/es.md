@@ -313,6 +313,11 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
   ambas los cambian no se pierde nada (donde ambas cambiaron lo mismo, vale el cambio posterior).
   Cada ventana guarda sus propias pestañas; la ventana que se cierra en último lugar decide qué
   pestañas se abren la próxima vez.
+- **Un archivo de ajustes dañado** (editado a mano, cortado) no cuesta todo lo que contiene: se usa
+  lo que se puede leer, el resto se nombra en la línea de error y el archivo tal como estaba se
+  conserva al lado como `<nombre>.damaged`. Volver a una versión anterior y regresar conserva los
+  ajustes (probado hasta la 0.8.13); desde la 0.8.20, los valores que la versión anterior no conoce
+  permanecen en los archivos.
 - Registro: `~/.local/state/rolidscp/rolidscp.log` (menú Ayuda → Abrir registro (diagnóstico de
   inicio de sesión)). Nunca contiene contraseñas.
 - El AppImage se puede actualizar con AppImageUpdate (o `appimageupdatetool

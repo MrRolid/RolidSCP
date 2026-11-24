@@ -102,7 +102,11 @@ impl App {
     pub(super) fn load_search_history(&mut self) {
         match rolid_config::load_file::<History>(HISTORY_FILE) {
             Ok(h) => self.search_history = h.list,
-            Err(e) => self.last_error = Some(tr!("Search history: {error}", error = e)),
+            Err(e) => {
+                let (h, d) = *e;
+                self.search_history = h.list;
+                self.startup_error(tr!("Search history: {error}", error = super::damaged_text(&d)));
+            }
         }
     }
 
