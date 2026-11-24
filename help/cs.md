@@ -8,6 +8,9 @@ klávesových zkratek je na druhé stránce tohoto okna.
 **F10** otevře lištu menu bez myši: **←** **→** přechází mezi menu, **↑** **↓** po položkách, **→** do
 podnabídky, **Enter** položku vybere, **Esc** menu zavře.
 
+Se čtečkou obrazovky (Orca) seznam čte položku pod kurzorem (název, „složka“ nebo velikost a zda je
+označená), tlačítka a dialogy své názvy.
+
 ## Panely a záložky
 
 - **Tab** přepíná mezi levým a pravým panelem. Aktivní panel má výraznější hlavičku.

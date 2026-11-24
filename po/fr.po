@@ -212,7 +212,7 @@ msgstr "Maximal"
 
 #: crates/rolid-config/src/lib.rs:619
 #: crates/rolid-ui/src/app/unpack_ui.rs:541
-#: crates/rolid-ui/src/app.rs:2912
+#: crates/rolid-ui/src/app.rs:2929
 msgid "Skip existing"
 msgstr "Ignorer les existants"
 
@@ -225,7 +225,7 @@ msgstr "Écraser les plus anciens"
 #: crates/rolid-ui/src/app/checksum_ui.rs:289
 #: crates/rolid-ui/src/app/rename_ui.rs:226
 #: crates/rolid-ui/src/app/unpack_ui.rs:543
-#: crates/rolid-ui/src/app.rs:2914
+#: crates/rolid-ui/src/app.rs:2931
 msgid "Overwrite"
 msgstr "Écraser"
 
@@ -461,8 +461,8 @@ msgid "Pearl"
 msgstr "Perle"
 
 #: crates/rolid-core/src/copy.rs:164
-#: crates/rolid-ui/src/app.rs:2869
-#: crates/rolid-ui/src/pane.rs:1938
+#: crates/rolid-ui/src/app.rs:2886
+#: crates/rolid-ui/src/pane.rs:1966
 msgid "{n} file"
 msgid_plural "{n} files"
 msgstr[0] "{n} fichier"
@@ -725,8 +725,8 @@ msgid "kB"
 msgstr "Ko"
 
 #: crates/rolid-i18n/src/lib.rs:335
-#: crates/rolid-ui/src/app/view_ui.rs:616
-#: crates/rolid-ui/src/app/view_ui.rs:634
+#: crates/rolid-ui/src/app/view_ui.rs:619
+#: crates/rolid-ui/src/app/view_ui.rs:637
 msgctxt "unit"
 msgid "MB"
 msgstr "Mo"
@@ -747,7 +747,7 @@ msgid "PB"
 msgstr "Po"
 
 #: crates/rolid-local/src/lib.rs:144
-#: crates/rolid-ui/src/pane.rs:1788
+#: crates/rolid-ui/src/pane.rs:1816
 msgid "Computer"
 msgstr "Ordinateur"
 
@@ -1090,7 +1090,7 @@ msgstr "Saisissez le nom de l'archive."
 
 #: crates/rolid-ui/src/app/archive_ui.rs:237
 #: crates/rolid-ui/src/app/archive_ui.rs:366
-#: crates/rolid-ui/src/app/view_ui.rs:372
+#: crates/rolid-ui/src/app/view_ui.rs:375
 msgid "Pack"
 msgstr "Compresser"
 
@@ -1292,7 +1292,7 @@ msgstr[0] "{done} sur {n} fichier"
 msgstr[1] "{done} sur {n} fichiers"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:194
-#: crates/rolid-ui/src/app.rs:2380
+#: crates/rolid-ui/src/app.rs:2397
 msgid "{done} of {total}"
 msgstr "{done} sur {total}"
 
@@ -1322,7 +1322,7 @@ msgstr[1] "… et {n} autres ignorés"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:242
 #: crates/rolid-ui/src/app/menu.rs:159
-#: crates/rolid-ui/src/pane/views.rs:307
+#: crates/rolid-ui/src/pane/views.rs:330
 msgid "Copy to clipboard"
 msgstr "Copier dans le presse-papiers"
 
@@ -1334,7 +1334,7 @@ msgstr "Enregistrer dans un fichier"
 #: crates/rolid-ui/src/app/checksum_ui.rs:248
 #: crates/rolid-ui/src/app/newfile_ui.rs:78
 #: crates/rolid-ui/src/app/session.rs:919
-#: crates/rolid-ui/src/app.rs:2743
+#: crates/rolid-ui/src/app.rs:2760
 msgid "Name:"
 msgstr "Nom :"
 
@@ -1447,7 +1447,7 @@ msgstr "Les permissions ne sont pas disponibles ici (le système ne les fournit 
 #: crates/rolid-ui/src/app/ctx_ui.rs:215
 #: crates/rolid-ui/src/app/edit_ui.rs:1646
 #: crates/rolid-ui/src/app/unpack_ui.rs:364
-#: crates/rolid-ui/src/pane.rs:187
+#: crates/rolid-ui/src/pane.rs:191
 msgid "“{name}”"
 msgstr "« {name} »"
 
@@ -1487,9 +1487,9 @@ msgstr[1] "{n} éléments seront ignorés (listés dans le récapitulatif final)
 #: crates/rolid-ui/src/app/ctx_ui.rs:427
 #: crates/rolid-ui/src/app/drop_ui.rs:580
 #: crates/rolid-ui/src/app/rename_ui.rs:371
-#: crates/rolid-ui/src/app.rs:2693
-#: crates/rolid-ui/src/app.rs:2752
-#: crates/rolid-ui/src/app.rs:2792
+#: crates/rolid-ui/src/app.rs:2710
+#: crates/rolid-ui/src/app.rs:2769
+#: crates/rolid-ui/src/app.rs:2809
 msgid "⚠ PRODUCTION SERVER: Enter is disabled, confirm with the button."
 msgstr "⚠ SERVEUR DE PRODUCTION : Enter est désactivé, confirmez avec le bouton."
 
@@ -1544,7 +1544,7 @@ msgstr "Toujours ouvrir les fichiers .{ext} ainsi (« Ouvrir », Enter)"
 #: crates/rolid-ui/src/app/ctx_ui.rs:490
 #: crates/rolid-ui/src/app/menu.rs:96
 #: crates/rolid-ui/src/app/places.rs:620
-#: crates/rolid-ui/src/pane/views.rs:279
+#: crates/rolid-ui/src/pane/views.rs:302
 msgctxt "verb"
 msgid "Open"
 msgstr "Ouvrir"
@@ -2193,8 +2193,8 @@ msgid "Upload"
 msgstr "Envoyer"
 
 #: crates/rolid-ui/src/app/drop_ui.rs:570
-#: crates/rolid-ui/src/app.rs:2675
-#: crates/rolid-ui/src/app.rs:2724
+#: crates/rolid-ui/src/app.rs:2692
+#: crates/rolid-ui/src/app.rs:2741
 msgctxt "verb"
 msgid "Copy"
 msgstr "Copier"
@@ -2222,7 +2222,7 @@ msgstr "Transfert volumineux (plus de {files} fichiers ou {size})."
 #: crates/rolid-ui/src/app/drop_ui.rs:593
 #: crates/rolid-ui/src/app/rename_ui.rs:386
 #: crates/rolid-ui/src/app/unpack_ui.rs:527
-#: crates/rolid-ui/src/app.rs:2695
+#: crates/rolid-ui/src/app.rs:2712
 msgid "Existing files"
 msgstr "Fichiers existants"
 
@@ -2245,7 +2245,7 @@ msgid "Upload to production"
 msgstr "Envoyer en production"
 
 #: crates/rolid-ui/src/app/drop_ui.rs:614
-#: crates/rolid-ui/src/app.rs:2724
+#: crates/rolid-ui/src/app.rs:2741
 msgid "Copy to production"
 msgstr "Copier en production"
 
@@ -2630,7 +2630,7 @@ msgstr "Abandonner les modifications"
 #: crates/rolid-ui/src/app/places.rs:150
 #: crates/rolid-ui/src/app/places.rs:166
 #: crates/rolid-ui/src/app/vault_ui.rs:777
-#: crates/rolid-ui/src/app/view_ui.rs:347
+#: crates/rolid-ui/src/app/view_ui.rs:350
 msgid "Back"
 msgstr "Précédent"
 
@@ -2676,7 +2676,7 @@ msgstr "Un éditeur en mode terminal uniquement via un terminal, p. ex. : x-ter
 
 #: crates/rolid-ui/src/app/edit_ui.rs:1743
 #: crates/rolid-ui/src/app/places.rs:147
-#: crates/rolid-ui/src/app/view_ui.rs:658
+#: crates/rolid-ui/src/app/view_ui.rs:661
 msgid "Save"
 msgstr "Enregistrer"
 
@@ -2690,14 +2690,14 @@ msgstr "Dossier sur {disk} :"
 
 #: crates/rolid-ui/src/app/folder_pick.rs:126
 #: crates/rolid-ui/src/pane/navbar.rs:394
-#: crates/rolid-ui/src/pane.rs:1387
+#: crates/rolid-ui/src/pane.rs:1403
 msgid "Up one level (Backspace)"
 msgstr "Niveau supérieur (Backspace)"
 
 #: crates/rolid-ui/src/app/folder_pick.rs:139
 #: crates/rolid-ui/src/app/viewer/text.rs:450
 #: crates/rolid-ui/src/app/viewer/text.rs:741
-#: crates/rolid-ui/src/pane.rs:1686
+#: crates/rolid-ui/src/pane.rs:1704
 msgid "Loading…"
 msgstr "Chargement…"
 
@@ -2710,7 +2710,7 @@ msgid "Double-click or → opens a folder, Backspace goes up."
 msgstr "Double-clic ou → ouvre un dossier, Retour arrière remonte d'un niveau."
 
 #: crates/rolid-ui/src/app/folder_pick.rs:182
-#: crates/rolid-ui/src/app/view_ui.rs:442
+#: crates/rolid-ui/src/app/view_ui.rs:445
 msgid "Select"
 msgstr "Sélectionner"
 
@@ -2750,8 +2750,8 @@ msgstr "Saisir les identifiants…"
 #: crates/rolid-ui/src/app/link_ui.rs:325
 #: crates/rolid-ui/src/app/viewer/text/find.rs:241
 #: crates/rolid-ui/src/app/viewer/text.rs:479
-#: crates/rolid-ui/src/app.rs:2409
-#: crates/rolid-ui/src/dialog.rs:309
+#: crates/rolid-ui/src/app.rs:2426
+#: crates/rolid-ui/src/dialog.rs:311
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -2803,29 +2803,29 @@ msgid "Open with…"
 msgstr "Ouvrir avec…"
 
 #: crates/rolid-ui/src/app/menu.rs:102
-#: crates/rolid-ui/src/pane/views.rs:290
+#: crates/rolid-ui/src/pane/views.rs:313
 msgctxt "verb"
 msgid "View"
 msgstr "Afficher"
 
 #: crates/rolid-ui/src/app/menu.rs:105
-#: crates/rolid-ui/src/pane/views.rs:291
+#: crates/rolid-ui/src/pane/views.rs:314
 msgid "Edit in external editor"
 msgstr "Modifier dans l'éditeur externe"
 
 #: crates/rolid-ui/src/app/menu.rs:109
-#: crates/rolid-ui/src/pane/views.rs:292
-#: crates/rolid-ui/src/pane/views.rs:342
+#: crates/rolid-ui/src/pane/views.rs:315
+#: crates/rolid-ui/src/pane/views.rs:365
 msgid "New file…"
 msgstr "Nouveau fichier…"
 
 #: crates/rolid-ui/src/app/menu.rs:114
-#: crates/rolid-ui/src/pane/views.rs:294
+#: crates/rolid-ui/src/pane/views.rs:317
 msgid "Copy to other panel"
 msgstr "Copier vers l'autre panneau"
 
 #: crates/rolid-ui/src/app/menu.rs:117
-#: crates/rolid-ui/src/pane/views.rs:295
+#: crates/rolid-ui/src/pane/views.rs:318
 msgid "Move to other panel"
 msgstr "Déplacer vers l'autre panneau"
 
@@ -2833,71 +2833,71 @@ msgstr "Déplacer vers l'autre panneau"
 #: crates/rolid-ui/src/app/places.rs:189
 #: crates/rolid-ui/src/app/rename_ui.rs:187
 #: crates/rolid-ui/src/app/rename_ui.rs:195
-#: crates/rolid-ui/src/pane/views.rs:296
+#: crates/rolid-ui/src/pane/views.rs:319
 msgid "Rename"
 msgstr "Renommer"
 
 #: crates/rolid-ui/src/app/menu.rs:127
-#: crates/rolid-ui/src/app.rs:2741
-#: crates/rolid-ui/src/pane/views.rs:343
+#: crates/rolid-ui/src/app.rs:2758
+#: crates/rolid-ui/src/pane/views.rs:366
 msgid "New folder"
 msgstr "Nouveau dossier"
 
 #: crates/rolid-ui/src/app/menu.rs:132
 #: crates/rolid-ui/src/app/session.rs:909
-#: crates/rolid-ui/src/pane/views.rs:297
+#: crates/rolid-ui/src/pane/views.rs:320
 msgid "Delete"
 msgstr "Supprimer"
 
 #: crates/rolid-ui/src/app/menu.rs:135
-#: crates/rolid-ui/src/pane/views.rs:298
+#: crates/rolid-ui/src/pane/views.rs:321
 msgid "Permissions…"
 msgstr "Permissions…"
 
 #: crates/rolid-ui/src/app/menu.rs:139
-#: crates/rolid-ui/src/pane/views.rs:300
+#: crates/rolid-ui/src/pane/views.rs:323
 msgid "Pack…"
 msgstr "Compresser…"
 
 #: crates/rolid-ui/src/app/menu.rs:142
-#: crates/rolid-ui/src/pane/views.rs:301
+#: crates/rolid-ui/src/pane/views.rs:324
 msgid "Extract…"
 msgstr "Extraire…"
 
 #: crates/rolid-ui/src/app/menu.rs:145
 #: crates/rolid-ui/src/app/unpack_ui.rs:837
 #: crates/rolid-ui/src/app/unpack_ui.rs:860
-#: crates/rolid-ui/src/pane/views.rs:302
+#: crates/rolid-ui/src/pane/views.rs:325
 msgid "Test archive"
 msgstr "Tester l'archive"
 
 #: crates/rolid-ui/src/app/menu.rs:149
-#: crates/rolid-ui/src/pane/views.rs:305
+#: crates/rolid-ui/src/pane/views.rs:328
 msgid "Calculate size of all folders"
 msgstr "Calculer la taille de tous les dossiers"
 
 #: crates/rolid-ui/src/app/menu.rs:152
-#: crates/rolid-ui/src/pane/views.rs:304
+#: crates/rolid-ui/src/pane/views.rs:327
 msgid "Calculate size of selected folders"
 msgstr "Calculer la taille des dossiers sélectionnés"
 
 #: crates/rolid-ui/src/app/menu.rs:155
-#: crates/rolid-ui/src/pane/views.rs:306
+#: crates/rolid-ui/src/pane/views.rs:329
 msgid "Calculate checksums…"
 msgstr "Calculer les sommes de contrôle…"
 
 #: crates/rolid-ui/src/app/menu.rs:162
-#: crates/rolid-ui/src/pane/views.rs:308
+#: crates/rolid-ui/src/pane/views.rs:331
 msgid "Copy name"
 msgstr "Copier le nom"
 
 #: crates/rolid-ui/src/app/menu.rs:163
-#: crates/rolid-ui/src/pane/views.rs:309
+#: crates/rolid-ui/src/pane/views.rs:332
 msgid "Copy full path"
 msgstr "Copier le chemin complet"
 
 #: crates/rolid-ui/src/app/menu.rs:164
-#: crates/rolid-ui/src/pane/views.rs:310
+#: crates/rolid-ui/src/pane/views.rs:333
 msgid "Copy as sftp://…"
 msgstr "Copier en sftp://…"
 
@@ -3016,13 +3016,13 @@ msgid "View"
 msgstr "Affichage"
 
 #: crates/rolid-ui/src/app/menu.rs:275
-#: crates/rolid-ui/src/app/view_ui.rs:334
-#: crates/rolid-ui/src/pane/views.rs:345
+#: crates/rolid-ui/src/app/view_ui.rs:337
+#: crates/rolid-ui/src/pane/views.rs:368
 msgid "Refresh"
 msgstr "Actualiser"
 
 #: crates/rolid-ui/src/app/menu.rs:291
-#: crates/rolid-ui/src/app/view_ui.rs:350
+#: crates/rolid-ui/src/app/view_ui.rs:353
 msgid "Forward"
 msgstr "Suivant"
 
@@ -3036,7 +3036,7 @@ msgstr "Dossier racine"
 
 #: crates/rolid-ui/src/app/menu.rs:300
 #: crates/rolid-ui/src/app/places.rs:313
-#: crates/rolid-ui/src/pane.rs:1391
+#: crates/rolid-ui/src/pane.rs:1407
 msgid "Home folder"
 msgstr "Dossier personnel"
 
@@ -3144,7 +3144,7 @@ msgid "Files being edited ({count})…"
 msgstr "Fichiers en cours de modification ({count})…"
 
 #: crates/rolid-ui/src/app/menu.rs:402
-#: crates/rolid-ui/src/pane/views.rs:347
+#: crates/rolid-ui/src/pane/views.rs:370
 msgid "Open terminal here"
 msgstr "Ouvrir un terminal ici"
 
@@ -3161,7 +3161,7 @@ msgid "Open folder in right panel"
 msgstr "Ouvrir le dossier dans le panneau droit"
 
 #: crates/rolid-ui/src/app/menu.rs:419
-#: crates/rolid-ui/src/app/view_ui.rs:354
+#: crates/rolid-ui/src/app/view_ui.rs:357
 msgid "Select group…"
 msgstr "Sélectionner un groupe…"
 
@@ -3170,7 +3170,7 @@ msgid "Deselect group…"
 msgstr "Désélectionner un groupe…"
 
 #: crates/rolid-ui/src/app/menu.rs:425
-#: crates/rolid-ui/src/app/view_ui.rs:360
+#: crates/rolid-ui/src/app/view_ui.rs:363
 msgid "Invert selection"
 msgstr "Inverser la sélection"
 
@@ -3503,7 +3503,7 @@ msgid "tab color, Rename tab"
 msgstr "couleur de l'onglet, Renommer l'onglet"
 
 #: crates/rolid-ui/src/app/menu.rs:617
-#: crates/rolid-ui/src/app/view_ui.rs:607
+#: crates/rolid-ui/src/app/view_ui.rs:610
 msgid "Viewer (F3)"
 msgstr "Visionneuse (F3)"
 
@@ -3927,14 +3927,14 @@ msgid "{host}:{port} (not connected)"
 msgstr "{host}:{port} (non connecté)"
 
 #: crates/rolid-ui/src/app/places.rs:729
-#: crates/rolid-ui/src/pane.rs:1511
+#: crates/rolid-ui/src/pane.rs:1527
 msgid "connecting…"
 msgstr "connexion…"
 
 #: crates/rolid-ui/src/app/places.rs:731
 #: crates/rolid-ui/src/app/places.rs:735
 #: crates/rolid-ui/src/app/session.rs:29
-#: crates/rolid-ui/src/pane.rs:1513
+#: crates/rolid-ui/src/pane.rs:1529
 msgid "not connected"
 msgstr "non connecté"
 
@@ -3972,7 +3972,7 @@ msgstr "Changer la couleur"
 
 #: crates/rolid-ui/src/app/places.rs:768
 #: crates/rolid-ui/src/app/viewer/mod.rs:497
-#: crates/rolid-ui/src/dialog.rs:314
+#: crates/rolid-ui/src/dialog.rs:316
 msgid "Close"
 msgstr "Fermer"
 
@@ -4062,7 +4062,7 @@ msgid "On the same disk or server the items are only renamed. Otherwise they are
 msgstr "Sur le même disque ou serveur, les éléments sont seulement renommés. Sinon, ils sont copiés via la file de transferts et la source n'est supprimée qu'après une fin réussie (un fichier dont la taille diffère dans la cible est conservé)."
 
 #: crates/rolid-ui/src/app/rename_ui.rs:350
-#: crates/rolid-ui/src/app.rs:2687
+#: crates/rolid-ui/src/app.rs:2704
 msgid "Browse…"
 msgstr "Parcourir…"
 
@@ -4084,7 +4084,7 @@ msgstr "⚠ La cible est un serveur de PRODUCTION."
 
 #: crates/rolid-ui/src/app/rename_ui.rs:391
 #: crates/rolid-ui/src/app/unpack_ui.rs:532
-#: crates/rolid-ui/src/app.rs:2700
+#: crates/rolid-ui/src/app.rs:2717
 msgid "⚠ {n} item already exists in the target. What to do with existing files?"
 msgid_plural "⚠ {n} items already exist in the target. What to do with existing files?"
 msgstr[0] "⚠ {n} élément existe déjà dans la cible. Que faire des fichiers existants ?"
@@ -4163,7 +4163,7 @@ msgid "Search: {error}"
 msgstr "Recherche : {error}"
 
 #: crates/rolid-ui/src/app/search.rs:268
-#: crates/rolid-ui/src/app/view_ui.rs:368
+#: crates/rolid-ui/src/app/view_ui.rs:371
 msgid "Find files"
 msgstr "Rechercher des fichiers"
 
@@ -4550,7 +4550,7 @@ msgstr "{what} ⇣ pour l'extraction"
 
 #: crates/rolid-ui/src/app/unpack_ui.rs:362
 #: crates/rolid-ui/src/app/unpack_ui.rs:567
-#: crates/rolid-ui/src/app/view_ui.rs:375
+#: crates/rolid-ui/src/app/view_ui.rs:378
 msgid "Extract"
 msgstr "Extraire"
 
@@ -4636,7 +4636,7 @@ msgid "Each archive into its own subfolder"
 msgstr "Chaque archive dans son propre sous-dossier"
 
 #: crates/rolid-ui/src/app/unpack_ui.rs:542
-#: crates/rolid-ui/src/app.rs:2913
+#: crates/rolid-ui/src/app.rs:2930
 msgid "Overwrite only older (by modification date)"
 msgstr "Écraser les plus anciens (selon la date de modification)"
 
@@ -4843,7 +4843,7 @@ msgid "Creating…"
 msgstr "Création…"
 
 #: crates/rolid-ui/src/app/vault_ui.rs:656
-#: crates/rolid-ui/src/app.rs:2754
+#: crates/rolid-ui/src/app.rs:2771
 msgid "Create"
 msgstr "Créer"
 
@@ -4931,259 +4931,259 @@ msgid "Full listing"
 msgstr "Vue détaillée"
 
 #: crates/rolid-ui/src/app/view_ui.rs:92
-#: crates/rolid-ui/src/app/view_ui.rs:576
+#: crates/rolid-ui/src/app/view_ui.rs:579
 msgid "Thumbnails"
 msgstr "Miniatures"
 
-#: crates/rolid-ui/src/app/view_ui.rs:337
-#: crates/rolid-ui/src/app/view_ui.rs:455
+#: crates/rolid-ui/src/app/view_ui.rs:340
+#: crates/rolid-ui/src/app/view_ui.rs:458
 msgid "Settings"
 msgstr "Paramètres"
 
-#: crates/rolid-ui/src/app/view_ui.rs:357
+#: crates/rolid-ui/src/app/view_ui.rs:360
 msgid "Unselect group…"
 msgstr "Désélectionner un groupe…"
 
-#: crates/rolid-ui/src/app/view_ui.rs:364
+#: crates/rolid-ui/src/app/view_ui.rs:367
 msgid "Servers (server manager)"
 msgstr "Serveurs (gestionnaire de serveurs)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:378
+#: crates/rolid-ui/src/app/view_ui.rs:381
 msgid "Calculate the size of all folders"
 msgstr "Calculer la taille de tous les dossiers"
 
-#: crates/rolid-ui/src/app/view_ui.rs:382
+#: crates/rolid-ui/src/app/view_ui.rs:385
 msgid "Copy paths to clipboard"
 msgstr "Copier les chemins dans le presse-papiers"
 
-#: crates/rolid-ui/src/app/view_ui.rs:403
+#: crates/rolid-ui/src/app/view_ui.rs:406
 msgid "Select group"
 msgstr "Sélectionner un groupe"
 
-#: crates/rolid-ui/src/app/view_ui.rs:403
+#: crates/rolid-ui/src/app/view_ui.rs:406
 msgid "Unselect group"
 msgstr "Désélectionner un groupe"
 
-#: crates/rolid-ui/src/app/view_ui.rs:406
+#: crates/rolid-ui/src/app/view_ui.rs:409
 msgid "Mask:"
 msgstr "Masque :"
 
-#: crates/rolid-ui/src/app/view_ui.rs:415
+#: crates/rolid-ui/src/app/view_ui.rs:418
 msgid "Recent"
 msgstr "Récents"
 
-#: crates/rolid-ui/src/app/view_ui.rs:428
+#: crates/rolid-ui/src/app/view_ui.rs:431
 msgid "Separate several masks with a semicolon, e.g. *.jpg;*.png."
 msgstr "Séparez plusieurs masques par un point-virgule, par ex. *.jpg;*.png."
 
-#: crates/rolid-ui/src/app/view_ui.rs:429
+#: crates/rolid-ui/src/app/view_ui.rs:432
 msgid "* = any characters, ? = one character; case does not matter."
 msgstr "* = n'importe quels caractères, ? = un caractère ; la casse n'a pas d'importance."
 
-#: crates/rolid-ui/src/app/view_ui.rs:436
+#: crates/rolid-ui/src/app/view_ui.rs:439
 msgid "On a production server this always starts off; your choice here is not remembered."
 msgstr "Sur un serveur de production, l’option est toujours désactivée au départ ; votre choix ici n’est pas mémorisé."
 
-#: crates/rolid-ui/src/app/view_ui.rs:438
+#: crates/rolid-ui/src/app/view_ui.rs:441
 msgid "Remembered for the next time. The default is set in Settings → Selecting by mask includes folders too."
 msgstr "Mémorisé pour la prochaine fois. La valeur par défaut se règle dans Paramètres → La sélection par masque inclut aussi les dossiers."
 
-#: crates/rolid-ui/src/app/view_ui.rs:440
+#: crates/rolid-ui/src/app/view_ui.rs:443
 msgid "Include folders"
 msgstr "Inclure les dossiers"
 
-#: crates/rolid-ui/src/app/view_ui.rs:442
+#: crates/rolid-ui/src/app/view_ui.rs:445
 msgid "Unselect"
 msgstr "Désélectionner"
 
-#: crates/rolid-ui/src/app/view_ui.rs:458
+#: crates/rolid-ui/src/app/view_ui.rs:461
 msgid "Language"
 msgstr "Langue"
 
-#: crates/rolid-ui/src/app/view_ui.rs:461
+#: crates/rolid-ui/src/app/view_ui.rs:464
 msgid "Language:"
 msgstr "Langue :"
 
-#: crates/rolid-ui/src/app/view_ui.rs:463
+#: crates/rolid-ui/src/app/view_ui.rs:466
 msgid "Automatic (from the system)"
 msgstr "Automatique (selon le système)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:472
+#: crates/rolid-ui/src/app/view_ui.rs:475
 msgid "The language changes at once. Your own translations: {dir}/<language>.po"
 msgstr "La langue change immédiatement. Vos propres traductions : {dir}/<langue>.po"
 
-#: crates/rolid-ui/src/app/view_ui.rs:475
+#: crates/rolid-ui/src/app/view_ui.rs:478
 msgid "Date format:"
 msgstr "Format de date :"
 
-#: crates/rolid-ui/src/app/view_ui.rs:477
+#: crates/rolid-ui/src/app/view_ui.rs:480
 msgid "By language"
 msgstr "Selon la langue"
 
-#: crates/rolid-ui/src/app/view_ui.rs:478
+#: crates/rolid-ui/src/app/view_ui.rs:481
 msgid "ISO (2026-11-08 21:08)"
 msgstr "ISO (2026-11-08 21:08)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:483
+#: crates/rolid-ui/src/app/view_ui.rs:486
 msgid "Font"
 msgstr "Police"
 
-#: crates/rolid-ui/src/app/view_ui.rs:486
+#: crates/rolid-ui/src/app/view_ui.rs:489
 msgid "Font:"
 msgstr "Police :"
 
-#: crates/rolid-ui/src/app/view_ui.rs:488
+#: crates/rolid-ui/src/app/view_ui.rs:491
 msgid "Built-in ({font})"
 msgstr "Intégrée ({font})"
 
-#: crates/rolid-ui/src/app/view_ui.rs:489
+#: crates/rolid-ui/src/app/view_ui.rs:492
 msgid "System (fontconfig)"
 msgstr "Système (fontconfig)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:492
+#: crates/rolid-ui/src/app/view_ui.rs:495
 msgid "Font name:"
 msgstr "Nom de la police :"
 
-#: crates/rolid-ui/src/app/view_ui.rs:496
+#: crates/rolid-ui/src/app/view_ui.rs:499
 msgid "empty = default sans-serif"
 msgstr "vide = sans-serif par défaut"
 
-#: crates/rolid-ui/src/app/view_ui.rs:500
+#: crates/rolid-ui/src/app/view_ui.rs:503
 msgid "Text size in the list:"
 msgstr "Taille du texte dans la liste :"
 
-#: crates/rolid-ui/src/app/view_ui.rs:510
+#: crates/rolid-ui/src/app/view_ui.rs:513
 msgid "points (default {size})"
 msgstr "points (par défaut {size})"
 
-#: crates/rolid-ui/src/app/view_ui.rs:513
+#: crates/rolid-ui/src/app/view_ui.rs:516
 msgid "Hinting (sharpness):"
 msgstr "Hinting (netteté) :"
 
-#: crates/rolid-ui/src/app/view_ui.rs:520
+#: crates/rolid-ui/src/app/view_ui.rs:523
 msgid "How strongly the letter shapes snap to the pixel grid. Strong (default) = vertical strokes on whole pixels, the sharpest; medium = following the font's instructions (vertical only); off = shapes exactly as the font was designed, but softer."
 msgstr "Degré d'alignement des formes des lettres sur la grille de pixels. Fort (par défaut) = traits verticaux sur des pixels entiers, le plus net ; moyen = selon les instructions de la police (vertical uniquement) ; désactivé = formes exactement telles que la police a été dessinée, mais plus douces."
 
-#: crates/rolid-ui/src/app/view_ui.rs:528
+#: crates/rolid-ui/src/app/view_ui.rs:531
 msgid "Font contrast:"
 msgstr "Contraste de la police :"
 
-#: crates/rolid-ui/src/app/view_ui.rs:535
+#: crates/rolid-ui/src/app/view_ui.rs:538
 msgid "How dark the edges of the letters are drawn (how light in the dark theme). Higher (default) balances the thinner strokes of strong hinting; highest = the font looks bolder."
 msgstr "Degré d'assombrissement des bords des lettres (d'éclaircissement dans le thème sombre). Élevé (par défaut) compense les traits plus fins du hinting fort ; maximal = la police paraît plus grasse."
 
-#: crates/rolid-ui/src/app/view_ui.rs:543
+#: crates/rolid-ui/src/app/view_ui.rs:546
 msgid "Now: {font}"
 msgstr "Actuelle : {font}"
 
-#: crates/rolid-ui/src/app/view_ui.rs:545
+#: crates/rolid-ui/src/app/view_ui.rs:548
 msgid "View"
 msgstr "Affichage"
 
-#: crates/rolid-ui/src/app/view_ui.rs:547
+#: crates/rolid-ui/src/app/view_ui.rs:550
 msgid "Toolbar under the menu"
 msgstr "Barre d'outils sous le menu"
 
-#: crates/rolid-ui/src/app/view_ui.rs:548
+#: crates/rolid-ui/src/app/view_ui.rs:551
 msgid "Folders in [square brackets] (full and brief listing)"
 msgstr "Dossiers entre [crochets] (vue détaillée et courte)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:549
+#: crates/rolid-ui/src/app/view_ui.rs:552
 msgid "Selecting by mask includes folders too (also Invert selection)"
 msgstr "La sélection par masque inclut aussi les dossiers (de même Inverser la sélection)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:551
+#: crates/rolid-ui/src/app/view_ui.rs:554
 msgid "Name colors by file type"
 msgstr "Couleurs des noms selon le type de fichier"
 
-#: crates/rolid-ui/src/app/view_ui.rs:552
+#: crates/rolid-ui/src/app/view_ui.rs:555
 msgid "The colors apply to the light theme; the dark theme uses lighter shades."
 msgstr "Les couleurs s'appliquent au thème clair ; le thème sombre utilise des nuances plus claires."
 
-#: crates/rolid-ui/src/app/view_ui.rs:567
+#: crates/rolid-ui/src/app/view_ui.rs:570
 msgid "Default colors"
 msgstr "Couleurs par défaut"
 
-#: crates/rolid-ui/src/app/view_ui.rs:579
+#: crates/rolid-ui/src/app/view_ui.rs:582
 msgctxt "setting"
 msgid "Size:"
 msgstr "Taille :"
 
-#: crates/rolid-ui/src/app/view_ui.rs:588
+#: crates/rolid-ui/src/app/view_ui.rs:591
 msgid "Image previews on servers too"
 msgstr "Aperçus d'images aussi sur les serveurs"
 
-#: crates/rolid-ui/src/app/view_ui.rs:591
+#: crates/rolid-ui/src/app/view_ui.rs:594
 msgid "At most 2 previews are downloaded from a server at the same time; images larger than {px} px are not processed."
 msgstr "Au plus 2 aperçus sont téléchargés simultanément depuis un serveur ; les images de plus de {px} px ne sont pas traitées."
 
-#: crates/rolid-ui/src/app/view_ui.rs:596
+#: crates/rolid-ui/src/app/view_ui.rs:599
 msgid "Download only files up to"
 msgstr "Télécharger uniquement les fichiers jusqu'à"
 
-#: crates/rolid-ui/src/app/view_ui.rs:598
+#: crates/rolid-ui/src/app/view_ui.rs:601
 msgctxt "unit"
 msgid "KiB"
 msgstr "Kio"
 
-#: crates/rolid-ui/src/app/view_ui.rs:601
+#: crates/rolid-ui/src/app/view_ui.rs:604
 msgid "Enter a number from {lo} to {hi}."
 msgstr "Saisissez un nombre de {lo} à {hi}."
 
-#: crates/rolid-ui/src/app/view_ui.rs:603
+#: crates/rolid-ui/src/app/view_ui.rs:606
 msgid "Also on production servers"
 msgstr "Aussi sur les serveurs de production"
 
-#: crates/rolid-ui/src/app/view_ui.rs:605
+#: crates/rolid-ui/src/app/view_ui.rs:608
 msgid "Previews in memory: {size} (at most 48 MB)."
 msgstr "Aperçus en mémoire : {size} (au plus 48 Mo)."
 
-#: crates/rolid-ui/src/app/view_ui.rs:609
+#: crates/rolid-ui/src/app/view_ui.rs:612
 msgid "Syntax highlighting"
 msgstr "Coloration syntaxique"
 
-#: crates/rolid-ui/src/app/view_ui.rs:611
+#: crates/rolid-ui/src/app/view_ui.rs:614
 msgid "Highlight files up to"
 msgstr "Colorer les fichiers jusqu'à"
 
-#: crates/rolid-ui/src/app/view_ui.rs:611
+#: crates/rolid-ui/src/app/view_ui.rs:614
 msgid "Download images from a server up to"
 msgstr "Télécharger les images d'un serveur jusqu'à"
 
-#: crates/rolid-ui/src/app/view_ui.rs:619
-#: crates/rolid-ui/src/app/view_ui.rs:647
+#: crates/rolid-ui/src/app/view_ui.rs:622
+#: crates/rolid-ui/src/app/view_ui.rs:650
 msgid "number {lo} to {hi}"
 msgstr "nombre de {lo} à {hi}"
 
-#: crates/rolid-ui/src/app/view_ui.rs:626
+#: crates/rolid-ui/src/app/view_ui.rs:629
 msgid "Archives"
 msgstr "Archives"
 
-#: crates/rolid-ui/src/app/view_ui.rs:628
+#: crates/rolid-ui/src/app/view_ui.rs:631
 msgid "(default {threads} = number of cores − 1)"
 msgstr "(par défaut {threads} = nombre de cœurs − 1)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:631
+#: crates/rolid-ui/src/app/view_ui.rs:634
 msgid "Extract at most"
 msgstr "Extraire au plus"
 
-#: crates/rolid-ui/src/app/view_ui.rs:631
+#: crates/rolid-ui/src/app/view_ui.rs:634
 msgid "GB (and always leave 1 GB free)"
 msgstr "Go (et toujours laisser 1 Go libre)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:632
+#: crates/rolid-ui/src/app/view_ui.rs:635
 msgid "At most items in an archive"
 msgstr "Nombre maximal d'éléments dans une archive"
 
-#: crates/rolid-ui/src/app/view_ui.rs:633
+#: crates/rolid-ui/src/app/view_ui.rs:636
 msgid "Ask at a compression ratio above"
 msgstr "Demander si le taux de compression dépasse"
 
-#: crates/rolid-ui/src/app/view_ui.rs:634
+#: crates/rolid-ui/src/app/view_ui.rs:637
 msgid "Download and open a remote archive up to"
 msgstr "Télécharger et ouvrir une archive distante jusqu'à"
 
-#: crates/rolid-ui/src/app/view_ui.rs:635
+#: crates/rolid-ui/src/app/view_ui.rs:638
 msgid "Number of compression threads"
 msgstr "Nombre de threads de compression"
 
@@ -5370,7 +5370,7 @@ msgid "The file cannot be read: {error}"
 msgstr "Impossible de lire le fichier : {error}"
 
 #: crates/rolid-ui/src/app/viewer/mod.rs:661
-#: crates/rolid-ui/src/app.rs:2422
+#: crates/rolid-ui/src/app.rs:2439
 msgid "Try again"
 msgstr "Réessayer"
 
@@ -5554,7 +5554,7 @@ msgid "The server has no usable grep for this search, so the file is read here."
 msgstr "Le serveur n'a pas de grep utilisable pour cette recherche : le fichier est donc lu ici."
 
 #: crates/rolid-ui/src/app/viewer/text/find.rs:259
-#: crates/rolid-ui/src/dialog.rs:164
+#: crates/rolid-ui/src/dialog.rs:166
 msgid "Close (Esc)"
 msgstr "Fermer (Esc)"
 
@@ -5628,9 +5628,9 @@ msgstr[0] "{n} transfert inachevé (.filepart) dans la cible n’a pas été rep
 msgstr[1] "{n} transferts inachevés (.filepart) dans la cible n’ont pas été repris : impossible de confirmer qu’ils appartiennent aux mêmes fichiers source (chemin, taille, date). Ils n’ont pas été touchés. Pour recommencer, copiez à nouveau avec « Écraser »."
 
 #: crates/rolid-ui/src/app.rs:1547
-#: crates/rolid-ui/src/app.rs:2852
-#: crates/rolid-ui/src/app.rs:2862
-#: crates/rolid-ui/src/app.rs:2881
+#: crates/rolid-ui/src/app.rs:2869
+#: crates/rolid-ui/src/app.rs:2879
+#: crates/rolid-ui/src/app.rs:2898
 msgid "E.g. {path}"
 msgstr "P. ex. {path}"
 
@@ -5644,269 +5644,269 @@ msgid_plural "{n} items deleted"
 msgstr[0] "{n} élément supprimé"
 msgstr[1] "{n} éléments supprimés"
 
-#: crates/rolid-ui/src/app.rs:1965
+#: crates/rolid-ui/src/app.rs:1982
 msgid "Cannot create a folder in search results."
 msgstr "Impossible de créer un dossier dans les résultats de recherche."
 
-#: crates/rolid-ui/src/app.rs:1968
+#: crates/rolid-ui/src/app.rs:1985
 msgid "Cannot create a folder in an archive"
 msgstr "Impossible de créer un dossier dans une archive"
 
-#: crates/rolid-ui/src/app.rs:1982
+#: crates/rolid-ui/src/app.rs:1999
 msgid "Cannot delete from an archive"
 msgstr "Impossible de supprimer dans une archive"
 
-#: crates/rolid-ui/src/app.rs:2150
+#: crates/rolid-ui/src/app.rs:2167
 msgid "New tab: home folder, favorites, servers, recent places (Ctrl+T)"
 msgstr "Nouvel onglet : dossier personnel, favoris, serveurs, emplacements récents (Ctrl+T)"
 
-#: crates/rolid-ui/src/app.rs:2312
+#: crates/rolid-ui/src/app.rs:2329
 msgid "F4 = edit another file · click = list of edits"
 msgstr "F4 = modifier un autre fichier · clic = liste des modifications"
 
-#: crates/rolid-ui/src/app.rs:2322
+#: crates/rolid-ui/src/app.rs:2339
 msgid "Transfers: {count}"
 msgstr "Transferts : {count}"
 
-#: crates/rolid-ui/src/app.rs:2324
+#: crates/rolid-ui/src/app.rs:2341
 msgid "Max. speed:"
 msgstr "Vitesse max. :"
 
-#: crates/rolid-ui/src/app.rs:2373
+#: crates/rolid-ui/src/app.rs:2390
 msgid "{done} of {n} item"
 msgid_plural "{done} of {n} items"
 msgstr[0] "{done} sur {n} élément"
 msgstr[1] "{done} sur {n} éléments"
 
-#: crates/rolid-ui/src/app.rs:2375
+#: crates/rolid-ui/src/app.rs:2392
 msgid "⏳ waiting in the queue"
 msgstr "⏳ en attente dans la file"
 
-#: crates/rolid-ui/src/app.rs:2378
+#: crates/rolid-ui/src/app.rs:2395
 msgid "archive read {done} of {total}"
 msgstr "archive lue {done} sur {total}"
 
-#: crates/rolid-ui/src/app.rs:2385
+#: crates/rolid-ui/src/app.rs:2402
 msgid "{size}/s"
 msgstr "{size}/s"
 
-#: crates/rolid-ui/src/app.rs:2386
+#: crates/rolid-ui/src/app.rs:2403
 msgid "speed: measuring"
 msgstr "vitesse : mesure en cours"
 
-#: crates/rolid-ui/src/app.rs:2393
+#: crates/rolid-ui/src/app.rs:2410
 msgid "{n} skipped"
 msgid_plural "{n} skipped"
 msgstr[0] "{n} ignoré"
 msgstr[1] "{n} ignorés"
 
-#: crates/rolid-ui/src/app.rs:2420
+#: crates/rolid-ui/src/app.rs:2437
 msgid "⚠ Transfer {name} failed:"
 msgstr "⚠ Échec du transfert {name} :"
 
-#: crates/rolid-ui/src/app.rs:2422
+#: crates/rolid-ui/src/app.rs:2439
 msgid "Continues where the transfer stopped"
 msgstr "Reprend là où le transfert s'est arrêté"
 
-#: crates/rolid-ui/src/app.rs:2459
+#: crates/rolid-ui/src/app.rs:2476
 msgctxt "key bar"
 msgid "Help"
 msgstr "Aide"
 
-#: crates/rolid-ui/src/app.rs:2460
+#: crates/rolid-ui/src/app.rs:2477
 msgctxt "key bar"
 msgid "Rename"
 msgstr "Renommer"
 
-#: crates/rolid-ui/src/app.rs:2461
+#: crates/rolid-ui/src/app.rs:2478
 msgctxt "key bar"
 msgid "View"
 msgstr "Afficher"
 
-#: crates/rolid-ui/src/app.rs:2462
+#: crates/rolid-ui/src/app.rs:2479
 msgctxt "key bar"
 msgid "Edit"
 msgstr "Modifier"
 
-#: crates/rolid-ui/src/app.rs:2463
+#: crates/rolid-ui/src/app.rs:2480
 msgctxt "key bar"
 msgid "Copy"
 msgstr "Copier"
 
-#: crates/rolid-ui/src/app.rs:2464
+#: crates/rolid-ui/src/app.rs:2481
 msgctxt "key bar"
 msgid "Move"
 msgstr "Déplacer"
 
-#: crates/rolid-ui/src/app.rs:2465
+#: crates/rolid-ui/src/app.rs:2482
 msgctxt "key bar"
 msgid "New folder"
 msgstr "Nouv. dossier"
 
-#: crates/rolid-ui/src/app.rs:2466
+#: crates/rolid-ui/src/app.rs:2483
 msgctxt "key bar"
 msgid "Delete"
 msgstr "Supprimer"
 
-#: crates/rolid-ui/src/app.rs:2467
+#: crates/rolid-ui/src/app.rs:2484
 msgctxt "key bar"
 msgid "Search"
 msgstr "Chercher"
 
-#: crates/rolid-ui/src/app.rs:2468
+#: crates/rolid-ui/src/app.rs:2485
 msgctxt "key bar"
 msgid "Servers"
 msgstr "Serveurs"
 
-#: crates/rolid-ui/src/app.rs:2469
+#: crates/rolid-ui/src/app.rs:2486
 msgctxt "key bar"
 msgid "Local"
 msgstr "Local"
 
-#: crates/rolid-ui/src/app.rs:2470
+#: crates/rolid-ui/src/app.rs:2487
 msgctxt "key bar"
 msgid "Tab"
 msgstr "Onglet"
 
-#: crates/rolid-ui/src/app.rs:2471
+#: crates/rolid-ui/src/app.rs:2488
 msgctxt "key bar"
 msgid "Refresh"
 msgstr "Actualiser"
 
-#: crates/rolid-ui/src/app.rs:2489
+#: crates/rolid-ui/src/app.rs:2506
 msgid "🔓 Passwords unlocked · {time}"
 msgstr "🔓 Mots de passe déverrouillés · {time}"
 
-#: crates/rolid-ui/src/app.rs:2490
+#: crates/rolid-ui/src/app.rs:2507
 msgid "Saved passwords are unlocked; they lock in {time} unless used again. Click to lock them now."
 msgstr "Les mots de passe enregistrés sont déverrouillés ; ils se verrouilleront dans {time} s'ils ne sont pas réutilisés. Cliquez pour les verrouiller maintenant."
 
-#: crates/rolid-ui/src/app.rs:2493
+#: crates/rolid-ui/src/app.rs:2510
 msgid "🔓 Passwords unlocked"
 msgstr "🔓 Mots de passe déverrouillés"
 
-#: crates/rolid-ui/src/app.rs:2493
+#: crates/rolid-ui/src/app.rs:2510
 msgid "Saved passwords are unlocked. Click to lock them."
 msgstr "Les mots de passe enregistrés sont déverrouillés. Cliquez pour les verrouiller."
 
-#: crates/rolid-ui/src/app.rs:2496
+#: crates/rolid-ui/src/app.rs:2513
 msgid "🔒 Passwords locked"
 msgstr "🔒 Mots de passe verrouillés"
 
-#: crates/rolid-ui/src/app.rs:2496
+#: crates/rolid-ui/src/app.rs:2513
 msgid "Saved passwords are locked. Click to unlock them."
 msgstr "Les mots de passe enregistrés sont verrouillés. Cliquez pour les déverrouiller."
 
-#: crates/rolid-ui/src/app.rs:2539
+#: crates/rolid-ui/src/app.rs:2556
 msgid "About and supporting the project"
 msgstr "À propos et soutien du projet"
 
-#: crates/rolid-ui/src/app.rs:2677
+#: crates/rolid-ui/src/app.rs:2694
 msgid "Copy “{name}” to {disk}:"
 msgstr "Copier « {name} » vers {disk} :"
 
-#: crates/rolid-ui/src/app.rs:2679
+#: crates/rolid-ui/src/app.rs:2696
 msgid "Copy {n} item to {disk}:"
 msgid_plural "Copy {n} items to {disk}:"
 msgstr[0] "Copier {n} élément vers {disk} :"
 msgstr[1] "Copier {n} éléments vers {disk} :"
 
-#: crates/rolid-ui/src/app.rs:2710
+#: crates/rolid-ui/src/app.rs:2727
 msgid "Transfer"
 msgstr "Transfert"
 
-#: crates/rolid-ui/src/app.rs:2713
+#: crates/rolid-ui/src/app.rs:2730
 msgid "Max. speed (all transfers together):"
 msgstr "Vitesse max. (tous les transferts ensemble) :"
 
-#: crates/rolid-ui/src/app.rs:2717
+#: crates/rolid-ui/src/app.rs:2734
 msgid "Files are written through a temporary .filepart that is renamed when finished."
 msgstr "Les fichiers sont écrits via un fichier temporaire .filepart renommé à la fin."
 
-#: crates/rolid-ui/src/app.rs:2719
+#: crates/rolid-ui/src/app.rs:2736
 msgid "Tip: a speed limit keeps a slow line from being flooded (e.g. the server's outgoing line)."
 msgstr "Astuce : une limite de vitesse évite de saturer une ligne lente (p. ex. la ligne sortante du serveur)."
 
-#: crates/rolid-ui/src/app.rs:2754
+#: crates/rolid-ui/src/app.rs:2771
 msgid "Create on production"
 msgstr "Créer en production"
 
-#: crates/rolid-ui/src/app.rs:2775
-#: crates/rolid-ui/src/app.rs:2794
+#: crates/rolid-ui/src/app.rs:2792
+#: crates/rolid-ui/src/app.rs:2811
 msgctxt "verb"
 msgid "Delete"
 msgstr "Supprimer"
 
-#: crates/rolid-ui/src/app.rs:2777
+#: crates/rolid-ui/src/app.rs:2794
 msgid "Permanently delete “{name}”? Folders are deleted with their contents."
 msgstr "Supprimer définitivement « {name} » ? Les dossiers sont supprimés avec leur contenu."
 
-#: crates/rolid-ui/src/app.rs:2778
+#: crates/rolid-ui/src/app.rs:2795
 msgid "Permanently delete “{name}” ON THE SERVER? Folders are deleted with their contents."
 msgstr "Supprimer définitivement « {name} » SUR LE SERVEUR ? Les dossiers sont supprimés avec leur contenu."
 
-#: crates/rolid-ui/src/app.rs:2779
+#: crates/rolid-ui/src/app.rs:2796
 msgid "Permanently delete {n} item? Folders are deleted with their contents."
 msgid_plural "Permanently delete {n} items? Folders are deleted with their contents."
 msgstr[0] "Supprimer définitivement {n} élément ? Les dossiers sont supprimés avec leur contenu."
 msgstr[1] "Supprimer définitivement {n} éléments ? Les dossiers sont supprimés avec leur contenu."
 
-#: crates/rolid-ui/src/app.rs:2784
+#: crates/rolid-ui/src/app.rs:2801
 msgid "Permanently delete {n} item ON THE SERVER? Folders are deleted with their contents."
 msgid_plural "Permanently delete {n} items ON THE SERVER? Folders are deleted with their contents."
 msgstr[0] "Supprimer définitivement {n} élément SUR LE SERVEUR ? Les dossiers sont supprimés avec leur contenu."
 msgstr[1] "Supprimer définitivement {n} éléments SUR LE SERVEUR ? Les dossiers sont supprimés avec leur contenu."
 
-#: crates/rolid-ui/src/app.rs:2794
+#: crates/rolid-ui/src/app.rs:2811
 msgid "Delete on production"
 msgstr "Supprimer en production"
 
-#: crates/rolid-ui/src/app.rs:2846
+#: crates/rolid-ui/src/app.rs:2863
 msgid "⚠ The copy of {n} file differs from the source (checksum): the source was NOT deleted. Check the copy in the target."
 msgid_plural "⚠ The copies of {n} files differ from the source (checksum): the sources were NOT deleted. Check the copies in the target."
 msgstr[0] "⚠ La copie de {n} fichier diffère de la source (somme de contrôle) : la source n’a PAS été supprimée. Vérifiez la copie dans la cible."
 msgstr[1] "⚠ Les copies de {n} fichiers diffèrent des sources (somme de contrôle) : les sources n’ont PAS été supprimées. Vérifiez les copies dans la cible."
 
-#: crates/rolid-ui/src/app.rs:2856
+#: crates/rolid-ui/src/app.rs:2873
 msgid "{n} file changed in the source while it was being moved (size or modification time): it stayed in the source, the target may hold an older version."
 msgid_plural "{n} files changed in the source while they were being moved (size or modification time): they stayed in the source, the target may hold older versions."
 msgstr[0] "{n} fichier a changé dans la source pendant son déplacement (taille ou date de modification) : il est resté dans la source, la cible peut contenir une version plus ancienne."
 msgstr[1] "{n} fichiers ont changé dans la source pendant leur déplacement (taille ou date de modification) : ils sont restés dans la source, la cible peut contenir des versions plus anciennes."
 
-#: crates/rolid-ui/src/app.rs:2867
+#: crates/rolid-ui/src/app.rs:2884
 msgid "The move finished, but {files} and {dirs} stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgstr "Le déplacement est terminé, mais {files} et {dirs} sont restés dans la source (ignorés selon le choix pour les fichiers existants, liens, ou fichiers modifiés pendant le déplacement)."
 
-#: crates/rolid-ui/src/app.rs:2870
-#: crates/rolid-ui/src/pane.rs:1943
+#: crates/rolid-ui/src/app.rs:2887
+#: crates/rolid-ui/src/pane.rs:1971
 msgid "{n} folder"
 msgid_plural "{n} folders"
 msgstr[0] "{n} dossier"
 msgstr[1] "{n} dossiers"
 
-#: crates/rolid-ui/src/app.rs:2873
+#: crates/rolid-ui/src/app.rs:2890
 msgid "The move finished, but {n} file stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgid_plural "The move finished, but {n} files stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgstr[0] "Le déplacement est terminé, mais {n} fichier est resté dans la source (ignoré selon le choix pour les fichiers existants, lien, ou fichier modifié pendant le déplacement)."
 msgstr[1] "Le déplacement est terminé, mais {n} fichiers sont restés dans la source (ignorés selon le choix pour les fichiers existants, liens, ou fichiers modifiés pendant le déplacement)."
 
-#: crates/rolid-ui/src/app.rs:2915
+#: crates/rolid-ui/src/app.rs:2932
 msgid "Resume an interrupted transfer (.filepart of the same source file)"
 msgstr "Reprendre un transfert interrompu (.filepart du même fichier source)"
 
-#: crates/rolid-ui/src/app.rs:2919
+#: crates/rolid-ui/src/app.rs:2936
 msgid "{choice}  ⚠ existing files will be overwritten"
 msgstr "{choice}  ⚠ les fichiers existants seront écrasés"
 
-#: crates/rolid-ui/src/app.rs:2928
+#: crates/rolid-ui/src/app.rs:2945
 msgid "Choose what to do with existing files: nothing is preselected."
 msgstr "Choisissez que faire des fichiers existants : rien n'est présélectionné."
 
-#: crates/rolid-ui/src/app.rs:3116
+#: crates/rolid-ui/src/app.rs:3133
 msgid "unlimited"
 msgstr "illimitée"
 
-#: crates/rolid-ui/src/app.rs:3155
+#: crates/rolid-ui/src/app.rs:3172
 msgid "Exact value (drag, or double-click and type)"
 msgstr "Valeur exacte (glisser, ou double-cliquer et saisir)"
 
@@ -5927,7 +5927,7 @@ msgstr "{path} : n'a pas pu être extrait"
 msgid "{path}: no such folder in the archive"
 msgstr "{path} : ce dossier n'existe pas dans l'archive"
 
-#: crates/rolid-ui/src/dialog.rs:423
+#: crates/rolid-ui/src/dialog.rs:427
 msgid "Recent targets"
 msgstr "Cibles récentes"
 
@@ -6073,7 +6073,7 @@ msgid "Refresh (Ctrl+R)"
 msgstr "Actualiser (Ctrl+R)"
 
 #: crates/rolid-ui/src/pane/navbar.rs:398
-#: crates/rolid-ui/src/pane.rs:1395
+#: crates/rolid-ui/src/pane.rs:1411
 msgid "Favorite and recent folders (Ctrl+D adds this folder)"
 msgstr "Dossiers favoris et récents (Ctrl+D ajoute ce dossier)"
 
@@ -6126,194 +6126,206 @@ msgid "(back to the folder)"
 msgstr "(retour au dossier)"
 
 #: crates/rolid-ui/src/pane/views.rs:190
-#: crates/rolid-ui/src/pane/views.rs:459
+#: crates/rolid-ui/src/pane/views.rs:483
 msgctxt "column"
 msgid "computing…"
 msgstr "calcul…"
 
 #: crates/rolid-ui/src/pane/views.rs:191
-#: crates/rolid-ui/src/pane/views.rs:461
+#: crates/rolid-ui/src/pane/views.rs:485
 msgctxt "column"
 msgid "<DIR>"
 msgstr "<REP>"
 
 #: crates/rolid-ui/src/pane/views.rs:194
-#: crates/rolid-ui/src/pane/views.rs:427
+#: crates/rolid-ui/src/pane/views.rs:451
 msgctxt "column"
 msgid "<UP>"
 msgstr "<HAUT>"
 
-#: crates/rolid-ui/src/pane/views.rs:281
+#: crates/rolid-ui/src/pane/views.rs:237
+msgid ".. (one level up)"
+msgstr ".. (un niveau plus haut)"
+
+#: crates/rolid-ui/src/pane/views.rs:240
+msgid "folder"
+msgstr "dossier"
+
+#: crates/rolid-ui/src/pane/views.rs:304
 msgid "Open with"
 msgstr "Ouvrir avec"
 
-#: crates/rolid-ui/src/pane/views.rs:313
+#: crates/rolid-ui/src/pane/views.rs:336
 msgid "Unmark"
 msgstr "Désélectionner"
 
-#: crates/rolid-ui/src/pane/views.rs:313
+#: crates/rolid-ui/src/pane/views.rs:336
 msgid "Mark"
 msgstr "Sélectionner"
 
-#: crates/rolid-ui/src/pane/views.rs:314
+#: crates/rolid-ui/src/pane/views.rs:337
 msgid "Insert / Ctrl+click"
 msgstr "Insert / Ctrl+clic"
 
-#: crates/rolid-ui/src/pane/views.rs:346
+#: crates/rolid-ui/src/pane/views.rs:369
 msgid "Add folder to favorites"
 msgstr "Ajouter le dossier aux favoris"
 
-#: crates/rolid-ui/src/pane/views.rs:349
+#: crates/rolid-ui/src/pane/views.rs:372
 msgid "Disk properties…"
 msgstr "Propriétés du disque…"
 
-#: crates/rolid-ui/src/pane.rs:190
+#: crates/rolid-ui/src/pane.rs:194
 msgid "contains “{text}”"
 msgstr "contient « {text} »"
 
-#: crates/rolid-ui/src/pane.rs:193
+#: crates/rolid-ui/src/pane.rs:197
 msgctxt "search"
 msgid "everything"
 msgstr "tout"
 
-#: crates/rolid-ui/src/pane.rs:305
+#: crates/rolid-ui/src/pane.rs:309
 msgid "text editor"
 msgstr "éditeur de texte"
 
-#: crates/rolid-ui/src/pane.rs:306
+#: crates/rolid-ui/src/pane.rs:310
 msgid "the system's default application"
 msgstr "l'application par défaut du système"
 
-#: crates/rolid-ui/src/pane.rs:311
+#: crates/rolid-ui/src/pane.rs:315
 msgid "command"
 msgstr "commande"
 
-#: crates/rolid-ui/src/pane.rs:312
+#: crates/rolid-ui/src/pane.rs:316
 msgid "the application chosen in Windows"
 msgstr "l'application choisie dans Windows"
 
-#: crates/rolid-ui/src/pane.rs:1383
+#: crates/rolid-ui/src/pane.rs:1399
 msgid "Root /"
 msgstr "Racine /"
 
-#: crates/rolid-ui/src/pane.rs:1447
+#: crates/rolid-ui/src/pane.rs:1463
 msgid "Click for details."
 msgstr "Cliquez pour le détail."
 
-#: crates/rolid-ui/src/pane.rs:1448
+#: crates/rolid-ui/src/pane.rs:1464
 msgid "Disk health (SMART) – click for details"
 msgstr "État du disque (SMART) – cliquez pour les détails"
 
-#: crates/rolid-ui/src/pane.rs:1504
+#: crates/rolid-ui/src/pane.rs:1520
 msgid "Archive · read-only"
 msgstr "Archive · lecture seule"
 
-#: crates/rolid-ui/src/pane.rs:1508
+#: crates/rolid-ui/src/pane.rs:1524
 msgid "PRODUCTION · {label}"
 msgstr "PRODUCTION · {label}"
 
-#: crates/rolid-ui/src/pane.rs:1585
-#: crates/rolid-ui/src/pane.rs:1612
+#: crates/rolid-ui/src/pane.rs:1601
+#: crates/rolid-ui/src/pane.rs:1628
 msgctxt "column"
 msgid "Ext"
 msgstr "Ext"
 
-#: crates/rolid-ui/src/pane.rs:1586
-#: crates/rolid-ui/src/pane.rs:1618
+#: crates/rolid-ui/src/pane.rs:1602
+#: crates/rolid-ui/src/pane.rs:1634
 msgctxt "column"
 msgid "Size"
 msgstr "Taille"
 
-#: crates/rolid-ui/src/pane.rs:1587
-#: crates/rolid-ui/src/pane.rs:1624
+#: crates/rolid-ui/src/pane.rs:1603
+#: crates/rolid-ui/src/pane.rs:1640
 msgctxt "column"
 msgid "Modified"
 msgstr "Modifié"
 
-#: crates/rolid-ui/src/pane.rs:1588
-#: crates/rolid-ui/src/pane.rs:1628
+#: crates/rolid-ui/src/pane.rs:1604
+#: crates/rolid-ui/src/pane.rs:1644
 msgctxt "column"
 msgid "Permissions"
 msgstr "Permissions"
 
-#: crates/rolid-ui/src/pane.rs:1606
+#: crates/rolid-ui/src/pane.rs:1622
 msgctxt "column"
 msgid "Name"
 msgstr "Nom"
 
-#: crates/rolid-ui/src/pane.rs:1720
+#: crates/rolid-ui/src/pane.rs:1673
+msgid "Column width (drag, double-click fits)"
+msgstr "Largeur de colonne (glisser, double-clic ajuste)"
+
+#: crates/rolid-ui/src/pane.rs:1748
 msgid "computing the size of {n} folder…"
 msgid_plural "computing the size of {n} folders…"
 msgstr[0] "calcul de la taille de {n} dossier…"
 msgstr[1] "calcul de la taille de {n} dossiers…"
 
-#: crates/rolid-ui/src/pane.rs:1724
+#: crates/rolid-ui/src/pane.rs:1752
 msgid "searching… ({count} found, Esc stops)"
 msgstr "recherche… ({count} trouvés, Esc arrête)"
 
-#: crates/rolid-ui/src/pane.rs:1732
+#: crates/rolid-ui/src/pane.rs:1760
 msgid "filter: \"{filter}\" ({n} match, Esc clears)"
 msgid_plural "filter: \"{filter}\" ({n} matches, Esc clears)"
 msgstr[0] "filtre : « {filter} » ({n} correspondance, Esc efface)"
 msgstr[1] "filtre : « {filter} » ({n} correspondances, Esc efface)"
 
-#: crates/rolid-ui/src/pane.rs:1736
+#: crates/rolid-ui/src/pane.rs:1764
 msgid "loading…"
 msgstr "chargement…"
 
-#: crates/rolid-ui/src/pane.rs:1922
+#: crates/rolid-ui/src/pane.rs:1950
 msgid "{sel} of {n} file"
 msgid_plural "{sel} of {n} files"
 msgstr[0] "{sel} sur {n} fichier"
 msgstr[1] "{sel} sur {n} fichiers"
 
-#: crates/rolid-ui/src/pane.rs:1923
+#: crates/rolid-ui/src/pane.rs:1951
 msgid "{sel} of {n} folder"
 msgid_plural "{sel} of {n} folders"
 msgstr[0] "{sel} sur {n} dossier"
 msgstr[1] "{sel} sur {n} dossiers"
 
-#: crates/rolid-ui/src/pane.rs:1926
+#: crates/rolid-ui/src/pane.rs:1954
 msgid "Selected: {folders}, {size}"
 msgstr "Sélection : {folders}, {size}"
 
-#: crates/rolid-ui/src/pane.rs:1928
+#: crates/rolid-ui/src/pane.rs:1956
 msgid "Selected: {folders}"
 msgstr "Sélection : {folders}"
 
-#: crates/rolid-ui/src/pane.rs:1933
+#: crates/rolid-ui/src/pane.rs:1961
 msgid "Selected: {files}, {size} of {total} and {folders}"
 msgstr "Sélection : {files}, {size} sur {total} et {folders}"
 
-#: crates/rolid-ui/src/pane.rs:1935
+#: crates/rolid-ui/src/pane.rs:1963
 msgid "Selected: {files}, {size} of {total}"
 msgstr "Sélection : {files}, {size} sur {total}"
 
-#: crates/rolid-ui/src/pane.rs:1941
+#: crates/rolid-ui/src/pane.rs:1969
 msgid "{files}, {size}"
 msgstr "{files}, {size}"
 
-#: crates/rolid-ui/src/pane.rs:1945
+#: crates/rolid-ui/src/pane.rs:1973
 msgid "{files}, {size}, {folders} (with folder sizes)"
 msgstr "{files}, {size}, {folders} (avec la taille des dossiers)"
 
-#: crates/rolid-ui/src/pane.rs:1947
+#: crates/rolid-ui/src/pane.rs:1975
 msgid "{files}, {size}, {folders}"
 msgstr "{files}, {size}, {folders}"
 
-#: crates/rolid-ui/src/pane.rs:2347
+#: crates/rolid-ui/src/pane.rs:2375
 msgid "{app} (default)"
 msgstr "{app} (par défaut)"
 
-#: crates/rolid-ui/src/pane.rs:2351
+#: crates/rolid-ui/src/pane.rs:2379
 msgid "Text editor (F4)"
 msgstr "Éditeur de texte (F4)"
 
-#: crates/rolid-ui/src/pane.rs:2353
+#: crates/rolid-ui/src/pane.rs:2381
 msgid "Choose an application in Windows…"
 msgstr "Choisir une application dans Windows…"
 
-#: crates/rolid-ui/src/pane.rs:2355
+#: crates/rolid-ui/src/pane.rs:2383
 msgid "Other application…"
 msgstr "Autre application…"
 

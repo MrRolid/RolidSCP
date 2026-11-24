@@ -10,6 +10,9 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
 parcourent les éléments, **→** entre dans un sous-menu, **Entrée** choisit un élément, **Échap** ferme
 le menu.
 
+Avec un lecteur d'écran (Orca), la liste annonce l'élément sous le curseur (son nom, « dossier » ou la
+taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
+
 ## Panneaux et onglets
 
 - **Tab** passe du panneau gauche au panneau droit et inversement. Le panneau actif a un en-tête plus

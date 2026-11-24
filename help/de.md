@@ -8,6 +8,9 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
 **F10** öffnet die Menüleiste ohne Maus: **←** **→** wechseln zwischen den Menüs, **↑** **↓** durch die
 Einträge, **→** in ein Untermenü, **Enter** wählt einen Eintrag, **Esc** schließt das Menü.
 
+Mit einem Bildschirmleser (Orca) sagt die Liste den Eintrag unter dem Cursor an (Name, „Ordner“ oder
+die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
+
 ## Panels und Tabs
 
 - **Tab** wechselt zwischen linkem und rechtem Panel. Das aktive Panel hat einen kräftigeren Kopf.

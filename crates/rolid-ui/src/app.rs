@@ -1691,13 +1691,30 @@ impl App {
             || ctx.text_edit_focused()
             || egui::Popup::is_any_open(ctx)
         {
+            // The list's screen-reader focus must not hold Tab and the
+            // arrows while a dialog, a field or a menu has the keyboard.
+            let lists: Vec<egui::Id> = self.sides.iter().filter_map(|s| s.current().pane.a11y_list).collect();
+            ctx.memory_mut(|m| {
+                if let Some(id) = m.focused().filter(|id| lists.contains(id)) {
+                    m.surrender_focus(id);
+                }
+            });
             return;
         }
         // No text field is active: the keyboard belongs to the panels. Drop any focus
         // egui gave to buttons (e.g. via its own Tab navigation) so it can't steal keys.
+        // With a screen reader on, the focus is the list of the active panel
+        // instead (its active row is the cursor row); it takes every key, so
+        // egui moves no focus with Tab or the arrows.
+        let list = self.pane(self.active_ref()).and_then(|p| p.a11y_list);
         ctx.memory_mut(|m| {
-            if let Some(id) = m.focused() {
+            if let Some(id) = m.focused().filter(|id| Some(*id) != list) {
                 m.surrender_focus(id);
+            }
+            if let Some(list) = list {
+                m.request_focus(list);
+                let all = egui::EventFilter { tab: true, horizontal_arrows: true, vertical_arrows: true, escape: true };
+                m.set_focus_lock_filter(list, all);
             }
         });
 

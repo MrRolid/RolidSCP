@@ -212,7 +212,7 @@ msgstr "Højest"
 
 #: crates/rolid-config/src/lib.rs:619
 #: crates/rolid-ui/src/app/unpack_ui.rs:541
-#: crates/rolid-ui/src/app.rs:2912
+#: crates/rolid-ui/src/app.rs:2929
 msgid "Skip existing"
 msgstr "Spring eksisterende over"
 
@@ -225,7 +225,7 @@ msgstr "Overskriv kun ældre"
 #: crates/rolid-ui/src/app/checksum_ui.rs:289
 #: crates/rolid-ui/src/app/rename_ui.rs:226
 #: crates/rolid-ui/src/app/unpack_ui.rs:543
-#: crates/rolid-ui/src/app.rs:2914
+#: crates/rolid-ui/src/app.rs:2931
 msgid "Overwrite"
 msgstr "Overskriv"
 
@@ -461,8 +461,8 @@ msgid "Pearl"
 msgstr "Perle"
 
 #: crates/rolid-core/src/copy.rs:164
-#: crates/rolid-ui/src/app.rs:2869
-#: crates/rolid-ui/src/pane.rs:1938
+#: crates/rolid-ui/src/app.rs:2886
+#: crates/rolid-ui/src/pane.rs:1966
 msgid "{n} file"
 msgid_plural "{n} files"
 msgstr[0] "{n} fil"
@@ -725,8 +725,8 @@ msgid "kB"
 msgstr "kB"
 
 #: crates/rolid-i18n/src/lib.rs:335
-#: crates/rolid-ui/src/app/view_ui.rs:616
-#: crates/rolid-ui/src/app/view_ui.rs:634
+#: crates/rolid-ui/src/app/view_ui.rs:619
+#: crates/rolid-ui/src/app/view_ui.rs:637
 msgctxt "unit"
 msgid "MB"
 msgstr "MB"
@@ -747,7 +747,7 @@ msgid "PB"
 msgstr "PB"
 
 #: crates/rolid-local/src/lib.rs:144
-#: crates/rolid-ui/src/pane.rs:1788
+#: crates/rolid-ui/src/pane.rs:1816
 msgid "Computer"
 msgstr "Computer"
 
@@ -1090,7 +1090,7 @@ msgstr "Angiv arkivets navn."
 
 #: crates/rolid-ui/src/app/archive_ui.rs:237
 #: crates/rolid-ui/src/app/archive_ui.rs:366
-#: crates/rolid-ui/src/app/view_ui.rs:372
+#: crates/rolid-ui/src/app/view_ui.rs:375
 msgid "Pack"
 msgstr "Pak"
 
@@ -1292,7 +1292,7 @@ msgstr[0] "{done} af {n} fil"
 msgstr[1] "{done} af {n} filer"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:194
-#: crates/rolid-ui/src/app.rs:2380
+#: crates/rolid-ui/src/app.rs:2397
 msgid "{done} of {total}"
 msgstr "{done} af {total}"
 
@@ -1322,7 +1322,7 @@ msgstr[1] "… og {n} mere sprunget over"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:242
 #: crates/rolid-ui/src/app/menu.rs:159
-#: crates/rolid-ui/src/pane/views.rs:307
+#: crates/rolid-ui/src/pane/views.rs:330
 msgid "Copy to clipboard"
 msgstr "Kopiér til udklipsholder"
 
@@ -1334,7 +1334,7 @@ msgstr "Gem til fil"
 #: crates/rolid-ui/src/app/checksum_ui.rs:248
 #: crates/rolid-ui/src/app/newfile_ui.rs:78
 #: crates/rolid-ui/src/app/session.rs:919
-#: crates/rolid-ui/src/app.rs:2743
+#: crates/rolid-ui/src/app.rs:2760
 msgid "Name:"
 msgstr "Navn:"
 
@@ -1447,7 +1447,7 @@ msgstr "Rettigheder er ikke tilgængelige her (systemet oplyser dem ikke)."
 #: crates/rolid-ui/src/app/ctx_ui.rs:215
 #: crates/rolid-ui/src/app/edit_ui.rs:1646
 #: crates/rolid-ui/src/app/unpack_ui.rs:364
-#: crates/rolid-ui/src/pane.rs:187
+#: crates/rolid-ui/src/pane.rs:191
 msgid "“{name}”"
 msgstr "»{name}«"
 
@@ -1487,9 +1487,9 @@ msgstr[1] "{n} elementer springes over (vises i oversigten til sidst):"
 #: crates/rolid-ui/src/app/ctx_ui.rs:427
 #: crates/rolid-ui/src/app/drop_ui.rs:580
 #: crates/rolid-ui/src/app/rename_ui.rs:371
-#: crates/rolid-ui/src/app.rs:2693
-#: crates/rolid-ui/src/app.rs:2752
-#: crates/rolid-ui/src/app.rs:2792
+#: crates/rolid-ui/src/app.rs:2710
+#: crates/rolid-ui/src/app.rs:2769
+#: crates/rolid-ui/src/app.rs:2809
 msgid "⚠ PRODUCTION SERVER: Enter is disabled, confirm with the button."
 msgstr "⚠ PRODUKTIONSSERVER: Enter er deaktiveret, bekræft med knappen."
 
@@ -1544,7 +1544,7 @@ msgstr "Åbn altid .{ext}-filer på denne måde (»Åbn«, Enter)"
 #: crates/rolid-ui/src/app/ctx_ui.rs:490
 #: crates/rolid-ui/src/app/menu.rs:96
 #: crates/rolid-ui/src/app/places.rs:620
-#: crates/rolid-ui/src/pane/views.rs:279
+#: crates/rolid-ui/src/pane/views.rs:302
 msgctxt "verb"
 msgid "Open"
 msgstr "Åbn"
@@ -2193,8 +2193,8 @@ msgid "Upload"
 msgstr "Upload"
 
 #: crates/rolid-ui/src/app/drop_ui.rs:570
-#: crates/rolid-ui/src/app.rs:2675
-#: crates/rolid-ui/src/app.rs:2724
+#: crates/rolid-ui/src/app.rs:2692
+#: crates/rolid-ui/src/app.rs:2741
 msgctxt "verb"
 msgid "Copy"
 msgstr "Kopiér"
@@ -2222,7 +2222,7 @@ msgstr "Stor overførsel (mere end {files} filer eller {size})."
 #: crates/rolid-ui/src/app/drop_ui.rs:593
 #: crates/rolid-ui/src/app/rename_ui.rs:386
 #: crates/rolid-ui/src/app/unpack_ui.rs:527
-#: crates/rolid-ui/src/app.rs:2695
+#: crates/rolid-ui/src/app.rs:2712
 msgid "Existing files"
 msgstr "Eksisterende filer"
 
@@ -2245,7 +2245,7 @@ msgid "Upload to production"
 msgstr "Upload til produktion"
 
 #: crates/rolid-ui/src/app/drop_ui.rs:614
-#: crates/rolid-ui/src/app.rs:2724
+#: crates/rolid-ui/src/app.rs:2741
 msgid "Copy to production"
 msgstr "Kopiér til produktion"
 
@@ -2630,7 +2630,7 @@ msgstr "Kassér ændringer"
 #: crates/rolid-ui/src/app/places.rs:150
 #: crates/rolid-ui/src/app/places.rs:166
 #: crates/rolid-ui/src/app/vault_ui.rs:777
-#: crates/rolid-ui/src/app/view_ui.rs:347
+#: crates/rolid-ui/src/app/view_ui.rs:350
 msgid "Back"
 msgstr "Tilbage"
 
@@ -2676,7 +2676,7 @@ msgstr "En terminaleditor kun via en terminal, f.eks.: x-terminal-emulator -e na
 
 #: crates/rolid-ui/src/app/edit_ui.rs:1743
 #: crates/rolid-ui/src/app/places.rs:147
-#: crates/rolid-ui/src/app/view_ui.rs:658
+#: crates/rolid-ui/src/app/view_ui.rs:661
 msgid "Save"
 msgstr "Gem"
 
@@ -2690,14 +2690,14 @@ msgstr "Mappe på {disk}:"
 
 #: crates/rolid-ui/src/app/folder_pick.rs:126
 #: crates/rolid-ui/src/pane/navbar.rs:394
-#: crates/rolid-ui/src/pane.rs:1387
+#: crates/rolid-ui/src/pane.rs:1403
 msgid "Up one level (Backspace)"
 msgstr "Et niveau op (Backspace)"
 
 #: crates/rolid-ui/src/app/folder_pick.rs:139
 #: crates/rolid-ui/src/app/viewer/text.rs:450
 #: crates/rolid-ui/src/app/viewer/text.rs:741
-#: crates/rolid-ui/src/pane.rs:1686
+#: crates/rolid-ui/src/pane.rs:1704
 msgid "Loading…"
 msgstr "Indlæser…"
 
@@ -2710,7 +2710,7 @@ msgid "Double-click or → opens a folder, Backspace goes up."
 msgstr "Dobbeltklik eller → åbner en mappe, Tilbage går et niveau op."
 
 #: crates/rolid-ui/src/app/folder_pick.rs:182
-#: crates/rolid-ui/src/app/view_ui.rs:442
+#: crates/rolid-ui/src/app/view_ui.rs:445
 msgid "Select"
 msgstr "Vælg"
 
@@ -2750,8 +2750,8 @@ msgstr "Indtast loginoplysninger…"
 #: crates/rolid-ui/src/app/link_ui.rs:325
 #: crates/rolid-ui/src/app/viewer/text/find.rs:241
 #: crates/rolid-ui/src/app/viewer/text.rs:479
-#: crates/rolid-ui/src/app.rs:2409
-#: crates/rolid-ui/src/dialog.rs:309
+#: crates/rolid-ui/src/app.rs:2426
+#: crates/rolid-ui/src/dialog.rs:311
 msgid "Cancel"
 msgstr "Annullér"
 
@@ -2803,29 +2803,29 @@ msgid "Open with…"
 msgstr "Åbn med…"
 
 #: crates/rolid-ui/src/app/menu.rs:102
-#: crates/rolid-ui/src/pane/views.rs:290
+#: crates/rolid-ui/src/pane/views.rs:313
 msgctxt "verb"
 msgid "View"
 msgstr "Vis"
 
 #: crates/rolid-ui/src/app/menu.rs:105
-#: crates/rolid-ui/src/pane/views.rs:291
+#: crates/rolid-ui/src/pane/views.rs:314
 msgid "Edit in external editor"
 msgstr "Redigér i ekstern editor"
 
 #: crates/rolid-ui/src/app/menu.rs:109
-#: crates/rolid-ui/src/pane/views.rs:292
-#: crates/rolid-ui/src/pane/views.rs:342
+#: crates/rolid-ui/src/pane/views.rs:315
+#: crates/rolid-ui/src/pane/views.rs:365
 msgid "New file…"
 msgstr "Ny fil…"
 
 #: crates/rolid-ui/src/app/menu.rs:114
-#: crates/rolid-ui/src/pane/views.rs:294
+#: crates/rolid-ui/src/pane/views.rs:317
 msgid "Copy to other panel"
 msgstr "Kopiér til andet panel"
 
 #: crates/rolid-ui/src/app/menu.rs:117
-#: crates/rolid-ui/src/pane/views.rs:295
+#: crates/rolid-ui/src/pane/views.rs:318
 msgid "Move to other panel"
 msgstr "Flyt til andet panel"
 
@@ -2833,71 +2833,71 @@ msgstr "Flyt til andet panel"
 #: crates/rolid-ui/src/app/places.rs:189
 #: crates/rolid-ui/src/app/rename_ui.rs:187
 #: crates/rolid-ui/src/app/rename_ui.rs:195
-#: crates/rolid-ui/src/pane/views.rs:296
+#: crates/rolid-ui/src/pane/views.rs:319
 msgid "Rename"
 msgstr "Omdøb"
 
 #: crates/rolid-ui/src/app/menu.rs:127
-#: crates/rolid-ui/src/app.rs:2741
-#: crates/rolid-ui/src/pane/views.rs:343
+#: crates/rolid-ui/src/app.rs:2758
+#: crates/rolid-ui/src/pane/views.rs:366
 msgid "New folder"
 msgstr "Ny mappe"
 
 #: crates/rolid-ui/src/app/menu.rs:132
 #: crates/rolid-ui/src/app/session.rs:909
-#: crates/rolid-ui/src/pane/views.rs:297
+#: crates/rolid-ui/src/pane/views.rs:320
 msgid "Delete"
 msgstr "Slet"
 
 #: crates/rolid-ui/src/app/menu.rs:135
-#: crates/rolid-ui/src/pane/views.rs:298
+#: crates/rolid-ui/src/pane/views.rs:321
 msgid "Permissions…"
 msgstr "Rettigheder…"
 
 #: crates/rolid-ui/src/app/menu.rs:139
-#: crates/rolid-ui/src/pane/views.rs:300
+#: crates/rolid-ui/src/pane/views.rs:323
 msgid "Pack…"
 msgstr "Pak…"
 
 #: crates/rolid-ui/src/app/menu.rs:142
-#: crates/rolid-ui/src/pane/views.rs:301
+#: crates/rolid-ui/src/pane/views.rs:324
 msgid "Extract…"
 msgstr "Udpak…"
 
 #: crates/rolid-ui/src/app/menu.rs:145
 #: crates/rolid-ui/src/app/unpack_ui.rs:837
 #: crates/rolid-ui/src/app/unpack_ui.rs:860
-#: crates/rolid-ui/src/pane/views.rs:302
+#: crates/rolid-ui/src/pane/views.rs:325
 msgid "Test archive"
 msgstr "Test arkiv"
 
 #: crates/rolid-ui/src/app/menu.rs:149
-#: crates/rolid-ui/src/pane/views.rs:305
+#: crates/rolid-ui/src/pane/views.rs:328
 msgid "Calculate size of all folders"
 msgstr "Beregn størrelse af alle mapper"
 
 #: crates/rolid-ui/src/app/menu.rs:152
-#: crates/rolid-ui/src/pane/views.rs:304
+#: crates/rolid-ui/src/pane/views.rs:327
 msgid "Calculate size of selected folders"
 msgstr "Beregn størrelse af markerede mapper"
 
 #: crates/rolid-ui/src/app/menu.rs:155
-#: crates/rolid-ui/src/pane/views.rs:306
+#: crates/rolid-ui/src/pane/views.rs:329
 msgid "Calculate checksums…"
 msgstr "Beregn kontrolsummer…"
 
 #: crates/rolid-ui/src/app/menu.rs:162
-#: crates/rolid-ui/src/pane/views.rs:308
+#: crates/rolid-ui/src/pane/views.rs:331
 msgid "Copy name"
 msgstr "Kopiér navn"
 
 #: crates/rolid-ui/src/app/menu.rs:163
-#: crates/rolid-ui/src/pane/views.rs:309
+#: crates/rolid-ui/src/pane/views.rs:332
 msgid "Copy full path"
 msgstr "Kopiér fuld sti"
 
 #: crates/rolid-ui/src/app/menu.rs:164
-#: crates/rolid-ui/src/pane/views.rs:310
+#: crates/rolid-ui/src/pane/views.rs:333
 msgid "Copy as sftp://…"
 msgstr "Kopiér som sftp://…"
 
@@ -3016,13 +3016,13 @@ msgid "View"
 msgstr "Vis"
 
 #: crates/rolid-ui/src/app/menu.rs:275
-#: crates/rolid-ui/src/app/view_ui.rs:334
-#: crates/rolid-ui/src/pane/views.rs:345
+#: crates/rolid-ui/src/app/view_ui.rs:337
+#: crates/rolid-ui/src/pane/views.rs:368
 msgid "Refresh"
 msgstr "Opdatér"
 
 #: crates/rolid-ui/src/app/menu.rs:291
-#: crates/rolid-ui/src/app/view_ui.rs:350
+#: crates/rolid-ui/src/app/view_ui.rs:353
 msgid "Forward"
 msgstr "Frem"
 
@@ -3036,7 +3036,7 @@ msgstr "Rodmappe"
 
 #: crates/rolid-ui/src/app/menu.rs:300
 #: crates/rolid-ui/src/app/places.rs:313
-#: crates/rolid-ui/src/pane.rs:1391
+#: crates/rolid-ui/src/pane.rs:1407
 msgid "Home folder"
 msgstr "Hjemmemappe"
 
@@ -3144,7 +3144,7 @@ msgid "Files being edited ({count})…"
 msgstr "Filer, der redigeres ({count})…"
 
 #: crates/rolid-ui/src/app/menu.rs:402
-#: crates/rolid-ui/src/pane/views.rs:347
+#: crates/rolid-ui/src/pane/views.rs:370
 msgid "Open terminal here"
 msgstr "Åbn terminal her"
 
@@ -3161,7 +3161,7 @@ msgid "Open folder in right panel"
 msgstr "Åbn mappe i højre panel"
 
 #: crates/rolid-ui/src/app/menu.rs:419
-#: crates/rolid-ui/src/app/view_ui.rs:354
+#: crates/rolid-ui/src/app/view_ui.rs:357
 msgid "Select group…"
 msgstr "Markér gruppe…"
 
@@ -3170,7 +3170,7 @@ msgid "Deselect group…"
 msgstr "Fjern markering af gruppe…"
 
 #: crates/rolid-ui/src/app/menu.rs:425
-#: crates/rolid-ui/src/app/view_ui.rs:360
+#: crates/rolid-ui/src/app/view_ui.rs:363
 msgid "Invert selection"
 msgstr "Invertér markering"
 
@@ -3503,7 +3503,7 @@ msgid "tab color, Rename tab"
 msgstr "fanebladsfarve, Omdøb faneblad"
 
 #: crates/rolid-ui/src/app/menu.rs:617
-#: crates/rolid-ui/src/app/view_ui.rs:607
+#: crates/rolid-ui/src/app/view_ui.rs:610
 msgid "Viewer (F3)"
 msgstr "Fremviser (F3)"
 
@@ -3927,14 +3927,14 @@ msgid "{host}:{port} (not connected)"
 msgstr "{host}:{port} (ikke forbundet)"
 
 #: crates/rolid-ui/src/app/places.rs:729
-#: crates/rolid-ui/src/pane.rs:1511
+#: crates/rolid-ui/src/pane.rs:1527
 msgid "connecting…"
 msgstr "forbinder…"
 
 #: crates/rolid-ui/src/app/places.rs:731
 #: crates/rolid-ui/src/app/places.rs:735
 #: crates/rolid-ui/src/app/session.rs:29
-#: crates/rolid-ui/src/pane.rs:1513
+#: crates/rolid-ui/src/pane.rs:1529
 msgid "not connected"
 msgstr "ikke forbundet"
 
@@ -3972,7 +3972,7 @@ msgstr "Skift farve"
 
 #: crates/rolid-ui/src/app/places.rs:768
 #: crates/rolid-ui/src/app/viewer/mod.rs:497
-#: crates/rolid-ui/src/dialog.rs:314
+#: crates/rolid-ui/src/dialog.rs:316
 msgid "Close"
 msgstr "Luk"
 
@@ -4062,7 +4062,7 @@ msgid "On the same disk or server the items are only renamed. Otherwise they are
 msgstr "På samme disk eller server bliver elementerne kun omdøbt. Ellers kopieres de via overførselskøen, og kilden slettes først efter en vellykket afslutning (en fil, der ikke har samme størrelse i målet, bliver liggende)."
 
 #: crates/rolid-ui/src/app/rename_ui.rs:350
-#: crates/rolid-ui/src/app.rs:2687
+#: crates/rolid-ui/src/app.rs:2704
 msgid "Browse…"
 msgstr "Gennemse…"
 
@@ -4084,7 +4084,7 @@ msgstr "⚠ Målet er en PRODUKTIONSserver."
 
 #: crates/rolid-ui/src/app/rename_ui.rs:391
 #: crates/rolid-ui/src/app/unpack_ui.rs:532
-#: crates/rolid-ui/src/app.rs:2700
+#: crates/rolid-ui/src/app.rs:2717
 msgid "⚠ {n} item already exists in the target. What to do with existing files?"
 msgid_plural "⚠ {n} items already exist in the target. What to do with existing files?"
 msgstr[0] "⚠ {n} element findes allerede i målet. Hvad skal der ske med eksisterende filer?"
@@ -4163,7 +4163,7 @@ msgid "Search: {error}"
 msgstr "Søgning: {error}"
 
 #: crates/rolid-ui/src/app/search.rs:268
-#: crates/rolid-ui/src/app/view_ui.rs:368
+#: crates/rolid-ui/src/app/view_ui.rs:371
 msgid "Find files"
 msgstr "Find filer"
 
@@ -4550,7 +4550,7 @@ msgstr "{what} ⇣ til udpakning"
 
 #: crates/rolid-ui/src/app/unpack_ui.rs:362
 #: crates/rolid-ui/src/app/unpack_ui.rs:567
-#: crates/rolid-ui/src/app/view_ui.rs:375
+#: crates/rolid-ui/src/app/view_ui.rs:378
 msgid "Extract"
 msgstr "Udpak"
 
@@ -4636,7 +4636,7 @@ msgid "Each archive into its own subfolder"
 msgstr "Hvert arkiv i sin egen undermappe"
 
 #: crates/rolid-ui/src/app/unpack_ui.rs:542
-#: crates/rolid-ui/src/app.rs:2913
+#: crates/rolid-ui/src/app.rs:2930
 msgid "Overwrite only older (by modification date)"
 msgstr "Overskriv kun ældre (efter ændringsdato)"
 
@@ -4843,7 +4843,7 @@ msgid "Creating…"
 msgstr "Opretter…"
 
 #: crates/rolid-ui/src/app/vault_ui.rs:656
-#: crates/rolid-ui/src/app.rs:2754
+#: crates/rolid-ui/src/app.rs:2771
 msgid "Create"
 msgstr "Opret"
 
@@ -4931,259 +4931,259 @@ msgid "Full listing"
 msgstr "Fuld visning"
 
 #: crates/rolid-ui/src/app/view_ui.rs:92
-#: crates/rolid-ui/src/app/view_ui.rs:576
+#: crates/rolid-ui/src/app/view_ui.rs:579
 msgid "Thumbnails"
 msgstr "Miniaturer"
 
-#: crates/rolid-ui/src/app/view_ui.rs:337
-#: crates/rolid-ui/src/app/view_ui.rs:455
+#: crates/rolid-ui/src/app/view_ui.rs:340
+#: crates/rolid-ui/src/app/view_ui.rs:458
 msgid "Settings"
 msgstr "Indstillinger"
 
-#: crates/rolid-ui/src/app/view_ui.rs:357
+#: crates/rolid-ui/src/app/view_ui.rs:360
 msgid "Unselect group…"
 msgstr "Fjern markering af gruppe…"
 
-#: crates/rolid-ui/src/app/view_ui.rs:364
+#: crates/rolid-ui/src/app/view_ui.rs:367
 msgid "Servers (server manager)"
 msgstr "Servere (serverhåndtering)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:378
+#: crates/rolid-ui/src/app/view_ui.rs:381
 msgid "Calculate the size of all folders"
 msgstr "Beregn størrelsen af alle mapper"
 
-#: crates/rolid-ui/src/app/view_ui.rs:382
+#: crates/rolid-ui/src/app/view_ui.rs:385
 msgid "Copy paths to clipboard"
 msgstr "Kopiér stier til udklipsholder"
 
-#: crates/rolid-ui/src/app/view_ui.rs:403
+#: crates/rolid-ui/src/app/view_ui.rs:406
 msgid "Select group"
 msgstr "Markér gruppe"
 
-#: crates/rolid-ui/src/app/view_ui.rs:403
+#: crates/rolid-ui/src/app/view_ui.rs:406
 msgid "Unselect group"
 msgstr "Fjern markering af gruppe"
 
-#: crates/rolid-ui/src/app/view_ui.rs:406
+#: crates/rolid-ui/src/app/view_ui.rs:409
 msgid "Mask:"
 msgstr "Maske:"
 
-#: crates/rolid-ui/src/app/view_ui.rs:415
+#: crates/rolid-ui/src/app/view_ui.rs:418
 msgid "Recent"
 msgstr "Seneste"
 
-#: crates/rolid-ui/src/app/view_ui.rs:428
+#: crates/rolid-ui/src/app/view_ui.rs:431
 msgid "Separate several masks with a semicolon, e.g. *.jpg;*.png."
 msgstr "Adskil flere masker med semikolon, f.eks. *.jpg;*.png."
 
-#: crates/rolid-ui/src/app/view_ui.rs:429
+#: crates/rolid-ui/src/app/view_ui.rs:432
 msgid "* = any characters, ? = one character; case does not matter."
 msgstr "* = vilkårlige tegn, ? = ét tegn; store og små bogstaver er ligegyldige."
 
-#: crates/rolid-ui/src/app/view_ui.rs:436
+#: crates/rolid-ui/src/app/view_ui.rs:439
 msgid "On a production server this always starts off; your choice here is not remembered."
 msgstr "På en produktionsserver er den altid slået fra, og dit valg her huskes ikke."
 
-#: crates/rolid-ui/src/app/view_ui.rs:438
+#: crates/rolid-ui/src/app/view_ui.rs:441
 msgid "Remembered for the next time. The default is set in Settings → Selecting by mask includes folders too."
 msgstr "Huskes til næste gang. Standarden angives i Indstillinger → Markering efter maske omfatter også mapper."
 
-#: crates/rolid-ui/src/app/view_ui.rs:440
+#: crates/rolid-ui/src/app/view_ui.rs:443
 msgid "Include folders"
 msgstr "Medtag mapper"
 
-#: crates/rolid-ui/src/app/view_ui.rs:442
+#: crates/rolid-ui/src/app/view_ui.rs:445
 msgid "Unselect"
 msgstr "Fjern markering"
 
-#: crates/rolid-ui/src/app/view_ui.rs:458
+#: crates/rolid-ui/src/app/view_ui.rs:461
 msgid "Language"
 msgstr "Sprog"
 
-#: crates/rolid-ui/src/app/view_ui.rs:461
+#: crates/rolid-ui/src/app/view_ui.rs:464
 msgid "Language:"
 msgstr "Sprog:"
 
-#: crates/rolid-ui/src/app/view_ui.rs:463
+#: crates/rolid-ui/src/app/view_ui.rs:466
 msgid "Automatic (from the system)"
 msgstr "Automatisk (fra systemet)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:472
+#: crates/rolid-ui/src/app/view_ui.rs:475
 msgid "The language changes at once. Your own translations: {dir}/<language>.po"
 msgstr "Sproget skifter med det samme. Dine egne oversættelser: {dir}/<sprog>.po"
 
-#: crates/rolid-ui/src/app/view_ui.rs:475
+#: crates/rolid-ui/src/app/view_ui.rs:478
 msgid "Date format:"
 msgstr "Datoformat:"
 
-#: crates/rolid-ui/src/app/view_ui.rs:477
+#: crates/rolid-ui/src/app/view_ui.rs:480
 msgid "By language"
 msgstr "Efter sprog"
 
-#: crates/rolid-ui/src/app/view_ui.rs:478
+#: crates/rolid-ui/src/app/view_ui.rs:481
 msgid "ISO (2026-11-08 21:08)"
 msgstr "ISO (2026-11-08 21:08)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:483
+#: crates/rolid-ui/src/app/view_ui.rs:486
 msgid "Font"
 msgstr "Skrifttype"
 
-#: crates/rolid-ui/src/app/view_ui.rs:486
+#: crates/rolid-ui/src/app/view_ui.rs:489
 msgid "Font:"
 msgstr "Skrifttype:"
 
-#: crates/rolid-ui/src/app/view_ui.rs:488
+#: crates/rolid-ui/src/app/view_ui.rs:491
 msgid "Built-in ({font})"
 msgstr "Indbygget ({font})"
 
-#: crates/rolid-ui/src/app/view_ui.rs:489
+#: crates/rolid-ui/src/app/view_ui.rs:492
 msgid "System (fontconfig)"
 msgstr "System (fontconfig)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:492
+#: crates/rolid-ui/src/app/view_ui.rs:495
 msgid "Font name:"
 msgstr "Skrifttypenavn:"
 
-#: crates/rolid-ui/src/app/view_ui.rs:496
+#: crates/rolid-ui/src/app/view_ui.rs:499
 msgid "empty = default sans-serif"
 msgstr "tom = standard sans-serif"
 
-#: crates/rolid-ui/src/app/view_ui.rs:500
+#: crates/rolid-ui/src/app/view_ui.rs:503
 msgid "Text size in the list:"
 msgstr "Tekststørrelse i listen:"
 
-#: crates/rolid-ui/src/app/view_ui.rs:510
+#: crates/rolid-ui/src/app/view_ui.rs:513
 msgid "points (default {size})"
 msgstr "punkter (standard {size})"
 
-#: crates/rolid-ui/src/app/view_ui.rs:513
+#: crates/rolid-ui/src/app/view_ui.rs:516
 msgid "Hinting (sharpness):"
 msgstr "Hinting (skarphed):"
 
-#: crates/rolid-ui/src/app/view_ui.rs:520
+#: crates/rolid-ui/src/app/view_ui.rs:523
 msgid "How strongly the letter shapes snap to the pixel grid. Strong (default) = vertical strokes on whole pixels, the sharpest; medium = following the font's instructions (vertical only); off = shapes exactly as the font was designed, but softer."
 msgstr "Hvor kraftigt bogstavformerne tilpasses pixelgitteret. Stærk (standard) = lodrette streger på hele pixels, skarpest; mellem = følger skrifttypens instruktioner (kun lodret); fra = formerne præcis som skrifttypen er designet, men blødere."
 
-#: crates/rolid-ui/src/app/view_ui.rs:528
+#: crates/rolid-ui/src/app/view_ui.rs:531
 msgid "Font contrast:"
 msgstr "Skriftkontrast:"
 
-#: crates/rolid-ui/src/app/view_ui.rs:535
+#: crates/rolid-ui/src/app/view_ui.rs:538
 msgid "How dark the edges of the letters are drawn (how light in the dark theme). Higher (default) balances the thinner strokes of strong hinting; highest = the font looks bolder."
 msgstr "Hvor mørkt bogstavernes kanter tegnes (hvor lyst i det mørke tema). Højere (standard) udligner de tyndere streger ved stærk hinting; højest = skriften ser federe ud."
 
-#: crates/rolid-ui/src/app/view_ui.rs:543
+#: crates/rolid-ui/src/app/view_ui.rs:546
 msgid "Now: {font}"
 msgstr "Nu: {font}"
 
-#: crates/rolid-ui/src/app/view_ui.rs:545
+#: crates/rolid-ui/src/app/view_ui.rs:548
 msgid "View"
 msgstr "Visning"
 
-#: crates/rolid-ui/src/app/view_ui.rs:547
+#: crates/rolid-ui/src/app/view_ui.rs:550
 msgid "Toolbar under the menu"
 msgstr "Værktøjslinje under menuen"
 
-#: crates/rolid-ui/src/app/view_ui.rs:548
+#: crates/rolid-ui/src/app/view_ui.rs:551
 msgid "Folders in [square brackets] (full and brief listing)"
 msgstr "Mapper i [kantede parenteser] (fuld og kort visning)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:549
+#: crates/rolid-ui/src/app/view_ui.rs:552
 msgid "Selecting by mask includes folders too (also Invert selection)"
 msgstr "Markering efter maske omfatter også mapper (også Invertér markering)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:551
+#: crates/rolid-ui/src/app/view_ui.rs:554
 msgid "Name colors by file type"
 msgstr "Farv navne efter filtype"
 
-#: crates/rolid-ui/src/app/view_ui.rs:552
+#: crates/rolid-ui/src/app/view_ui.rs:555
 msgid "The colors apply to the light theme; the dark theme uses lighter shades."
 msgstr "Farverne gælder for det lyse tema; det mørke tema bruger lysere nuancer."
 
-#: crates/rolid-ui/src/app/view_ui.rs:567
+#: crates/rolid-ui/src/app/view_ui.rs:570
 msgid "Default colors"
 msgstr "Standardfarver"
 
-#: crates/rolid-ui/src/app/view_ui.rs:579
+#: crates/rolid-ui/src/app/view_ui.rs:582
 msgctxt "setting"
 msgid "Size:"
 msgstr "Størrelse:"
 
-#: crates/rolid-ui/src/app/view_ui.rs:588
+#: crates/rolid-ui/src/app/view_ui.rs:591
 msgid "Image previews on servers too"
 msgstr "Billedeksempler også på servere"
 
-#: crates/rolid-ui/src/app/view_ui.rs:591
+#: crates/rolid-ui/src/app/view_ui.rs:594
 msgid "At most 2 previews are downloaded from a server at the same time; images larger than {px} px are not processed."
 msgstr "Der hentes højst 2 eksempler fra en server ad gangen; billeder større end {px} px behandles ikke."
 
-#: crates/rolid-ui/src/app/view_ui.rs:596
+#: crates/rolid-ui/src/app/view_ui.rs:599
 msgid "Download only files up to"
 msgstr "Hent kun filer op til"
 
-#: crates/rolid-ui/src/app/view_ui.rs:598
+#: crates/rolid-ui/src/app/view_ui.rs:601
 msgctxt "unit"
 msgid "KiB"
 msgstr "KiB"
 
-#: crates/rolid-ui/src/app/view_ui.rs:601
+#: crates/rolid-ui/src/app/view_ui.rs:604
 msgid "Enter a number from {lo} to {hi}."
 msgstr "Indtast et tal fra {lo} til {hi}."
 
-#: crates/rolid-ui/src/app/view_ui.rs:603
+#: crates/rolid-ui/src/app/view_ui.rs:606
 msgid "Also on production servers"
 msgstr "Også på produktionsservere"
 
-#: crates/rolid-ui/src/app/view_ui.rs:605
+#: crates/rolid-ui/src/app/view_ui.rs:608
 msgid "Previews in memory: {size} (at most 48 MB)."
 msgstr "Eksempler i hukommelsen: {size} (højst 48 MB)."
 
-#: crates/rolid-ui/src/app/view_ui.rs:609
+#: crates/rolid-ui/src/app/view_ui.rs:612
 msgid "Syntax highlighting"
 msgstr "Syntaksfremhævning"
 
-#: crates/rolid-ui/src/app/view_ui.rs:611
+#: crates/rolid-ui/src/app/view_ui.rs:614
 msgid "Highlight files up to"
 msgstr "Fremhæv filer op til"
 
-#: crates/rolid-ui/src/app/view_ui.rs:611
+#: crates/rolid-ui/src/app/view_ui.rs:614
 msgid "Download images from a server up to"
 msgstr "Hent billeder fra en server op til"
 
-#: crates/rolid-ui/src/app/view_ui.rs:619
-#: crates/rolid-ui/src/app/view_ui.rs:647
+#: crates/rolid-ui/src/app/view_ui.rs:622
+#: crates/rolid-ui/src/app/view_ui.rs:650
 msgid "number {lo} to {hi}"
 msgstr "tal fra {lo} til {hi}"
 
-#: crates/rolid-ui/src/app/view_ui.rs:626
+#: crates/rolid-ui/src/app/view_ui.rs:629
 msgid "Archives"
 msgstr "Arkiver"
 
-#: crates/rolid-ui/src/app/view_ui.rs:628
+#: crates/rolid-ui/src/app/view_ui.rs:631
 msgid "(default {threads} = number of cores − 1)"
 msgstr "(standard {threads} = antal kerner − 1)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:631
+#: crates/rolid-ui/src/app/view_ui.rs:634
 msgid "Extract at most"
 msgstr "Udpak højst"
 
-#: crates/rolid-ui/src/app/view_ui.rs:631
+#: crates/rolid-ui/src/app/view_ui.rs:634
 msgid "GB (and always leave 1 GB free)"
 msgstr "GB (og lad altid 1 GB være ledig)"
 
-#: crates/rolid-ui/src/app/view_ui.rs:632
+#: crates/rolid-ui/src/app/view_ui.rs:635
 msgid "At most items in an archive"
 msgstr "Højst antal elementer i et arkiv"
 
-#: crates/rolid-ui/src/app/view_ui.rs:633
+#: crates/rolid-ui/src/app/view_ui.rs:636
 msgid "Ask at a compression ratio above"
 msgstr "Spørg ved et komprimeringsforhold over"
 
-#: crates/rolid-ui/src/app/view_ui.rs:634
+#: crates/rolid-ui/src/app/view_ui.rs:637
 msgid "Download and open a remote archive up to"
 msgstr "Hent og åbn et fjernarkiv op til"
 
-#: crates/rolid-ui/src/app/view_ui.rs:635
+#: crates/rolid-ui/src/app/view_ui.rs:638
 msgid "Number of compression threads"
 msgstr "Antal komprimeringstråde"
 
@@ -5370,7 +5370,7 @@ msgid "The file cannot be read: {error}"
 msgstr "Filen kan ikke læses: {error}"
 
 #: crates/rolid-ui/src/app/viewer/mod.rs:661
-#: crates/rolid-ui/src/app.rs:2422
+#: crates/rolid-ui/src/app.rs:2439
 msgid "Try again"
 msgstr "Prøv igen"
 
@@ -5554,7 +5554,7 @@ msgid "The server has no usable grep for this search, so the file is read here."
 msgstr "Serveren har ingen brugbar grep til denne søgning, så filen læses her."
 
 #: crates/rolid-ui/src/app/viewer/text/find.rs:259
-#: crates/rolid-ui/src/dialog.rs:164
+#: crates/rolid-ui/src/dialog.rs:166
 msgid "Close (Esc)"
 msgstr "Luk (Esc)"
 
@@ -5628,9 +5628,9 @@ msgstr[0] "{n} ufærdig overførsel (.filepart) i målet blev ikke genoptaget: d
 msgstr[1] "{n} ufærdige overførsler (.filepart) i målet blev ikke genoptaget: det kan ikke bekræftes, at de hører til de samme kildefiler (sti, størrelse, tid). De blev ikke rørt. Kopiér igen med “Overskriv” for at starte forfra."
 
 #: crates/rolid-ui/src/app.rs:1547
-#: crates/rolid-ui/src/app.rs:2852
-#: crates/rolid-ui/src/app.rs:2862
-#: crates/rolid-ui/src/app.rs:2881
+#: crates/rolid-ui/src/app.rs:2869
+#: crates/rolid-ui/src/app.rs:2879
+#: crates/rolid-ui/src/app.rs:2898
 msgid "E.g. {path}"
 msgstr "F.eks. {path}"
 
@@ -5644,269 +5644,269 @@ msgid_plural "{n} items deleted"
 msgstr[0] "{n} element slettet"
 msgstr[1] "{n} elementer slettet"
 
-#: crates/rolid-ui/src/app.rs:1965
+#: crates/rolid-ui/src/app.rs:1982
 msgid "Cannot create a folder in search results."
 msgstr "Kan ikke oprette en mappe i søgeresultater."
 
-#: crates/rolid-ui/src/app.rs:1968
+#: crates/rolid-ui/src/app.rs:1985
 msgid "Cannot create a folder in an archive"
 msgstr "Kan ikke oprette en mappe i et arkiv"
 
-#: crates/rolid-ui/src/app.rs:1982
+#: crates/rolid-ui/src/app.rs:1999
 msgid "Cannot delete from an archive"
 msgstr "Kan ikke slette fra et arkiv"
 
-#: crates/rolid-ui/src/app.rs:2150
+#: crates/rolid-ui/src/app.rs:2167
 msgid "New tab: home folder, favorites, servers, recent places (Ctrl+T)"
 msgstr "Nyt faneblad: hjemmemappe, favoritter, servere, seneste steder (Ctrl+T)"
 
-#: crates/rolid-ui/src/app.rs:2312
+#: crates/rolid-ui/src/app.rs:2329
 msgid "F4 = edit another file · click = list of edits"
 msgstr "F4 = redigér en anden fil · klik = liste over redigeringer"
 
-#: crates/rolid-ui/src/app.rs:2322
+#: crates/rolid-ui/src/app.rs:2339
 msgid "Transfers: {count}"
 msgstr "Overførsler: {count}"
 
-#: crates/rolid-ui/src/app.rs:2324
+#: crates/rolid-ui/src/app.rs:2341
 msgid "Max. speed:"
 msgstr "Maks. hastighed:"
 
-#: crates/rolid-ui/src/app.rs:2373
+#: crates/rolid-ui/src/app.rs:2390
 msgid "{done} of {n} item"
 msgid_plural "{done} of {n} items"
 msgstr[0] "{done} af {n} element"
 msgstr[1] "{done} af {n} elementer"
 
-#: crates/rolid-ui/src/app.rs:2375
+#: crates/rolid-ui/src/app.rs:2392
 msgid "⏳ waiting in the queue"
 msgstr "⏳ venter i køen"
 
-#: crates/rolid-ui/src/app.rs:2378
+#: crates/rolid-ui/src/app.rs:2395
 msgid "archive read {done} of {total}"
 msgstr "arkiv læst {done} af {total}"
 
-#: crates/rolid-ui/src/app.rs:2385
+#: crates/rolid-ui/src/app.rs:2402
 msgid "{size}/s"
 msgstr "{size}/s"
 
-#: crates/rolid-ui/src/app.rs:2386
+#: crates/rolid-ui/src/app.rs:2403
 msgid "speed: measuring"
 msgstr "hastighed: måler"
 
-#: crates/rolid-ui/src/app.rs:2393
+#: crates/rolid-ui/src/app.rs:2410
 msgid "{n} skipped"
 msgid_plural "{n} skipped"
 msgstr[0] "{n} sprunget over"
 msgstr[1] "{n} sprunget over"
 
-#: crates/rolid-ui/src/app.rs:2420
+#: crates/rolid-ui/src/app.rs:2437
 msgid "⚠ Transfer {name} failed:"
 msgstr "⚠ Overførslen {name} mislykkedes:"
 
-#: crates/rolid-ui/src/app.rs:2422
+#: crates/rolid-ui/src/app.rs:2439
 msgid "Continues where the transfer stopped"
 msgstr "Fortsætter, hvor overførslen stoppede"
 
-#: crates/rolid-ui/src/app.rs:2459
+#: crates/rolid-ui/src/app.rs:2476
 msgctxt "key bar"
 msgid "Help"
 msgstr "Hjælp"
 
-#: crates/rolid-ui/src/app.rs:2460
+#: crates/rolid-ui/src/app.rs:2477
 msgctxt "key bar"
 msgid "Rename"
 msgstr "Omdøb"
 
-#: crates/rolid-ui/src/app.rs:2461
+#: crates/rolid-ui/src/app.rs:2478
 msgctxt "key bar"
 msgid "View"
 msgstr "Vis"
 
-#: crates/rolid-ui/src/app.rs:2462
+#: crates/rolid-ui/src/app.rs:2479
 msgctxt "key bar"
 msgid "Edit"
 msgstr "Redigér"
 
-#: crates/rolid-ui/src/app.rs:2463
+#: crates/rolid-ui/src/app.rs:2480
 msgctxt "key bar"
 msgid "Copy"
 msgstr "Kopiér"
 
-#: crates/rolid-ui/src/app.rs:2464
+#: crates/rolid-ui/src/app.rs:2481
 msgctxt "key bar"
 msgid "Move"
 msgstr "Flyt"
 
-#: crates/rolid-ui/src/app.rs:2465
+#: crates/rolid-ui/src/app.rs:2482
 msgctxt "key bar"
 msgid "New folder"
 msgstr "Ny mappe"
 
-#: crates/rolid-ui/src/app.rs:2466
+#: crates/rolid-ui/src/app.rs:2483
 msgctxt "key bar"
 msgid "Delete"
 msgstr "Slet"
 
-#: crates/rolid-ui/src/app.rs:2467
+#: crates/rolid-ui/src/app.rs:2484
 msgctxt "key bar"
 msgid "Search"
 msgstr "Søg"
 
-#: crates/rolid-ui/src/app.rs:2468
+#: crates/rolid-ui/src/app.rs:2485
 msgctxt "key bar"
 msgid "Servers"
 msgstr "Servere"
 
-#: crates/rolid-ui/src/app.rs:2469
+#: crates/rolid-ui/src/app.rs:2486
 msgctxt "key bar"
 msgid "Local"
 msgstr "Lokal"
 
-#: crates/rolid-ui/src/app.rs:2470
+#: crates/rolid-ui/src/app.rs:2487
 msgctxt "key bar"
 msgid "Tab"
 msgstr "Faneblad"
 
-#: crates/rolid-ui/src/app.rs:2471
+#: crates/rolid-ui/src/app.rs:2488
 msgctxt "key bar"
 msgid "Refresh"
 msgstr "Opdatér"
 
-#: crates/rolid-ui/src/app.rs:2489
+#: crates/rolid-ui/src/app.rs:2506
 msgid "🔓 Passwords unlocked · {time}"
 msgstr "🔓 Adgangskoder låst op · {time}"
 
-#: crates/rolid-ui/src/app.rs:2490
+#: crates/rolid-ui/src/app.rs:2507
 msgid "Saved passwords are unlocked; they lock in {time} unless used again. Click to lock them now."
 msgstr "Gemte adgangskoder er låst op; de låses om {time}, hvis de ikke bruges igen. Klik for at låse dem nu."
 
-#: crates/rolid-ui/src/app.rs:2493
+#: crates/rolid-ui/src/app.rs:2510
 msgid "🔓 Passwords unlocked"
 msgstr "🔓 Adgangskoder låst op"
 
-#: crates/rolid-ui/src/app.rs:2493
+#: crates/rolid-ui/src/app.rs:2510
 msgid "Saved passwords are unlocked. Click to lock them."
 msgstr "Gemte adgangskoder er låst op. Klik for at låse dem."
 
-#: crates/rolid-ui/src/app.rs:2496
+#: crates/rolid-ui/src/app.rs:2513
 msgid "🔒 Passwords locked"
 msgstr "🔒 Adgangskoder låst"
 
-#: crates/rolid-ui/src/app.rs:2496
+#: crates/rolid-ui/src/app.rs:2513
 msgid "Saved passwords are locked. Click to unlock them."
 msgstr "Gemte adgangskoder er låst. Klik for at låse dem op."
 
-#: crates/rolid-ui/src/app.rs:2539
+#: crates/rolid-ui/src/app.rs:2556
 msgid "About and supporting the project"
 msgstr "Om projektet og støtte til det"
 
-#: crates/rolid-ui/src/app.rs:2677
+#: crates/rolid-ui/src/app.rs:2694
 msgid "Copy “{name}” to {disk}:"
 msgstr "Kopiér »{name}« til {disk}:"
 
-#: crates/rolid-ui/src/app.rs:2679
+#: crates/rolid-ui/src/app.rs:2696
 msgid "Copy {n} item to {disk}:"
 msgid_plural "Copy {n} items to {disk}:"
 msgstr[0] "Kopiér {n} element til {disk}:"
 msgstr[1] "Kopiér {n} elementer til {disk}:"
 
-#: crates/rolid-ui/src/app.rs:2710
+#: crates/rolid-ui/src/app.rs:2727
 msgid "Transfer"
 msgstr "Overførsel"
 
-#: crates/rolid-ui/src/app.rs:2713
+#: crates/rolid-ui/src/app.rs:2730
 msgid "Max. speed (all transfers together):"
 msgstr "Maks. hastighed (alle overførsler tilsammen):"
 
-#: crates/rolid-ui/src/app.rs:2717
+#: crates/rolid-ui/src/app.rs:2734
 msgid "Files are written through a temporary .filepart that is renamed when finished."
 msgstr "Filer skrives via en midlertidig .filepart, der omdøbes, når den er færdig."
 
-#: crates/rolid-ui/src/app.rs:2719
+#: crates/rolid-ui/src/app.rs:2736
 msgid "Tip: a speed limit keeps a slow line from being flooded (e.g. the server's outgoing line)."
 msgstr "Tip: en hastighedsgrænse forhindrer, at en langsom linje bliver overbelastet (f.eks. serverens udgående linje)."
 
-#: crates/rolid-ui/src/app.rs:2754
+#: crates/rolid-ui/src/app.rs:2771
 msgid "Create on production"
 msgstr "Opret på produktion"
 
-#: crates/rolid-ui/src/app.rs:2775
-#: crates/rolid-ui/src/app.rs:2794
+#: crates/rolid-ui/src/app.rs:2792
+#: crates/rolid-ui/src/app.rs:2811
 msgctxt "verb"
 msgid "Delete"
 msgstr "Slet"
 
-#: crates/rolid-ui/src/app.rs:2777
+#: crates/rolid-ui/src/app.rs:2794
 msgid "Permanently delete “{name}”? Folders are deleted with their contents."
 msgstr "Slette »{name}« permanent? Mapper slettes med deres indhold."
 
-#: crates/rolid-ui/src/app.rs:2778
+#: crates/rolid-ui/src/app.rs:2795
 msgid "Permanently delete “{name}” ON THE SERVER? Folders are deleted with their contents."
 msgstr "Slette »{name}« permanent PÅ SERVEREN? Mapper slettes med deres indhold."
 
-#: crates/rolid-ui/src/app.rs:2779
+#: crates/rolid-ui/src/app.rs:2796
 msgid "Permanently delete {n} item? Folders are deleted with their contents."
 msgid_plural "Permanently delete {n} items? Folders are deleted with their contents."
 msgstr[0] "Slette {n} element permanent? Mapper slettes med deres indhold."
 msgstr[1] "Slette {n} elementer permanent? Mapper slettes med deres indhold."
 
-#: crates/rolid-ui/src/app.rs:2784
+#: crates/rolid-ui/src/app.rs:2801
 msgid "Permanently delete {n} item ON THE SERVER? Folders are deleted with their contents."
 msgid_plural "Permanently delete {n} items ON THE SERVER? Folders are deleted with their contents."
 msgstr[0] "Slette {n} element permanent PÅ SERVEREN? Mapper slettes med deres indhold."
 msgstr[1] "Slette {n} elementer permanent PÅ SERVEREN? Mapper slettes med deres indhold."
 
-#: crates/rolid-ui/src/app.rs:2794
+#: crates/rolid-ui/src/app.rs:2811
 msgid "Delete on production"
 msgstr "Slet på produktion"
 
-#: crates/rolid-ui/src/app.rs:2846
+#: crates/rolid-ui/src/app.rs:2863
 msgid "⚠ The copy of {n} file differs from the source (checksum): the source was NOT deleted. Check the copy in the target."
 msgid_plural "⚠ The copies of {n} files differ from the source (checksum): the sources were NOT deleted. Check the copies in the target."
 msgstr[0] "⚠ Kopien af {n} fil afviger fra kilden (kontrolsum): kilden blev IKKE slettet. Kontrollér kopien i målet."
 msgstr[1] "⚠ Kopierne af {n} filer afviger fra kilderne (kontrolsum): kilderne blev IKKE slettet. Kontrollér kopierne i målet."
 
-#: crates/rolid-ui/src/app.rs:2856
+#: crates/rolid-ui/src/app.rs:2873
 msgid "{n} file changed in the source while it was being moved (size or modification time): it stayed in the source, the target may hold an older version."
 msgid_plural "{n} files changed in the source while they were being moved (size or modification time): they stayed in the source, the target may hold older versions."
 msgstr[0] "{n} fil blev ændret i kilden, mens den blev flyttet (størrelse eller ændringstid): den blev i kilden, målet kan have en ældre version."
 msgstr[1] "{n} filer blev ændret i kilden, mens de blev flyttet (størrelse eller ændringstid): de blev i kilden, målet kan have ældre versioner."
 
-#: crates/rolid-ui/src/app.rs:2867
+#: crates/rolid-ui/src/app.rs:2884
 msgid "The move finished, but {files} and {dirs} stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgstr "Flytningen blev fuldført, men {files} og {dirs} blev i kilden (sprunget over pga. valget for eksisterende filer, links eller filer ændret under flytningen)."
 
-#: crates/rolid-ui/src/app.rs:2870
-#: crates/rolid-ui/src/pane.rs:1943
+#: crates/rolid-ui/src/app.rs:2887
+#: crates/rolid-ui/src/pane.rs:1971
 msgid "{n} folder"
 msgid_plural "{n} folders"
 msgstr[0] "{n} mappe"
 msgstr[1] "{n} mapper"
 
-#: crates/rolid-ui/src/app.rs:2873
+#: crates/rolid-ui/src/app.rs:2890
 msgid "The move finished, but {n} file stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgid_plural "The move finished, but {n} files stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgstr[0] "Flytningen blev fuldført, men {n} fil blev i kilden (sprunget over pga. valget for eksisterende filer, links eller filer ændret under flytningen)."
 msgstr[1] "Flytningen blev fuldført, men {n} filer blev i kilden (sprunget over pga. valget for eksisterende filer, links eller filer ændret under flytningen)."
 
-#: crates/rolid-ui/src/app.rs:2915
+#: crates/rolid-ui/src/app.rs:2932
 msgid "Resume an interrupted transfer (.filepart of the same source file)"
 msgstr "Genoptag en afbrudt overførsel (.filepart fra den samme kildefil)"
 
-#: crates/rolid-ui/src/app.rs:2919
+#: crates/rolid-ui/src/app.rs:2936
 msgid "{choice}  ⚠ existing files will be overwritten"
 msgstr "{choice}  ⚠ eksisterende filer overskrives"
 
-#: crates/rolid-ui/src/app.rs:2928
+#: crates/rolid-ui/src/app.rs:2945
 msgid "Choose what to do with existing files: nothing is preselected."
 msgstr "Vælg, hvad der skal ske med eksisterende filer: intet er forvalgt."
 
-#: crates/rolid-ui/src/app.rs:3116
+#: crates/rolid-ui/src/app.rs:3133
 msgid "unlimited"
 msgstr "ubegrænset"
 
-#: crates/rolid-ui/src/app.rs:3155
+#: crates/rolid-ui/src/app.rs:3172
 msgid "Exact value (drag, or double-click and type)"
 msgstr "Nøjagtig værdi (træk, eller dobbeltklik og skriv)"
 
@@ -5927,7 +5927,7 @@ msgstr "{path}: kunne ikke udpakkes"
 msgid "{path}: no such folder in the archive"
 msgstr "{path}: ingen sådan mappe i arkivet"
 
-#: crates/rolid-ui/src/dialog.rs:423
+#: crates/rolid-ui/src/dialog.rs:427
 msgid "Recent targets"
 msgstr "Seneste mål"
 
@@ -6073,7 +6073,7 @@ msgid "Refresh (Ctrl+R)"
 msgstr "Opdatér (Ctrl+R)"
 
 #: crates/rolid-ui/src/pane/navbar.rs:398
-#: crates/rolid-ui/src/pane.rs:1395
+#: crates/rolid-ui/src/pane.rs:1411
 msgid "Favorite and recent folders (Ctrl+D adds this folder)"
 msgstr "Favorit- og seneste mapper (Ctrl+D tilføjer denne mappe)"
 
@@ -6126,194 +6126,206 @@ msgid "(back to the folder)"
 msgstr "(tilbage til mappen)"
 
 #: crates/rolid-ui/src/pane/views.rs:190
-#: crates/rolid-ui/src/pane/views.rs:459
+#: crates/rolid-ui/src/pane/views.rs:483
 msgctxt "column"
 msgid "computing…"
 msgstr "beregner…"
 
 #: crates/rolid-ui/src/pane/views.rs:191
-#: crates/rolid-ui/src/pane/views.rs:461
+#: crates/rolid-ui/src/pane/views.rs:485
 msgctxt "column"
 msgid "<DIR>"
 msgstr "<DIR>"
 
 #: crates/rolid-ui/src/pane/views.rs:194
-#: crates/rolid-ui/src/pane/views.rs:427
+#: crates/rolid-ui/src/pane/views.rs:451
 msgctxt "column"
 msgid "<UP>"
 msgstr "<OP>"
 
-#: crates/rolid-ui/src/pane/views.rs:281
+#: crates/rolid-ui/src/pane/views.rs:237
+msgid ".. (one level up)"
+msgstr ".. (et niveau op)"
+
+#: crates/rolid-ui/src/pane/views.rs:240
+msgid "folder"
+msgstr "mappe"
+
+#: crates/rolid-ui/src/pane/views.rs:304
 msgid "Open with"
 msgstr "Åbn med"
 
-#: crates/rolid-ui/src/pane/views.rs:313
+#: crates/rolid-ui/src/pane/views.rs:336
 msgid "Unmark"
 msgstr "Fjern markering"
 
-#: crates/rolid-ui/src/pane/views.rs:313
+#: crates/rolid-ui/src/pane/views.rs:336
 msgid "Mark"
 msgstr "Markér"
 
-#: crates/rolid-ui/src/pane/views.rs:314
+#: crates/rolid-ui/src/pane/views.rs:337
 msgid "Insert / Ctrl+click"
 msgstr "Insert / Ctrl+klik"
 
-#: crates/rolid-ui/src/pane/views.rs:346
+#: crates/rolid-ui/src/pane/views.rs:369
 msgid "Add folder to favorites"
 msgstr "Føj mappen til favoritter"
 
-#: crates/rolid-ui/src/pane/views.rs:349
+#: crates/rolid-ui/src/pane/views.rs:372
 msgid "Disk properties…"
 msgstr "Diskegenskaber…"
 
-#: crates/rolid-ui/src/pane.rs:190
+#: crates/rolid-ui/src/pane.rs:194
 msgid "contains “{text}”"
 msgstr "indeholder »{text}«"
 
-#: crates/rolid-ui/src/pane.rs:193
+#: crates/rolid-ui/src/pane.rs:197
 msgctxt "search"
 msgid "everything"
 msgstr "alt"
 
-#: crates/rolid-ui/src/pane.rs:305
+#: crates/rolid-ui/src/pane.rs:309
 msgid "text editor"
 msgstr "teksteditor"
 
-#: crates/rolid-ui/src/pane.rs:306
+#: crates/rolid-ui/src/pane.rs:310
 msgid "the system's default application"
 msgstr "systemets standardprogram"
 
-#: crates/rolid-ui/src/pane.rs:311
+#: crates/rolid-ui/src/pane.rs:315
 msgid "command"
 msgstr "kommando"
 
-#: crates/rolid-ui/src/pane.rs:312
+#: crates/rolid-ui/src/pane.rs:316
 msgid "the application chosen in Windows"
 msgstr "programmet valgt i Windows"
 
-#: crates/rolid-ui/src/pane.rs:1383
+#: crates/rolid-ui/src/pane.rs:1399
 msgid "Root /"
 msgstr "Rod /"
 
-#: crates/rolid-ui/src/pane.rs:1447
+#: crates/rolid-ui/src/pane.rs:1463
 msgid "Click for details."
 msgstr "Klik for detaljer."
 
-#: crates/rolid-ui/src/pane.rs:1448
+#: crates/rolid-ui/src/pane.rs:1464
 msgid "Disk health (SMART) – click for details"
 msgstr "Diskens tilstand (SMART) – klik for detaljer"
 
-#: crates/rolid-ui/src/pane.rs:1504
+#: crates/rolid-ui/src/pane.rs:1520
 msgid "Archive · read-only"
 msgstr "Arkiv · skrivebeskyttet"
 
-#: crates/rolid-ui/src/pane.rs:1508
+#: crates/rolid-ui/src/pane.rs:1524
 msgid "PRODUCTION · {label}"
 msgstr "PRODUKTION · {label}"
 
-#: crates/rolid-ui/src/pane.rs:1585
-#: crates/rolid-ui/src/pane.rs:1612
+#: crates/rolid-ui/src/pane.rs:1601
+#: crates/rolid-ui/src/pane.rs:1628
 msgctxt "column"
 msgid "Ext"
 msgstr "Endelse"
 
-#: crates/rolid-ui/src/pane.rs:1586
-#: crates/rolid-ui/src/pane.rs:1618
+#: crates/rolid-ui/src/pane.rs:1602
+#: crates/rolid-ui/src/pane.rs:1634
 msgctxt "column"
 msgid "Size"
 msgstr "Størrelse"
 
-#: crates/rolid-ui/src/pane.rs:1587
-#: crates/rolid-ui/src/pane.rs:1624
+#: crates/rolid-ui/src/pane.rs:1603
+#: crates/rolid-ui/src/pane.rs:1640
 msgctxt "column"
 msgid "Modified"
 msgstr "Ændret"
 
-#: crates/rolid-ui/src/pane.rs:1588
-#: crates/rolid-ui/src/pane.rs:1628
+#: crates/rolid-ui/src/pane.rs:1604
+#: crates/rolid-ui/src/pane.rs:1644
 msgctxt "column"
 msgid "Permissions"
 msgstr "Rettigheder"
 
-#: crates/rolid-ui/src/pane.rs:1606
+#: crates/rolid-ui/src/pane.rs:1622
 msgctxt "column"
 msgid "Name"
 msgstr "Navn"
 
-#: crates/rolid-ui/src/pane.rs:1720
+#: crates/rolid-ui/src/pane.rs:1673
+msgid "Column width (drag, double-click fits)"
+msgstr "Kolonnebredde (træk, dobbeltklik tilpasser)"
+
+#: crates/rolid-ui/src/pane.rs:1748
 msgid "computing the size of {n} folder…"
 msgid_plural "computing the size of {n} folders…"
 msgstr[0] "beregner størrelsen af {n} mappe…"
 msgstr[1] "beregner størrelsen af {n} mapper…"
 
-#: crates/rolid-ui/src/pane.rs:1724
+#: crates/rolid-ui/src/pane.rs:1752
 msgid "searching… ({count} found, Esc stops)"
 msgstr "søger… ({count} fundet, Esc stopper)"
 
-#: crates/rolid-ui/src/pane.rs:1732
+#: crates/rolid-ui/src/pane.rs:1760
 msgid "filter: \"{filter}\" ({n} match, Esc clears)"
 msgid_plural "filter: \"{filter}\" ({n} matches, Esc clears)"
 msgstr[0] "filter: »{filter}« ({n} match, Esc rydder)"
 msgstr[1] "filter: »{filter}« ({n} match, Esc rydder)"
 
-#: crates/rolid-ui/src/pane.rs:1736
+#: crates/rolid-ui/src/pane.rs:1764
 msgid "loading…"
 msgstr "indlæser…"
 
-#: crates/rolid-ui/src/pane.rs:1922
+#: crates/rolid-ui/src/pane.rs:1950
 msgid "{sel} of {n} file"
 msgid_plural "{sel} of {n} files"
 msgstr[0] "{sel} af {n} fil"
 msgstr[1] "{sel} af {n} filer"
 
-#: crates/rolid-ui/src/pane.rs:1923
+#: crates/rolid-ui/src/pane.rs:1951
 msgid "{sel} of {n} folder"
 msgid_plural "{sel} of {n} folders"
 msgstr[0] "{sel} af {n} mappe"
 msgstr[1] "{sel} af {n} mapper"
 
-#: crates/rolid-ui/src/pane.rs:1926
+#: crates/rolid-ui/src/pane.rs:1954
 msgid "Selected: {folders}, {size}"
 msgstr "Markeret: {folders}, {size}"
 
-#: crates/rolid-ui/src/pane.rs:1928
+#: crates/rolid-ui/src/pane.rs:1956
 msgid "Selected: {folders}"
 msgstr "Markeret: {folders}"
 
-#: crates/rolid-ui/src/pane.rs:1933
+#: crates/rolid-ui/src/pane.rs:1961
 msgid "Selected: {files}, {size} of {total} and {folders}"
 msgstr "Markeret: {files}, {size} af {total} og {folders}"
 
-#: crates/rolid-ui/src/pane.rs:1935
+#: crates/rolid-ui/src/pane.rs:1963
 msgid "Selected: {files}, {size} of {total}"
 msgstr "Markeret: {files}, {size} af {total}"
 
-#: crates/rolid-ui/src/pane.rs:1941
+#: crates/rolid-ui/src/pane.rs:1969
 msgid "{files}, {size}"
 msgstr "{files}, {size}"
 
-#: crates/rolid-ui/src/pane.rs:1945
+#: crates/rolid-ui/src/pane.rs:1973
 msgid "{files}, {size}, {folders} (with folder sizes)"
 msgstr "{files}, {size}, {folders} (med mappestørrelser)"
 
-#: crates/rolid-ui/src/pane.rs:1947
+#: crates/rolid-ui/src/pane.rs:1975
 msgid "{files}, {size}, {folders}"
 msgstr "{files}, {size}, {folders}"
 
-#: crates/rolid-ui/src/pane.rs:2347
+#: crates/rolid-ui/src/pane.rs:2375
 msgid "{app} (default)"
 msgstr "{app} (standard)"
 
-#: crates/rolid-ui/src/pane.rs:2351
+#: crates/rolid-ui/src/pane.rs:2379
 msgid "Text editor (F4)"
 msgstr "Teksteditor (F4)"
 
-#: crates/rolid-ui/src/pane.rs:2353
+#: crates/rolid-ui/src/pane.rs:2381
 msgid "Choose an application in Windows…"
 msgstr "Vælg et program i Windows…"
 
-#: crates/rolid-ui/src/pane.rs:2355
+#: crates/rolid-ui/src/pane.rs:2383
 msgid "Other application…"
 msgstr "Andet program…"
 

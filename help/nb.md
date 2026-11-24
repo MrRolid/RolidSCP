@@ -8,6 +8,9 @@ hurtigtaster står på den andre siden i dette vinduet.
 **F10** åpner menylinjen uten mus: **←** **→** bytter mellom menyene, **↑** **↓** går gjennom elementene,
 **→** inn i en undermeny, **Enter** velger et element, **Esc** lukker menyen.
 
+Med en skjermleser (Orca) leser listen opp elementet under markøren (navn, «mappe» eller størrelsen, og
+om det er merket), knappene og dialogene sine navn.
+
 ## Paneler og faner
 
 - **Tab** bytter mellom venstre og høyre panel. Det aktive panelet har en tydeligere overskrift.

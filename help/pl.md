@@ -8,6 +8,9 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
 **F10** otwiera pasek menu bez myszy: **←** **→** przechodzą między menu, **↑** **↓** po pozycjach,
 **→** do podmenu, **Enter** wybiera pozycję, **Esc** zamyka menu.
 
+Z czytnikiem ekranu (Orca) lista odczytuje element pod kursorem (nazwę, „folder” lub rozmiar oraz czy
+jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
+
 ## Panele i karty
 
 - **Tab** przełącza między lewym i prawym panelem. Aktywny panel ma wyraźniejszy nagłówek.

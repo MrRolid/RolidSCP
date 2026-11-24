@@ -223,6 +223,29 @@ impl Pane {
     }
 
     /// Clicks, Ctrl+click, Shift+click, double click and the context menu of one item.
+    /// What a screen reader says for a row: the name, then "folder" or the
+    /// size; marked rows are selected. The cursor row becomes the active row
+    /// of the list.
+    fn a11y_row(&mut self, resp: &Response, idx: usize, row: Row) {
+        if self.a11y_list.is_none() {
+            return;
+        }
+        if idx == self.cursor {
+            self.a11y_cursor = Some(resp.id);
+        }
+        let (label, marked) = match row {
+            Row::Up => (tr!(".. (one level up)"), false),
+            Row::Entry(i) => match self.entries.get(i) {
+                Some(e) => {
+                    let what = if e.is_dir_like() { tr!("folder") } else { human_size(e.size) };
+                    (format!("{}, {what}", rolid_core::names::visible(&e.name)), self.marked.has(i))
+                }
+                None => return,
+            },
+        };
+        resp.widget_info(|| egui::WidgetInfo::selected(egui::Role::ListBoxOption, true, marked, &label));
+    }
+
     fn interact_item(&mut self, ui: &egui::Ui, resp: &Response, idx: usize, row: Row, events: &mut Vec<PaneEvent>) {
         // Dragging a row (not "..", not one being renamed): the app takes over.
         if resp.drag_started_by(egui::PointerButton::Primary) {
@@ -398,6 +421,7 @@ impl Pane {
             for idx in range {
                 let row = self.view[idx];
                 let (rect, resp) = ui.allocate_exact_size(Vec2::new(ui.available_width(), row_h()), Sense::click_and_drag());
+                self.a11y_row(&resp, idx, row);
                 let p = ui.painter_at(rect);
                 if idx == self.cursor {
                     self.paint_cursor(&p, rect, c);
@@ -548,6 +572,7 @@ impl Pane {
             let rect = Rect::from_min_size(egui::pos2(x, list_rect.top() + r as f32 * row_h()), Vec2::new(col_w, row_h()));
             let row = self.view[idx];
             let resp = ui.interact(rect, ui.scope_id().with(("brief", idx)), Sense::click_and_drag());
+            self.a11y_row(&resp, idx, row);
             if idx == self.cursor {
                 self.paint_cursor(&painter, rect.shrink2(Vec2::new(1.0, 0.0)), c);
             }
@@ -634,6 +659,7 @@ impl Pane {
                     let rect = Rect::from_min_size(row_rect.min + Vec2::new(gc as f32 * tile.x, 0.0), tile);
                     let row = self.view[idx];
                     let resp = ui.interact(rect, ui.scope_id().with(("thumb", idx)), Sense::click_and_drag());
+                    self.a11y_row(&resp, idx, row);
                     let p = ui.painter_at(rect.intersect(ui.clip_rect()));
                     if idx == self.cursor {
                         self.paint_cursor(&p, rect.shrink(2.0), c);

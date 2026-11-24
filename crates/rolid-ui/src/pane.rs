@@ -102,6 +102,10 @@ pub struct Pane {
     scroll_offset: f32,
     scroll_to_cursor: bool,
     viewport_h: f32,
+    /// Screen readers (only while one is on): the list as a focusable node
+    /// whose active row is the cursor row (see `App::handle_keys`).
+    pub a11y_list: Option<egui::Id>,
+    a11y_cursor: Option<egui::Id>,
     /// Folder rows on screen in the last frame (for dropping files onto them).
     pub drop_dirs: Vec<(Rect, String)>,
     /// Listing style of this tab.
@@ -355,6 +359,8 @@ impl Pane {
             search: None,
             scroll_offset: 0.0,
             scroll_to_cursor: true,
+            a11y_list: None,
+            a11y_cursor: None,
             viewport_h: 400.0,
             drop_dirs: Vec::new(),
             style: ViewStyle::Full,
@@ -421,6 +427,16 @@ impl Pane {
         match self.real_location() {
             (_, path, Some(r), _) => rolid_config::Location::Remote { target: r.target, path },
             (_, path, None, _) => rolid_config::Location::Local { path },
+        }
+    }
+
+    /// The list's name for a screen reader: the folder, on a server with
+    /// the server's name.
+    fn a11y_name(&self) -> String {
+        let path = rolid_core::names::visible(&self.path).into_owned();
+        match &self.remote {
+            Some(r) => format!("{}: {path}", r.name.clone().unwrap_or_else(|| r.target.host.clone())),
+            None => path,
         }
     }
 
@@ -1635,6 +1651,7 @@ impl Pane {
                     ui.scope_id().with(("col", rect.left() as i32)),
                     Sense::click(),
                 );
+                resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::ColumnHeader, true, &title));
                 let pos = if align == Align2::RIGHT_CENTER {
                     rect.right_center() - Vec2::new(6.0, 0.0)
                 } else {
@@ -1653,6 +1670,7 @@ impl Pane {
                 columns::separator(ui.painter(), x, crect.top(), crect.bottom(), line);
                 let grip = Rect::from_min_max(egui::pos2(x - 4.0, crect.top()), egui::pos2(x + 4.0, crect.bottom()));
                 let resp = ui.interact(grip, ui.scope_id().with(("col-sep", col)), Sense::click_and_drag());
+                resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Splitter, true, tr!("Column width (drag, double-click fits)")));
                 if resp.hovered() || resp.dragged() {
                     ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
                 }
@@ -1699,12 +1717,22 @@ impl Pane {
         }
         // The empty space of the list: under the rows, which are added later
         // and so take the clicks on themselves.
+        // For screen readers: the list as one focusable node (it takes no
+        // clicks); its active row is the cursor row, set after the rows.
+        let list = ui.interact(list_rect, ui.scope_id().with("a11y-list"), Sense::focusable_noninteractive());
+        let list_name = self.a11y_name();
+        list.widget_info(|| egui::WidgetInfo::labeled(egui::Role::ListBox, true, &list_name));
+        self.a11y_list = ui.ctx().accesskit_node_builder(list.id, |_| ()).map(|()| list.id);
+        self.a11y_cursor = None;
         let bg = ui.interact(list_rect, ui.scope_id().with("list-bg"), Sense::click());
         self.folder_menu(&bg, &mut events);
         match self.style {
             ViewStyle::Full => self.show_full(ui, list_rect, &colors, &mut events, &mut drop_dirs),
             ViewStyle::Brief => self.show_brief(ui, list_rect, &colors, &mut events, &mut drop_dirs),
             ViewStyle::Thumbs => self.show_thumbs(ui, list_rect, &colors, view, &mut events, &mut drop_dirs),
+        }
+        if let (Some(list), Some(row)) = (self.a11y_list, self.a11y_cursor) {
+            ui.ctx().accesskit_node_builder(list, |n| n.set_active_descendant(row.accesskit_id()));
         }
         self.end_unseen_rename();
 

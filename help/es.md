@@ -9,6 +9,9 @@ de teclado está en la segunda página de esta ventana.
 **F10** abre la barra de menús sin ratón: **←** **→** pasan de un menú a otro, **↑** **↓** recorren los
 elementos, **→** entra en un submenú, **Enter** elige un elemento, **Esc** cierra el menú.
 
+Con un lector de pantalla (Orca), la lista lee el elemento bajo el cursor (su nombre, «carpeta» o el
+tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
+
 ## Paneles y pestañas
 
 - **Tab** cambia entre el panel izquierdo y el derecho. El panel activo tiene un encabezado más

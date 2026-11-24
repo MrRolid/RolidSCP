@@ -8,6 +8,9 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
 **F10** åbner menulinjen uden mus: **←** **→** skifter mellem menuerne, **↑** **↓** går gennem punkterne,
 **→** ind i en undermenu, **Enter** vælger et punkt, **Esc** lukker menuen.
 
+Med en skærmlæser (Orca) læser listen punktet under markøren op (navn, „mappe“ eller størrelsen, og om
+det er markeret), knapperne og dialogerne deres navne.
+
 ## Paneler og faneblade
 
 - **Tab** skifter mellem venstre og højre panel. Det aktive panel har en tydeligere overskrift.

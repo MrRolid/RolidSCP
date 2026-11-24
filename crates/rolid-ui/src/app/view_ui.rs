@@ -324,7 +324,10 @@ impl App {
                     .min_size(Vec2::splat(30.0))
                     .selected(sel)
                     .frame_when_inactive(sel);
-                ui.add_enabled(on, btn).on_hover_text(tip).on_disabled_hover_text("").clicked()
+                let r = ui.add_enabled(on, btn);
+                // A screen reader says the tooltip, not the icon's character.
+                r.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, on, sel, &tip));
+                r.on_hover_text(&tip).on_disabled_hover_text("").clicked()
             };
             let sep = |ui: &mut egui::Ui| {
                 ui.add_space(4.0);

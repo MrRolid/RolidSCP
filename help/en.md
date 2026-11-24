@@ -8,6 +8,9 @@ shortcuts is on the second page of this window.
 **F10** opens the menu bar without the mouse: **←** **→** go between the menus, **↑** **↓** through the
 items, **→** into a submenu, **Enter** picks an item, **Esc** closes the menu.
 
+With a screen reader (Orca) the list says the item under the cursor (its name, "folder" or the size,
+and whether it is selected), the buttons and dialogs their names.
+
 ## Panels and tabs
 
 - **Tab** switches between the left and the right panel. The active panel has a stronger header.

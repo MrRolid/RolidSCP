@@ -121,10 +121,12 @@ impl Window {
     /// Draw the dialog.
     pub fn show<R>(self, ctx: &egui::Context, body: impl FnOnce(&mut Ui) -> R) -> R {
         let Window { id, title, icon, min_width, max_width, danger } = self;
+        let name = title.clone();
         let (off_id, w_id) = (id.with("offset"), id.with("width"));
         let offset: Vec2 = ctx.data(|d| d.get_temp(off_id)).unwrap_or_default();
         let last_w: f32 = ctx.data(|d| d.get_temp(w_id)).unwrap_or(min_width + 2.0 * MARGIN);
-        let area = egui::Modal::default_area(id).anchor(egui::Align2::CENTER_CENTER, offset);
+        // The title is the dialog's name for a screen reader.
+        let area = egui::Modal::default_area(id).anchor(egui::Align2::CENTER_CENTER, offset).accessible_name(name);
         let style = ctx.global_style();
         let frame = egui::Frame::popup(&style).inner_margin(Margin::ZERO);
         let radius = frame.corner_radius;
@@ -386,6 +388,8 @@ pub fn buttons<const N: usize>(ui: &mut Ui, list: [Btn; N]) -> [bool; N] {
                 };
                 let wb = wb.min_size(Vec2::new(w, look::BUTTON_HEIGHT)).stroke(stroke);
                 let mut r = ui.add_enabled(b.enabled, wb);
+                // A screen reader says the text, not the icon's character.
+                r.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, b.enabled, &b.text));
                 if let Some(t) = &b.tooltip {
                     r = r.on_hover_text(t);
                 }
