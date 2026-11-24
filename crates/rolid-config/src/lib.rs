@@ -9,6 +9,7 @@
 //! Versions 0.3/0.4 kept passwords in the system keyring; [`secrets`] is only used
 //! to read (and, after migration, delete) those old entries.
 
+pub mod shared;
 pub mod strength;
 pub mod vault;
 
@@ -788,7 +789,11 @@ pub fn log_path() -> PathBuf {
 
 fn load<T: for<'de> Deserialize<'de> + Default>(path: &Path) -> Result<T, String> {
     match std::fs::read_to_string(path) {
-        Ok(s) => toml::from_str(&s).map_err(|e| format!("{}: {e}", path.display())),
+        Ok(s) => {
+            let v = toml::from_str(&s).map_err(|e| format!("{}: {e}", path.display()))?;
+            shared::remember(path, &s);
+            Ok(v)
+        }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(T::default()),
         Err(e) => Err(format!("{}: {e}", path.display())),
     }
@@ -798,8 +803,12 @@ fn load<T: for<'de> Deserialize<'de> + Default>(path: &Path) -> Result<T, String
 pub fn write_atomic(path: &Path, data: &[u8]) -> Result<(), String> {
     let dir = path.parent().ok_or("bad path")?;
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
-    let mut tmp_name = path.file_name().ok_or("bad path")?.to_os_string();
-    tmp_name.push(".tmp");
+    // A temp name of this process and call: two running copies saving the
+    // same file must not write into (or rename) each other's temp file.
+    static N: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
+    let mut tmp_name = std::ffi::OsString::from(".");
+    tmp_name.push(path.file_name().ok_or("bad path")?);
+    tmp_name.push(format!(".{}.{}.tmp", std::process::id(), N.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
     let tmp = path.with_file_name(tmp_name);
     // A leftover temp file could have other permissions: start fresh.
     let _ = std::fs::remove_file(&tmp);
@@ -831,7 +840,50 @@ pub fn write_atomic(path: &Path, data: &[u8]) -> Result<(), String> {
 
 fn save<T: Serialize>(path: &Path, value: &T) -> Result<(), String> {
     let text = toml::to_string_pretty(value).map_err(|e| e.to_string())?;
-    write_atomic(path, text.as_bytes())
+    write_atomic(path, text.as_bytes())?;
+    shared::remember(path, &text);
+    Ok(())
+}
+
+/// Bring `value` and the file at `path` together when another running copy
+/// of the program may have saved it (see [`shared`]): their changes are
+/// merged into `value`, ours into the file. `always` writes even if the file
+/// did not change (a save); otherwise the file is written only when it lacks
+/// something of ours (a check for the other copy's changes).
+/// Returns whether `value` took changes from the file.
+fn sync<T: Serialize + for<'de> Deserialize<'de>>(path: &Path, value: &mut T, always: bool) -> Result<bool, String> {
+    let _lock = shared::lock(path)?;
+    let theirs = match std::fs::read_to_string(path) {
+        Ok(s) => Some(s),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+        Err(e) => return Err(format!("{}: {e}", path.display())),
+    };
+    let base = shared::synced(path);
+    if !always && (theirs.is_none() || theirs == base) {
+        // Nobody else saved: nothing to take (and unsaved changes stay unsaved).
+        return Ok(false);
+    }
+    let mut took = false;
+    if let Some(t) = theirs.as_deref().filter(|t| Some(*t) != base.as_deref()) {
+        // A file that does not parse (damaged by hand) is replaced by ours.
+        if let Ok(tv) = toml::from_str::<toml::Table>(t) {
+            let ours = toml::Value::try_from(&*value).map_err(|e| e.to_string())?;
+            let bv = base.as_deref().and_then(|b| toml::from_str::<toml::Table>(b).ok()).map(toml::Value::Table);
+            let merged = shared::merge3(bv.as_ref(), &ours, &toml::Value::Table(tv));
+            if merged != ours {
+                if let Ok(m) = merged.try_into::<T>() {
+                    *value = m;
+                    took = true;
+                }
+            }
+        }
+    }
+    let text = toml::to_string_pretty(value).map_err(|e| e.to_string())?;
+    if always || theirs.as_deref() != Some(text.as_str()) {
+        write_atomic(path, text.as_bytes())?;
+    }
+    shared::remember(path, &text);
+    Ok(took)
 }
 
 /// Load any TOML file from the config dir (missing file = default).
@@ -844,12 +896,39 @@ pub fn save_file<T: Serialize>(name: &str, value: &T) -> Result<(), String> {
     save(&config_dir().join(name), value)
 }
 
+/// Save a file another running copy may also save (settings): its changes
+/// since we read the file are merged into `value` first. Returns whether
+/// `value` took changes from the file.
+pub fn save_file_shared<T: Serialize + for<'de> Deserialize<'de>>(name: &str, value: &mut T) -> Result<bool, String> {
+    sync(&config_dir().join(name), value, true)
+}
+
+/// Take what another running copy saved into the file since we last read or
+/// wrote it. Returns whether `value` changed.
+pub fn reload_file_shared<T: Serialize + for<'de> Deserialize<'de>>(name: &str, value: &mut T) -> Result<bool, String> {
+    sync(&config_dir().join(name), value, false)
+}
+
 pub fn load_profiles() -> Result<Profiles, String> {
     load(&config_dir().join("profiles.toml"))
 }
 
-pub fn save_profiles(p: &Profiles) -> Result<(), String> {
-    save(&config_dir().join("profiles.toml"), p)
+/// Save the servers, with the changes another running copy saved meanwhile
+/// (`p` takes them).
+pub fn save_profiles(p: &mut Profiles) -> Result<(), String> {
+    if sync(&config_dir().join("profiles.toml"), p, true)? {
+        p.list.sort_by_key(|p| p.name.to_lowercase());
+    }
+    Ok(())
+}
+
+/// Take the servers another running copy saved. Returns whether `p` changed.
+pub fn reload_profiles(p: &mut Profiles) -> Result<bool, String> {
+    let changed = sync(&config_dir().join("profiles.toml"), p, false)?;
+    if changed {
+        p.list.sort_by_key(|p| p.name.to_lowercase());
+    }
+    Ok(changed)
 }
 
 pub fn load_workspace() -> Result<Workspace, String> {
@@ -909,6 +988,51 @@ pub mod secrets {
 
 #[cfg(test)]
 mod tests {
+    /// Two running copies of the program (two processes: this test binary
+    /// started twice) add servers to one `profiles.toml` at the same time and
+    /// change the same settings file. No server is lost and the file is never
+    /// damaged.
+    #[test]
+    fn two_copies_saving_at_once_lose_nothing() {
+        use super::*;
+        const EACH: usize = 40;
+        if let Some(who) = std::env::var_os("ROLIDSCP_TEST_COPY") {
+            let who = who.to_string_lossy().into_owned();
+            let path = config_dir().join("profiles.toml");
+            let mut p: Profiles = load(&path).unwrap();
+            for i in 0..EACH {
+                p.upsert(Profile { id: format!("{who}-{i}"), name: format!("{who} {i}"), host: "example.com".into(), port: 22, ..Default::default() });
+                save_profiles(&mut p).unwrap();
+                // A settings value of this copy, next to the other copy's.
+                let mut s: toml::Table = load_file("settings.toml").unwrap();
+                s.insert(format!("last_{who}"), toml::Value::Integer(i as i64));
+                save_file_shared("settings.toml", &mut s).unwrap();
+            }
+            return;
+        }
+        let d = tempfile::tempdir().unwrap();
+        let exe = std::env::current_exe().unwrap();
+        let start = |who: &str| {
+            std::process::Command::new(&exe)
+                .args(["--exact", "tests::two_copies_saving_at_once_lose_nothing", "--test-threads=1"])
+                .env("ROLIDSCP_TEST_COPY", who)
+                .env("ROLIDSCP_CONFIG_DIR", d.path())
+                .stdout(std::process::Stdio::null())
+                .spawn()
+                .unwrap()
+        };
+        let (mut a, mut b) = (start("a"), start("b"));
+        assert!(a.wait().unwrap().success() && b.wait().unwrap().success());
+        let p: Profiles = load(&d.path().join("profiles.toml")).unwrap();
+        assert_eq!(p.list.len(), 2 * EACH, "servers lost: {:?}", p.list.iter().map(|p| &p.id).collect::<Vec<_>>());
+        let s: toml::Table = load(&d.path().join("settings.toml")).unwrap();
+        assert_eq!((s.get("last_a"), s.get("last_b")), (Some(&toml::Value::Integer(EACH as i64 - 1)), Some(&toml::Value::Integer(EACH as i64 - 1))));
+        // Only the two files: no temp file left behind.
+        let mut names: Vec<_> = std::fs::read_dir(d.path()).unwrap().flatten().map(|e| e.file_name().into_string().unwrap()).collect();
+        names.sort();
+        assert_eq!(names, ["profiles.toml", "settings.toml"]);
+    }
+
     #[test]
     fn conflict_presets_default_and_round_trip() {
         let s = Settings::default();

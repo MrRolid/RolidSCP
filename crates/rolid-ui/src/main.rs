@@ -44,9 +44,10 @@ fn init_logging() {
         .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("warn,rolid_ssh=info,rolidscp=info"));
     let path = rolid_config::log_path();
     let file = path.parent().and_then(|d| std::fs::create_dir_all(d).ok()).and_then(|_| {
-        // Keep the log small: start over when it grows past 2 MB.
+        // Keep the log small: start over when it grows past 2 MB. The old one
+        // is kept as `rolidscp.log.old` (a running copy goes on writing into it).
         if std::fs::metadata(&path).is_ok_and(|m| m.len() > 2_000_000) {
-            let _ = std::fs::remove_file(&path);
+            let _ = std::fs::rename(&path, path.with_extension("log.old"));
         }
         let mut o = std::fs::OpenOptions::new();
         o.create(true).append(true);
@@ -67,7 +68,8 @@ fn init_logging() {
         .with(file_layer)
         .with(tracing_subscriber::fmt::layer().with_writer(std::io::stderr))
         .try_init();
-    tracing::info!(version = env!("CARGO_PKG_VERSION"), log = %path.display(), "RolidSCP start");
+    // The PID tells the lines of two running copies apart (they share the log).
+    tracing::info!(version = env!("CARGO_PKG_VERSION"), pid = std::process::id(), log = %path.display(), "RolidSCP start");
 }
 
 /// Records of the part files of packing and extracting (see `rolid_archive::journal`).

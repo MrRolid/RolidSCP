@@ -94,15 +94,44 @@ fn decode(text: &str) -> Option<(String, Step)> {
     Some((key, step))
 }
 
-/// A journal entry on disk; removed by [`JournalEntry::done`].
+/// A journal entry on disk; removed by [`JournalEntry::done`]. While it
+/// lives the step is under way in this process and [`repair`] leaves it alone.
 struct JournalEntry(PathBuf);
 
+/// Entries of steps under way in this process.
+static ACTIVE: std::sync::Mutex<Vec<PathBuf>> = std::sync::Mutex::new(Vec::new());
+
 impl JournalEntry {
+    fn new(path: PathBuf) -> Self {
+        ACTIVE.lock().unwrap_or_else(|e| e.into_inner()).push(path.clone());
+        JournalEntry(path)
+    }
+
     fn done(self) {
         // A failure only leaves the entry for the next repair, which finds
         // nothing to do and removes it.
         let _ = std::fs::remove_file(&self.0);
     }
+}
+
+impl Drop for JournalEntry {
+    /// The step is over (done, or cut off: then the entry stays on the disk
+    /// for the repair at the next connection).
+    fn drop(&mut self) {
+        ACTIVE.lock().unwrap_or_else(|e| e.into_inner()).retain(|p| *p != self.0);
+    }
+}
+
+/// An entry the repair must leave alone: its step is under way in this
+/// process (another connection to the same server), or it belongs to
+/// another running copy of the program (named `<pid>-…`), which repairs it
+/// itself; once that copy is gone, anyone does.
+fn in_use(entry: &Path) -> bool {
+    if ACTIVE.lock().unwrap_or_else(|e| e.into_inner()).iter().any(|p| p == entry) {
+        return true;
+    }
+    let pid = entry.file_name().and_then(|n| n.to_str()).and_then(|n| n.split('-').next()).and_then(|p| p.parse::<u32>().ok());
+    pid.is_some_and(|pid| pid != std::process::id() && Path::new("/proc").join(pid.to_string()).exists())
 }
 
 /// Write the step to the journal (only for a server and with a journal folder).
@@ -134,7 +163,7 @@ fn begin(dir: Option<&Path>, fs: &dyn Vfs, step: &Step) -> Option<JournalEntry> 
         std::fs::rename(&tmp, &path)?;
         std::fs::File::open(dir)?.sync_all()
     };
-    write().is_ok().then_some(JournalEntry(path))
+    write().is_ok().then(|| JournalEntry::new(path))
 }
 
 /// Replace `target` with `part` (see the module docs), journaled in the
@@ -250,6 +279,9 @@ pub async fn repair_in(fs: &dyn Vfs, dir: &Path) -> Repair {
         rd.flatten().map(|e| e.path()).filter(|p| p.extension().is_some_and(|x| x == JOURNAL_EXT)).collect();
     files.sort();
     for f in files {
+        if in_use(&f) {
+            continue;
+        }
         let Ok(text) = std::fs::read_to_string(&f) else { continue };
         let Some((k, step)) = decode(&text) else {
             let _ = std::fs::remove_file(&f); // unreadable: of no use
@@ -349,6 +381,22 @@ mod tests {
         let r = Step::Rename { src: "/d/readme".into(), tmp: "/d/.readme.rolid-renaming".into(), dst: "/d/README".into() };
         assert_eq!(decode(&encode("k", &r)), Some(("k".to_string(), r)));
         assert_eq!(decode("garbage"), None);
+    }
+
+    #[test]
+    fn steps_under_way_are_left_alone() {
+        let d = std::env::temp_dir().join(format!("rolid-journal-{}", std::process::id()));
+        // Another running copy (PID 1 always runs): its own business.
+        assert!(in_use(&d.join("1-5-0.journal")));
+        // A copy that is gone (PIDs do not reach this): repaired.
+        assert!(!in_use(&d.join("4294967294-5-0.journal")));
+        // This process: only the steps under way.
+        let mine = d.join(format!("{}-5-0.journal", std::process::id()));
+        assert!(!in_use(&mine));
+        let e = JournalEntry::new(mine.clone());
+        assert!(in_use(&mine));
+        drop(e);
+        assert!(!in_use(&mine), "a cut-off step of this process is repaired at the next connection");
     }
 
     #[test]

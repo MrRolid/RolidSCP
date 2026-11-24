@@ -654,7 +654,7 @@ impl App {
             f.saved_in_keyring = false;
         }
         self.profiles.upsert(p);
-        match rolid_config::save_profiles(&self.profiles) {
+        match rolid_config::save_profiles(&mut self.profiles) {
             Ok(()) => {
                 if let Dialog::Connect(f) = &mut self.dialog {
                     f.info = Some(tr!("Profile saved."));
@@ -717,7 +717,7 @@ impl App {
     fn delete_profile(&mut self, id: String) {
         let in_keyring = self.profiles.get(&id).is_some_and(|p| p.password_in_keyring());
         self.profiles.remove(&id);
-        if let Err(e) = rolid_config::save_profiles(&self.profiles) {
+        if let Err(e) = rolid_config::save_profiles(&mut self.profiles) {
             self.last_error = Some(tr!("Cannot save the profiles: {error}", error = e));
         }
         self.forget_password(&id);

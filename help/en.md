@@ -282,6 +282,10 @@ and whether it is selected), the buttons and dialogs their names.
 ## Files and log
 
 - Configuration: `~/.config/rolidscp/` (readable only by you).
+- **The program started twice:** the two windows work together. Servers, settings and saved
+  passwords that one window saves appear in the other within a few seconds, and when both change
+  them nothing is lost (where both changed the same thing, the later change counts). Each window
+  saves its own tabs; the window closed last decides which tabs open next time.
 - Log: `~/.local/state/rolidscp/rolidscp.log` (Help menu → Open log). It never contains passwords.
 - The AppImage can be updated with AppImageUpdate (or `appimageupdatetool
   RolidSCP-<version>-x86_64.AppImage`): it finds the newest release on GitHub and downloads only the

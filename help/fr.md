@@ -319,6 +319,11 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
 ## Fichiers et journal
 
 - Configuration : `~/.config/rolidscp/` (lisible uniquement par vous).
+- **Le programme lancé deux fois :** les deux fenêtres travaillent ensemble. Les serveurs, les
+  paramètres et les mots de passe enregistrés par une fenêtre apparaissent dans l'autre en quelques
+  secondes, et si les deux les modifient, rien n'est perdu (là où les deux ont modifié la même
+  chose, la modification la plus récente l'emporte). Chaque fenêtre enregistre ses propres onglets ;
+  la fenêtre fermée en dernier décide des onglets ouverts la prochaine fois.
 - Journal : `~/.local/state/rolidscp/rolidscp.log` (menu Aide → Ouvrir le journal (diagnostic de
   connexion)). Il ne contient jamais de mots de passe.
 - L’AppImage peut être mise à jour avec AppImageUpdate (ou `appimageupdatetool

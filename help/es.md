@@ -308,6 +308,11 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
 ## Archivos y registro
 
 - Configuración: `~/.config/rolidscp/` (legible solo por usted).
+- **El programa iniciado dos veces:** las dos ventanas trabajan juntas. Los servidores, los ajustes
+  y las contraseñas guardadas que guarda una ventana aparecen en la otra en pocos segundos, y si
+  ambas los cambian no se pierde nada (donde ambas cambiaron lo mismo, vale el cambio posterior).
+  Cada ventana guarda sus propias pestañas; la ventana que se cierra en último lugar decide qué
+  pestañas se abren la próxima vez.
 - Registro: `~/.local/state/rolidscp/rolidscp.log` (menú Ayuda → Abrir registro (diagnóstico de
   inicio de sesión)). Nunca contiene contraseñas.
 - El AppImage se puede actualizar con AppImageUpdate (o `appimageupdatetool

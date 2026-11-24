@@ -311,6 +311,11 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
 ## Dateien und Protokoll
 
 - Konfiguration: `~/.config/rolidscp/` (nur für den eigenen Benutzer lesbar).
+- **Das Programm zweimal gestartet:** Die beiden Fenster arbeiten zusammen. Server, Einstellungen
+  und gespeicherte Passwörter, die ein Fenster speichert, erscheinen innerhalb weniger Sekunden auch
+  im anderen, und wenn beide sie ändern, geht nichts verloren (wo beide dasselbe geändert haben,
+  gilt die spätere Änderung). Jedes Fenster speichert seine eigenen Tabs; das zuletzt geschlossene
+  Fenster bestimmt, welche Tabs beim nächsten Mal geöffnet werden.
 - Protokoll: `~/.local/state/rolidscp/rolidscp.log` (Menü Hilfe → Protokoll öffnen
   (Anmeldediagnose)). Es enthält nie Passwörter.
 - Das AppImage lässt sich mit AppImageUpdate aktualisieren (oder `appimageupdatetool

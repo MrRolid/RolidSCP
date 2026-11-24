@@ -286,6 +286,11 @@ om det er merket), knappene og dialogene sine navn.
 ## Filer og logg
 
 - Konfigurasjon: `~/.config/rolidscp/` (kan bare leses av deg).
+- **Programmet startet to ganger:** de to vinduene samarbeider. Servere, innstillinger og lagrede
+  passord som det ene vinduet lagrer, vises i det andre i løpet av noen sekunder, og når begge
+  endrer dem, går ingenting tapt (der begge har endret det samme, gjelder den siste endringen).
+  Hvert vindu lagrer sine egne faner; vinduet som lukkes sist, bestemmer hvilke faner som åpnes
+  neste gang.
 - Logg: `~/.local/state/rolidscp/rolidscp.log` (Hjelp-menyen → Åpne logg (innloggingsdiagnostikk)). Den inneholder aldri passord.
 - AppImage-filen kan oppdateres med AppImageUpdate (eller `appimageupdatetool
   RolidSCP-<versjon>-x86_64.AppImage`): den finner den nyeste utgivelsen på GitHub og laster ned

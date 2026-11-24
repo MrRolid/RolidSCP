@@ -396,6 +396,7 @@ pub struct App {
     /// Favorite folders and recent places (saved with the workspace).
     places: rolid_config::Places,
     last_save_check: Instant,
+    last_shared_check: Instant,
     search_history: Vec<rolid_search::Query>,
     settings: rolid_config::Settings,
     /// Donation address shown in the About dialog.
@@ -471,6 +472,9 @@ impl FrameStats {
 }
 
 const SETTINGS_FILE: &str = "settings.toml";
+/// How often the files another running copy may save are checked (only
+/// while frames are drawn: an idle window checks on its next event).
+const SHARED_CHECK: Duration = Duration::from_secs(3);
 
 /// A frame taking longer than this is logged (the UI must not wait for the network).
 const SLOW_FRAME: Duration = Duration::from_millis(150);
@@ -525,6 +529,7 @@ impl App {
             saved_workspace: String::new(),
             places: rolid_config::Places::default(),
             last_save_check: Instant::now(),
+            last_shared_check: Instant::now(),
             search_history: Vec::new(),
             settings: rolid_config::Settings::default(),
             donate_btc: menu::DONATE_BTC[0],
@@ -655,8 +660,45 @@ impl App {
     }
 
     fn save_settings(&mut self) {
-        if let Err(e) = rolid_config::save_file(SETTINGS_FILE, &self.settings) {
-            self.last_error = Some(tr!("Settings: {error}", error = e));
+        let before = self.settings.clone();
+        match rolid_config::save_file_shared(SETTINGS_FILE, &mut self.settings) {
+            Ok(true) => self.settings_taken(&before),
+            Ok(false) => {}
+            Err(e) => self.last_error = Some(tr!("Settings: {error}", error = e)),
+        }
+    }
+
+    /// Another running copy of the program saved its settings or servers:
+    /// take them (checked every few seconds, see [`Self::check_shared_files`]).
+    fn check_shared_files(&mut self) {
+        if self.last_shared_check.elapsed() < SHARED_CHECK {
+            return;
+        }
+        self.last_shared_check = Instant::now();
+        let before = self.settings.clone();
+        match rolid_config::reload_file_shared(SETTINGS_FILE, &mut self.settings) {
+            Ok(true) => self.settings_taken(&before),
+            Ok(false) => {}
+            Err(e) => tracing::warn!("settings of another copy: {e}"),
+        }
+        match rolid_config::reload_profiles(&mut self.profiles) {
+            Ok(true) => tracing::info!("servers saved by another copy taken"),
+            Ok(false) => {}
+            Err(e) => tracing::warn!("servers of another copy: {e}"),
+        }
+    }
+
+    /// Apply what changed in the settings taken from the file.
+    fn settings_taken(&mut self, before: &rolid_config::Settings) {
+        tracing::info!("settings saved by another copy taken");
+        if before.speed_limit_kib != self.settings.speed_limit_kib {
+            self.rate_limit.set_rate(self.settings.speed_limit_kib.unwrap_or(0).saturating_mul(1024));
+        }
+        if before.language != self.settings.language || before.date_iso != self.settings.date_iso {
+            self.apply_language();
+        }
+        if crate::fonts::Spec::from_settings(before) != crate::fonts::Spec::from_settings(&self.settings) {
+            self.apply_font();
         }
     }
 
@@ -3105,6 +3147,7 @@ impl eframe::App for App {
         if took > SLOW_FRAME {
             tracing::warn!("slow frame: {} ms", took.as_millis());
         }
+        self.check_shared_files();
         // Debounced autosave: egui only repaints on events, so schedule a wake-up
         // when the workspace changed and save at most once per second.
         if self.workspace_dirty() {

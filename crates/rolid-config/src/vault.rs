@@ -90,6 +90,9 @@ pub enum VaultError {
     Corrupt(Text),
     /// Read/write error (the system's text).
     Io(String),
+    /// Another running copy of the program gave the vault a new master
+    /// password (or created a new one): this copy's key no longer opens it.
+    ChangedElsewhere,
 }
 
 impl VaultError {
@@ -102,6 +105,9 @@ impl VaultError {
                 why = why
             ),
             VaultError::Io(e) => txt!("File with saved passwords: {error}", error = e),
+            VaultError::ChangedElsewhere => txt!(
+                "The saved passwords were given a new master password in another window of the program. Lock them and unlock them again with the new one; the change made here was not saved."
+            ),
         }
     }
 }
@@ -249,6 +255,10 @@ pub struct Vault {
     check_nonce: [u8; NONCE],
     check_tag: [u8; TAG],
     entries: BTreeMap<String, SecretString>,
+    /// The file as this copy last read or wrote it, and the passwords in it:
+    /// what another running copy saved since is merged on [`Vault::save`].
+    synced: Vec<u8>,
+    base: BTreeMap<String, SecretString>,
 }
 
 impl std::fmt::Debug for Vault {
@@ -297,8 +307,12 @@ impl Vault {
             check_nonce: k.check_nonce,
             check_tag: k.check_tag,
             entries: BTreeMap::new(),
+            synced: Vec::new(),
+            base: BTreeMap::new(),
         };
-        v.save()?;
+        let mut v = v;
+        let _lock = crate::shared::lock(path).map_err(VaultError::Io)?;
+        v.write()?;
         Ok(v)
     }
 
@@ -318,19 +332,67 @@ impl Vault {
             c.decrypt(&XNonce::from(p.nonce), Payload { msg: p.body, aad: p.header })
                 .map_err(|_| corrupt(txt!("the data failed the authenticity check")))?,
         );
+        let entries = decode(&plain)?;
         Ok(Vault {
             path: path.to_owned(),
             params: p.params,
             salt: p.salt,
             check_nonce: p.check_nonce,
             check_tag: p.check_tag,
-            entries: decode(&plain)?,
+            base: entries.clone(),
+            entries,
+            synced: data,
             key,
         })
     }
 
-    /// Encrypt with a fresh nonce and write atomically (temp file + rename, 0600).
-    pub fn save(&self) -> Result<(), VaultError> {
+    /// Write the passwords, with what another running copy of the program
+    /// saved since this copy read the file (a password changed on both sides
+    /// keeps this copy's). Atomic (temp file + rename, 0600).
+    pub fn save(&mut self) -> Result<(), VaultError> {
+        let _lock = crate::shared::lock(&self.path).map_err(VaultError::Io)?;
+        self.take_from_disk()?;
+        self.write()
+    }
+
+    /// Merge into `entries` what another copy saved since `synced`.
+    fn take_from_disk(&mut self) -> Result<(), VaultError> {
+        let data = match std::fs::read(&self.path) {
+            Ok(d) => d,
+            // Deleted elsewhere ("start over"): this copy writes its own.
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+            Err(e) => return Err(io(&self.path, e)),
+        };
+        if data == self.synced || self.synced.is_empty() {
+            return Ok(());
+        }
+        let p = parse(&data)?;
+        if p.salt != self.salt || p.params != self.params || p.check_tag != self.check_tag {
+            return Err(VaultError::ChangedElsewhere);
+        }
+        let plain = Zeroizing::new(
+            cipher(&self.key)
+                .decrypt(&XNonce::from(p.nonce), Payload { msg: p.body, aad: p.header })
+                .map_err(|_| corrupt(txt!("the data failed the authenticity check")))?,
+        );
+        let theirs = decode(&plain)?;
+        let same = |a: Option<&SecretString>, b: Option<&SecretString>| a.map(|x| x.expose_secret()) == b.map(|x| x.expose_secret());
+        let ids: std::collections::BTreeSet<String> = self.entries.keys().chain(theirs.keys()).cloned().collect();
+        let mut merged = BTreeMap::new();
+        for id in ids {
+            let (b, o, t) = (self.base.get(&id), self.entries.get(&id), theirs.get(&id));
+            // Ours unchanged since the last sync: theirs (also a removal); else ours.
+            let pick = if same(o, b) { t } else { o };
+            if let Some(v) = pick {
+                merged.insert(id, v.clone());
+            }
+        }
+        self.entries = merged;
+        Ok(())
+    }
+
+    /// Encrypt with a fresh nonce and write (the caller holds the lock).
+    fn write(&mut self) -> Result<(), VaultError> {
         let nonce = random::<NONCE>()?;
         let mut header = prefix(self.params, &self.salt);
         header.extend_from_slice(&self.check_nonce);
@@ -341,7 +403,10 @@ impl Vault {
             .encrypt(&XNonce::from(nonce), Payload { msg: &plain, aad: &header })
             .map_err(|_| corrupt(txt!("encryption")))?;
         header.extend_from_slice(&body);
-        crate::write_atomic(&self.path, &header).map_err(VaultError::Io)
+        crate::write_atomic(&self.path, &header).map_err(VaultError::Io)?;
+        self.synced = header;
+        self.base = self.entries.clone();
+        Ok(())
     }
 
     /// Read the file back with the key in memory and compare it with what we hold.
@@ -369,6 +434,9 @@ impl Vault {
     /// On error the vault (and the file) stay as they were.
     pub fn change_password(&mut self, new_master: &SecretString, params: KdfParams) -> Result<(), VaultError> {
         let k = Self::new_key(new_master, params)?;
+        let _lock = crate::shared::lock(&self.path).map_err(VaultError::Io)?;
+        // What another copy saved is read with the old key, before the switch.
+        self.take_from_disk()?;
         let entries = std::mem::take(&mut self.entries);
         let fresh = Vault {
             path: self.path.clone(),
@@ -378,9 +446,11 @@ impl Vault {
             check_nonce: k.check_nonce,
             check_tag: k.check_tag,
             entries,
+            synced: Vec::new(),
+            base: BTreeMap::new(),
         };
         let old = std::mem::replace(self, fresh);
-        if let Err(e) = self.save() {
+        if let Err(e) = self.write() {
             let entries = std::mem::take(&mut self.entries);
             *self = Vault { entries, ..old };
             return Err(e);
@@ -562,7 +632,7 @@ mod tests {
     fn every_write_uses_a_new_nonce() {
         let d = dir();
         let path = d.path().join("vault.bin");
-        let v = Vault::create(&path, &pw(MASTER), KdfParams::MIN).unwrap();
+        let mut v = Vault::create(&path, &pw(MASTER), KdfParams::MIN).unwrap();
         let a = std::fs::read(&path).unwrap();
         v.save().unwrap();
         let b = std::fs::read(&path).unwrap();
@@ -613,6 +683,46 @@ mod tests {
 
         // Missing file is an I/O error, not "wrong password".
         assert!(matches!(Vault::open(&d.path().join("nope"), &pw(MASTER)), Err(VaultError::Io(_))));
+    }
+
+    /// Two running copies of the program: what each saves is kept.
+    #[test]
+    fn two_copies_keep_each_others_passwords() {
+        let d = dir();
+        let path = d.path().join("vault.bin");
+        let mut a = Vault::create(&path, &pw(MASTER), KdfParams::MIN).unwrap();
+        a.set("x", pw("x1"));
+        a.set("y", pw("y1"));
+        a.save().unwrap();
+        let mut b = Vault::open(&path, &pw(MASTER)).unwrap();
+        // A adds z and changes x; B, which has not seen that, changes y and adds w.
+        a.set("z", pw("z1"));
+        a.set("x", pw("x2"));
+        a.save().unwrap();
+        b.set("y", pw("y2"));
+        b.set("w", pw("w1"));
+        b.save().unwrap();
+        let back = Vault::open(&path, &pw(MASTER)).unwrap();
+        let got: Vec<(String, String)> = back.entries.iter().map(|(k, v)| (k.clone(), v.expose_secret().to_string())).collect();
+        let want = [("w", "w1"), ("x", "x2"), ("y", "y2"), ("z", "z1")].map(|(k, v)| (k.to_string(), v.to_string()));
+        assert_eq!(got, want);
+        // B took A's changes into memory too.
+        assert_eq!(b.get("z").map(|s| s.expose_secret().to_string()).as_deref(), Some("z1"));
+        // A removal is kept when the other copy did not change that password.
+        a.remove("w");
+        a.save().unwrap();
+        assert!(a.get("w").is_some(), "A had not seen w: it stays");
+        b.remove("w");
+        b.save().unwrap();
+        a.save().unwrap();
+        assert!(a.get("w").is_none());
+        // A new master password in one copy: the other refuses to overwrite.
+        a.change_password(&pw("new master 123"), KdfParams::MIN).unwrap();
+        b.set("q", pw("q"));
+        assert!(matches!(b.save(), Err(VaultError::ChangedElsewhere)));
+        assert!(Vault::open(&path, &pw("new master 123")).unwrap().get("q").is_none());
+        // No temp or lock file left behind.
+        assert_eq!(std::fs::read_dir(d.path()).unwrap().count(), 1);
     }
 
     #[test]

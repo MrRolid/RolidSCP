@@ -272,6 +272,10 @@ označená), tlačítka a dialogy své názvy.
 ## Soubory a log
 
 - Konfigurace: `~/.config/rolidscp/` (čitelná jen pro vás).
+- **Program spuštěný dvakrát:** obě okna spolupracují. Servery, nastavení a uložená hesla, která
+  jedno okno uloží, se do několika sekund objeví i ve druhém, a když je mění obě, nic se neztratí
+  (kde obě změnila totéž, platí pozdější změna). Panely si ukládá každé okno samo; které se otevřou
+  příště, určí okno zavřené jako poslední.
 - Log: `~/.local/state/rolidscp/rolidscp.log` (menu Nápověda → Otevřít log). Nikdy neobsahuje hesla.
 - AppImage lze aktualizovat programem AppImageUpdate (nebo `appimageupdatetool
   RolidSCP-<verze>-x86_64.AppImage`): najde nejnovější vydání na GitHubu a stáhne jen části, které

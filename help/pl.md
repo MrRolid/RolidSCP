@@ -295,6 +295,11 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
 ## Pliki i log
 
 - Konfiguracja: `~/.config/rolidscp/` (czytelna tylko dla Ciebie).
+- **Program uruchomiony dwa razy:** oba okna współpracują. Serwery, ustawienia i zapisane hasła
+  zapisane w jednym oknie pojawiają się w drugim w ciągu kilku sekund, a gdy oba je zmieniają, nic
+  nie ginie (tam, gdzie oba zmieniły to samo, obowiązuje późniejsza zmiana). Każde okno zapisuje
+  własne karty; o tym, które karty otworzą się następnym razem, decyduje okno zamknięte jako
+  ostatnie.
 - Log: `~/.local/state/rolidscp/rolidscp.log` (menu Pomoc → Otwórz log). Nigdy nie zawiera haseł.
 - AppImage można zaktualizować programem AppImageUpdate (lub `appimageupdatetool
   RolidSCP-<wersja>-x86_64.AppImage`): znajduje on najnowsze wydanie na GitHubie i pobiera tylko te

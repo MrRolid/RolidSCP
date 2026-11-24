@@ -475,7 +475,7 @@ impl App {
     }
 
     pub(super) fn save_profiles_or_report(&mut self) {
-        if let Err(e) = rolid_config::save_profiles(&self.profiles) {
+        if let Err(e) = rolid_config::save_profiles(&mut self.profiles) {
             self.last_error = Some(tr!("Cannot save the profiles: {error}", error = e.to_string()));
         }
     }
