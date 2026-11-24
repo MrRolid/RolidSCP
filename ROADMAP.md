@@ -142,6 +142,9 @@ catch it again.
 - Import of saved sites from WinSCP and FileZilla.
 - Keeping ACLs and extended attributes when copying between disks (a choice, off by default). SFTP
   cannot carry them, so to and from a server it stays as it is.
+- Context menus by keyboard (the Menu key and Shift+F10), for files and for tabs: the tab color and
+  "Close other tabs" can only be reached with the mouse now (everything else has a key or is in
+  the menu bar, F10).
 - A warning when a server's clock is off by more than a minute (it matters for "Overwrite only
   older" with files changed on that server).
 
