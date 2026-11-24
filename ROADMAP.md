@@ -92,6 +92,16 @@ catch it again.
     GitHub, pre-releases included) and every release has its `.zsync` file, listed in
     `SHA256SUMS` (suggested by the AppImage catalog). Checked on every build: an older AppImage
     finds the update and updating it gives the new AppImage byte for byte.
+  - Done on a separate test machine (Linux Mint 22.3, 1 Gbit/s network): a file of 110 GiB
+    uploaded over the network and downloaded, each canceled at half and resumed, and killed at
+    half and resumed by a new process, every copy equal by SHA-256 (the upload at up to 117 MB/s,
+    OpenSSH's `sftp` 116 MB/s; memory under 18 MB, 9 open files); the real window uploading 100 GiB
+    through the night at its speed limit of 4 MiB/s for 7 hours, its memory constant (224 MB, less
+    than 0.2 MB more after 7 hours), 20 open files throughout, the copy equal; the AppImage of the
+    release started on the real system by an ordinary user, without installing it.
+  - Prepared, to be done with someone at the test machine: its network cable pulled out for
+    30 seconds and for 5 minutes during an upload and a download, and the test machine put to
+    sleep during a transfer. Not done yet: a Windows server and a NAS.
 
 ## 0.9.x: small new features
 
