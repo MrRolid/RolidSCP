@@ -99,9 +99,12 @@ catch it again.
     through the night at its speed limit of 4 MiB/s for 7 hours, its memory constant (224 MB, less
     than 0.2 MB more after 7 hours), 20 open files throughout, the copy equal; the AppImage of the
     release started on the real system by an ordinary user, without installing it.
-  - Prepared, to be done with someone at the test machine: its network cable pulled out for
-    30 seconds and for 5 minutes during an upload and a download, and the test machine put to
-    sleep during a transfer. Not done yet: a Windows server and a NAS.
+  - Done on the same test machine, by hand, with the program's real window: its network cable
+    pulled out for 30 seconds and for 5 minutes during an upload and during a download, and the
+    test machine put to sleep and woken during an upload. Each time the program noticed the loss
+    within 16 seconds, connected again within 7 seconds of the test machine being reachable,
+    finished the transfer without the user, and the copy was equal by SHA-256.
+  - Not done yet: a Windows server and a NAS.
 
 ## 0.9.x: small new features
 
