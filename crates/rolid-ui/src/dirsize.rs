@@ -158,6 +158,17 @@ pub async fn remote_du(conn: &rolid_ssh::SshConnection, path: &str, cancel: &Ato
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// What `du` sends back from a server: a size or nothing, never a panic.
+    #[test]
+    fn fuzz_du_output() {
+        let seeds: Vec<Vec<u8>> = ["12345\t/home/alex\n", "0\t/\n", "4096 /x\n"].iter().map(|s| s.as_bytes().to_vec()).collect();
+        crate::fuzz_mutate::run("du", &seeds, &[b"\t", b"du: ", b"18446744073709551616"], |b| {
+            let half = b.len() / 2;
+            let _ = parse_du(&b[..half], &String::from_utf8_lossy(&b[half..]));
+            let _ = parse_du(b, "du: cannot read directory '/x': Permission denied\n");
+        });
+    }
     use std::os::unix::fs::{symlink, PermissionsExt};
 
     #[test]

@@ -21,6 +21,9 @@ mod pane;
 mod terminal;
 mod version;
 #[cfg(test)]
+#[path = "../../rolid-core/tests/support/mutate.rs"]
+mod fuzz_mutate;
+#[cfg(test)]
 mod bench;
 #[cfg(test)]
 mod bench_big;

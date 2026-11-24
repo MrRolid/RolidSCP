@@ -203,6 +203,18 @@ pub fn parse_z_record(rec: &[u8]) -> Option<(String, String)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// What `sha256sum -z` / `b3sum` send back from a server: a pair or
+    /// nothing, never a panic.
+    #[test]
+    fn fuzz_checksum_records() {
+        let seeds: Vec<Vec<u8>> = ["e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /home/alex/a b.txt", "d41d8cd98f00b204e9800998ecf8427e  x"].iter().map(|s| s.as_bytes().to_vec()).collect();
+        crate::fuzz_mutate::run("checksum-record", &seeds, &[b"  ", b"\\", b"\n"], |b| {
+            if let Some((sum, _)) = parse_z_record(b) {
+                assert!(sum.bytes().all(|c| c.is_ascii_hexdigit()));
+            }
+        });
+    }
     use std::process::Command;
 
     fn sum_of(algo: Algo, data: &[u8]) -> String {

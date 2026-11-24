@@ -470,6 +470,34 @@ mod tests {
         DynamicImage::ImageRgba8(img)
     }
 
+    /// Damaged pictures in the viewer (PNG, JPEG, BMP, GIF, WebP, also an
+    /// animated GIF): an error or a picture, never a panic, a hang or more
+    /// memory than the limits allow.
+    #[test]
+    fn fuzz_damaged_pictures() {
+        let img = sample(24, 12);
+        let mut seeds: Vec<Vec<u8>> = [ImageFormat::Png, ImageFormat::Jpeg, ImageFormat::Bmp, ImageFormat::Gif, ImageFormat::WebP]
+            .iter()
+            .map(|&f| encode(&if f == ImageFormat::Jpeg { DynamicImage::ImageRgb8(img.to_rgb8()) } else { img.clone() }, f))
+            .collect();
+        let mut gif = Vec::new();
+        {
+            let mut enc = image::codecs::gif::GifEncoder::new(&mut gif);
+            for i in 0..3u32 {
+                let mut f = RgbaImage::new(8, 8);
+                f.put_pixel(i, 0, image::Rgba([255, 0, 0, 255]));
+                enc.encode_frame(image::Frame::from_parts(f, 0, 0, image::Delay::from_numer_denom_ms(50, 1))).unwrap();
+            }
+        }
+        seeds.push(gif);
+        let dict: &[&[u8]] = &[b"IHDR", b"IDAT", b"IEND", b"acTL", b"\xff\xd8", b"\xff\xc0", b"\xff\xe1", b"Exif\0\0", b"GIF89a", b"NETSCAPE2.0", b"BM", b"RIFF", b"WEBPVP8 ", b"VP8L", b"VP8X", b"ANIM"];
+        crate::fuzz_mutate::run("picture", &seeds, dict, |b| {
+            if let Ok(d) = decode(b, MAX_DIM, MAX_ALLOC, 8192) {
+                assert!(!d.frames.is_empty());
+            }
+        });
+    }
+
     #[test]
     fn decodes_all_formats() {
         let img = sample(40, 20);

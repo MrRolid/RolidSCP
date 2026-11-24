@@ -132,7 +132,11 @@ pub fn parse_record(rec: &[u8]) -> Option<(String, Entry)> {
         kind,
         link_to_dir: kind == EntryKind::Symlink && ty == "d",
         size: if kind == EntryKind::File { size.parse().unwrap_or(0) } else { 0 },
-        modified: (secs >= 0.0).then(|| SystemTime::UNIX_EPOCH + Duration::from_secs_f64(secs)),
+        // A time the server got wrong ("inf", 1e300) is no time, not a crash.
+        modified: (secs >= 0.0)
+            .then(|| Duration::try_from_secs_f64(secs).ok())
+            .flatten()
+            .and_then(|d| SystemTime::UNIX_EPOCH.checked_add(d)),
         mode: u32::from_str_radix(mode, 8).ok(),
     };
     Some((path.to_string(), entry))
@@ -218,6 +222,18 @@ mod tests {
         assert_eq!(sh_quote("it's"), r"'it'\''s'");
         assert_eq!(sh_quote("$(rm -rf /); `x` \"y\""), "'$(rm -rf /); `x` \"y\"'");
         assert_eq!(glob_escape("a*b?[c]"), r"a\*b\?\[c\]");
+    }
+
+    /// Found by fuzzing: a time `find` cannot have sent ("inf", 1e300) used
+    /// to stop the program; now the entry has no time.
+    #[test]
+    fn impossible_times_are_no_time() {
+        for t in ["inf", "1e300", "1700000000.1234567890123e300", "NaN", "-5"] {
+            let (_, e) = parse_record(format!("f\tf\t1\t{t}\t644\t/x/a").as_bytes()).unwrap();
+            assert_eq!(e.modified, None, "{t}");
+        }
+        let (_, e) = parse_record(b"f\tf\t1\t1700000000.5\t644\t/x/a").unwrap();
+        assert_eq!(e.modified, Some(SystemTime::UNIX_EPOCH + Duration::from_millis(1_700_000_000_500)));
     }
 
     /// Run the generated command through a real `sh` and check that hostile input
