@@ -332,6 +332,13 @@ jobs:
         with:
           name: rolidscp-${{ needs.build.outputs.version }}-packages
           path: dist
+      - name: Sign the checksums
+        env:
+          RELEASE_GPG_KEY: ${{ secrets.RELEASE_GPG_KEY }}
+          RELEASE_GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
+        # SHA256SUMS.asc, checked against docs/release-key.asc (see the script).
+        run: bash packaging/ci/sign-checksums.sh dist/SHA256SUMS
+
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}

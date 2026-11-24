@@ -14,6 +14,15 @@ Balíčky jsou přiložené ke každému [vydání](https://github.com/MrRolid/R
 souborem `SHA256SUMS` pro kontrolu staženého souboru (`sha256sum -c --ignore-missing SHA256SUMS`).
 Všechny jsou pro Linux na 64bitovém x86 (amd64 / x86_64).
 
+Od 0.8.20 je u vydání i `SHA256SUMS.asc`, podpis OpenPGP kontrolních součtů klíčem vydání z tohoto
+repozitáře, [`docs/release-key.asc`](release-key.asc). S klíčem, podpisem a součty v jedné složce:
+
+```sh
+gpg --import release-key.asc
+gpg --verify SHA256SUMS.asc SHA256SUMS
+sha256sum -c --ignore-missing SHA256SUMS
+```
+
 **Debian, Ubuntu, Linux Mint a další systémy odvozené od Debianu:** balíček `.deb`. apt doplní
 i potřebné knihovny:
 

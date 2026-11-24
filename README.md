@@ -23,6 +23,16 @@ Packages are attached to every [release](https://github.com/MrRolid/RolidSCP/rel
 with `SHA256SUMS` for checking the download (`sha256sum -c --ignore-missing SHA256SUMS`).
 All of them are for Linux on 64-bit x86 (amd64 / x86_64).
 
+From 0.8.20 on, `SHA256SUMS.asc` is the OpenPGP signature of the checksums, made by the release key
+in this repository, [`docs/release-key.asc`](docs/release-key.asc). With the key, the signature
+and the checksums in one folder:
+
+```sh
+gpg --import release-key.asc
+gpg --verify SHA256SUMS.asc SHA256SUMS
+sha256sum -c --ignore-missing SHA256SUMS
+```
+
 **Debian, Ubuntu, Linux Mint and other Debian-based systems:** the `.deb` package. apt also
 installs the needed libraries:
 
