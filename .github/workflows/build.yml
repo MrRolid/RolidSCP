@@ -145,7 +145,7 @@ jobs:
           cp target/debian/rolidscp_*.deb target/rpm/rolidscp-*.rpm target/appimage/RolidSCP-*.AppImage \
             target/appimage/RolidSCP-*.AppImage.zsync dist/
           cd dist
-          sha256sum -- * > SHA256SUMS
+          LC_ALL=C sha256sum -- * > SHA256SUMS
           cat SHA256SUMS
           ls -l
 
@@ -317,10 +317,99 @@ jobs:
       - name: Limits
         run: python3 scripts/bench/report.py --check bench-results/bench.tsv > /dev/null
 
+  reproducible:
+    name: Reproducible packages (built again in another folder)
+    needs: [build]
+    runs-on: ubuntu-22.04
+    steps:
+      # Another runner, another folder, another time: the packages must be the
+      # same as those of the build job, byte for byte.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          path: again/elsewhere
+
+      - name: System packages
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends rpm squashfs-tools zsync fakeroot \
+            libxkbcommon0 libxkbcommon-x11-0 libxcb-xkb1 libxcursor1 libxrender1 libxfixes3 libxi6 libxext6 \
+            libwayland-cursor0 libwayland-egl1
+
+      - name: Rust toolchain
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          rustup default "$RUST_TOOLCHAIN"
+
+      - name: Cargo cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ~/.cargo/bin/cargo-about
+            ~/.cargo/bin/cargo-deny
+          key: cargo-${{ runner.os }}-${{ env.RUST_TOOLCHAIN }}-about${{ env.CARGO_ABOUT_VERSION }}-deny${{ env.CARGO_DENY_VERSION }}-${{ hashFiles('again/elsewhere/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-${{ env.RUST_TOOLCHAIN }}-about${{ env.CARGO_ABOUT_VERSION }}-deny${{ env.CARGO_DENY_VERSION }}-
+
+      - name: cargo-about
+        run: |
+          if ! cargo-about --version 2>/dev/null | grep -qx "cargo-about $CARGO_ABOUT_VERSION"; then
+            cargo install cargo-about --locked --version "$CARGO_ABOUT_VERSION" --features cli --force
+          fi
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: rolidscp-${{ needs.build.outputs.version }}-packages
+          path: first
+
+      - name: Build again and compare
+        working-directory: again/elsewhere
+        run: |
+          packaging/build-deb.sh
+          packaging/build-rpm.sh
+          packaging/build-appimage.sh
+          mkdir ../second
+          cp target/debian/rolidscp_*.deb target/rpm/rolidscp-*.rpm target/appimage/RolidSCP-*.AppImage \
+            target/appimage/RolidSCP-*.AppImage.zsync ../second/
+          cd ..
+          (cd second && LC_ALL=C sha256sum -- * > SHA256SUMS)
+          echo "Build tools: $(rustc --version); $(dpkg-query -W -f '${Package} ${Version}, ' binutils gcc dpkg rpm squashfs-tools zsync fakeroot)"
+          if diff "$GITHUB_WORKSPACE/first/SHA256SUMS" second/SHA256SUMS; then
+            echo "The packages are the same as those of the build job:"
+            cat second/SHA256SUMS
+            echo "### Reproducible: the packages built again are the same" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::error title=Not reproducible::the packages built again differ from those of the build job (artifact not-reproducible)"
+            exit 1
+          fi
+
+      - name: What differs
+        if: failure()
+        run: |
+          mkdir -p diff/first diff/second
+          for f in "$GITHUB_WORKSPACE"/first/*; do
+            n=$(basename "$f")
+            [ -f "again/second/$n" ] || continue
+            if ! cmp -s "$f" "again/second/$n"; then
+              cp "$f" diff/first/; cp "again/second/$n" diff/second/
+              echo "== $n: $(cmp "$f" "again/second/$n" | head -1)"
+            fi
+          done
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: not-reproducible
+          path: diff/
+          if-no-files-found: ignore
+
   release:
     name: GitHub release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build, test-packages, test-appimage, test-appimage-minimal]
+    needs: [build, test-packages, test-appimage, test-appimage-minimal, reproducible]
     runs-on: ubuntu-22.04
     permissions:
       contents: write

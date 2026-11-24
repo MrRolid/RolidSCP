@@ -6,6 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 STAGE=${1:?usage: packaging/stage.sh <dir>}
+. packaging/reproducible.sh
 
 cargo build --release --locked -p rolidscp
 
@@ -61,3 +62,4 @@ cargo-about generate --locked -c packaging/about/about.toml --format json -o "$A
 python3 packaging/about/copyright.py "$ABOUT_JSON" >> "$COPYRIGHT"
 # Licences of the syntax definitions built into the viewer (F3).
 cargo run -q --release --locked -p rolid-view --example syntax_licenses >> "$COPYRIGHT"
+clamp_times "$STAGE"

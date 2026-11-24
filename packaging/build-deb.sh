@@ -2,6 +2,7 @@
 # Build target/debian/rolidscp_<version>_<arch>.deb from a release build.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+. packaging/reproducible.sh
 
 VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
 # "~" sorts a pre-release (0.9.0-beta.1) before the release, as in rpm.
@@ -17,7 +18,9 @@ packaging/stage.sh "$STAGE"
 GLIBC=$(objdump -T "$STAGE/usr/bin/rolidscp" | grep -o 'GLIBC_[0-9][0-9.]*' | sed 's/GLIBC_//' | sort -uV | tail -1)
 [ -n "$GLIBC" ] || { echo "no glibc symbol versions found" >&2; exit 1; }
 
-SIZE=$(du -sk "$STAGE/usr" | cut -f1)
+# KiB as dpkg-gencontrol counts them (per file, rounded up; 1 per folder and
+# link), not du: that depends on the file system of the build machine.
+SIZE=$(find "$STAGE/usr" -printf '%y %s\n' | awk '$1 == "f" { s += int(($2 + 1023) / 1024); next } { s += 1 } END { print s }')
 mkdir -p "$STAGE/DEBIAN" target/debian
 # The graphics, input and font libraries are loaded at run time (dlopen),
 # so they are listed by hand.
@@ -39,5 +42,6 @@ Description: Dual-panel file manager for local disks and SFTP servers
 CTRL
 
 OUT="target/debian/rolidscp_${DEB_VERSION}_${ARCH}.deb"
+clamp_times "$STAGE"
 fakeroot dpkg-deb --build -Zxz "$STAGE" "$OUT" >/dev/null
 echo "$OUT"

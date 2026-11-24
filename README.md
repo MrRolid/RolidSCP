@@ -432,6 +432,18 @@ The packages depend on the glibc version of the build machine; the released ones
 Ubuntu 22.04 by the [build workflow](.github/workflows/build.yml), which also runs the tests and
 clippy on every push. How a release is made: [docs/releases/README.md](docs/releases/README.md).
 
+### Reproducible packages
+
+From 0.8.20 on, the same commit gives the same packages, byte for byte: every time stamp in them is
+the time of the commit (`SOURCE_DATE_EPOCH`), the folder the code was built in and the cargo folder
+are not built into the binary, and file modes and order are fixed (`packaging/reproducible.sh`).
+CI checks it on every build: a second job builds everything again on another runner in another
+folder and compares it with the first build's `SHA256SUMS`; a release is made only when they are
+the same. To check a release yourself, build its tag on Ubuntu 22.04 with the Rust version of
+`RUST_TOOLCHAIN` in the workflow and the same versions of the build tools (the job prints them) and
+compare with the release's `SHA256SUMS`. The AppImage also holds libraries copied from the build
+system, so an Ubuntu update of one of them changes the AppImage, not the `.deb` or `.rpm`.
+
 The binary is `rolidscp` (`/usr/bin/rolidscp`), with a desktop entry "RolidSCP".
 
 ## Translations

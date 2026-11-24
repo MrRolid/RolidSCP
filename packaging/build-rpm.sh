@@ -4,6 +4,7 @@
 # their sonames, which both distributions provide under different package names.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+. packaging/reproducible.sh
 
 VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
 # rpm does not allow "-" in a version; "~" sorts a pre-release before the release.
@@ -13,6 +14,7 @@ STAGE=target/rpm-stage
 packaging/stage.sh "$STAGE"
 install -Dm644 LICENSE "$STAGE/usr/share/licenses/rolidscp/LICENSE"
 mv "$STAGE/usr/share/doc/rolidscp/copyright" "$STAGE/usr/share/licenses/rolidscp/copyright"
+clamp_times "$STAGE"
 
 # The licence field: every licence named in the copyright file, as SPDX ids.
 LICENSES=$(sed -n 's/^License: //p' "$STAGE/usr/share/licenses/rolidscp/copyright" \
@@ -75,8 +77,12 @@ cp -a "$TOP/../rpm-stage/usr" %{buildroot}/
 %license %{_datadir}/licenses/rolidscp
 SPEC
 
+# Build time and host from the commit, not from the build machine.
 rpmbuild -bb --quiet \
     --define "_topdir $TOP" \
+    --define "use_source_date_epoch_as_buildtime 1" \
+    --define "clamp_mtime_to_source_date_epoch 1" \
+    --define "_buildhost reproducible" \
     --define "_rpmdir $TOP/RPMS" \
     "$SPEC"
 OUT="target/rpm/rolidscp-${RPM_VERSION}-1.x86_64.rpm"

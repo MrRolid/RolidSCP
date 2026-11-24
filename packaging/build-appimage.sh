@@ -23,6 +23,7 @@
 # the same way).
 set -euo pipefail
 cd "$(dirname "$0")/.."
+. packaging/reproducible.sh
 
 RUNTIME_URL=https://github.com/AppImage/type2-runtime/releases/download/20251108/runtime-x86_64
 RUNTIME_SHA256=2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d
@@ -76,7 +77,10 @@ done
 
 SQUASHFS=$STAGE/rolidscp.squashfs
 rm -f "$SQUASHFS"
-mksquashfs "$APPDIR" "$SQUASHFS" -root-owned -noappend -comp zstd -quiet >/dev/null
+clamp_times "$APPDIR"
+# SOURCE_DATE_EPOCH sets the times inside; extended attributes of the build
+# machine's files stay out.
+mksquashfs "$APPDIR" "$SQUASHFS" -root-owned -no-xattrs -noappend -comp zstd -quiet >/dev/null
 OUT="target/appimage/RolidSCP-${VERSION}-x86_64.AppImage"
 rm -f "$OUT" "$OUT.zsync"
 # The update information goes into the runtime's .upd_info section (as
@@ -94,6 +98,8 @@ if [ -n "$UPDATE_INFO" ]; then
 fi
 cat "$RT" "$SQUASHFS" > "$OUT"
 chmod 755 "$OUT"
+# zsyncmake writes the file's time into the .zsync file.
+touch -d "@$SOURCE_DATE_EPOCH" "$OUT"
 echo "$OUT"
 if [ -n "$UPDATE_INFO" ]; then
     # The AppImage's address in the .zsync file is its bare name: the tools

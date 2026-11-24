@@ -773,6 +773,11 @@ Balíčky sestaví skripty `packaging/build-deb.sh`, `build-rpm.sh` a `build-app
 Vydávané balíčky sestavuje [workflow](../.github/workflows/build.yml) na Ubuntu 22.04, které při
 každém odeslání spouští i testy a clippy. Postup vydání: [docs/releases/README.md](releases/README.md).
 
+Od 0.8.20 jsou balíčky reprodukovatelné: stejný commit dá bajt po bajtu stejné balíčky (časy
+v nich jsou čas commitu, cesta ke zdrojům se do binárky nedostane; `packaging/reproducible.sh`).
+CI to ověřuje při každém sestavení druhou úlohou, která vše sestaví znovu na jiném stroji v jiné
+složce a porovná `SHA256SUMS`; vydání vznikne, jen když se shodují. Podrobnosti v anglickém README.
+
 Testy: `cargo test --workspace`
 
 Diagnostika plynulosti: `ROLIDSCP_FRAME_STATS=1 rolidscp` zapisuje do logu každé 2 s počet snímků,
