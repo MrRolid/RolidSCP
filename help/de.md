@@ -132,6 +132,19 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
   Text); das wird gemeldet.
 - Die Übertragungswarteschlange führt bis zu drei Übertragungen gleichzeitig aus. Das
   Geschwindigkeitslimit befindet sich im Kopierdialog.
+- **Was eine Kopie behält** außer dem Inhalt: die Rechte (Lesen, Schreiben, Ausführen; setuid, setgid
+  und sticky werden weggelassen) und die Änderungszeit. Nicht behalten werden Besitzer und Gruppe (die
+  Kopie gehört dem Benutzer, der sie schreibt), ACLs, erweiterte Attribute (auch SELinux-Labels und
+  Datei-Capabilities) und harte Links (aus jedem Link wird eine eigene Datei). SFTP kann ACLs und
+  erweiterte Attribute gar nicht übertragen. Eine überschriebene Datei wird durch eine neue ersetzt,
+  daher sind auch ihre eigenen ACLs und Attribute weg; die neue Datei bekommt, was der Ordner neuen
+  Dateien gibt (zum Beispiel eine Standard-ACL).
+- **Zeiten** werden in der Zeitzone dieses Computers angezeigt, auch die Zeiten von Dateien auf einem
+  Server, egal welche Zeitzone der Server hat. **Nur ältere überschreiben** vergleicht die Zeiten auf
+  die Sekunde und unabhängig von Zeitzonen. Eine Kopie behält die Zeit ihrer Quelle, daher spielt eine
+  falsch gehende Uhr des Servers bei kopierten Dateien keine Rolle; bei auf dem Server geänderten
+  Dateien schon, denn sie bekommen die Zeit des Servers: geht seine Uhr eine Stunde vor, wirkt eine
+  dort geänderte Datei eine Stunde neuer.
 - **Ziehen in andere Anwendungen** (X11): Ziehen Sie Dateien oder Ordner aus dem Fenster, etwa auf einen
   Dateimanager oder einen Editor. Lokale Dateien werden kopiert, mit **Shift** verschoben. Dateien von
   einem Server oder aus einem Archiv werden nur kopiert: Eine Anwendung, die direktes Speichern (XDS)
@@ -246,6 +259,9 @@ Funktionstastenleiste unten. Die Liste aller Tastenkürzel steht auf der zweiten
 - Ein Packen oder Entpacken, das durch einen Absturz oder ein Beenden des Programms abbricht, lässt
   seine unfertige `.filepart`-Datei nur bis zum nächsten Start des Programms zurück, der sie löscht.
 - **Enter** auf einem Archiv öffnet es als schreibgeschützten Ordner; **F5** kopiert Dateien heraus.
+- Zeiten in einem Zip werden sekundengenau und in UTC gespeichert (wie bei Info-ZIP), sie stimmen also
+  auch in einer anderen Zeitzone. Ein Zip aus einem Programm, das nur die alte DOS-Zeit schreibt (ohne
+  Zeitzone, nur gerade Sekunden), wird in der Zeitzone dieses Computers gelesen.
 
 ## Suche und Prüfsummen
 

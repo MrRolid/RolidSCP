@@ -87,7 +87,7 @@ fn walk(path: &Path, format: Format, opts: &ReadOpts, data: bool, counter: Arc<A
     let f = File::open(path)?;
     let src = Counted { f: BufReader::with_capacity(256 << 10, f), n: counter };
     match format {
-        Format::Zip => walk_zip(src, opts, data, visit),
+        Format::Zip => walk_zip(src, path, opts, data, visit),
         Format::SevenZ => walk_7z(src, opts, data, visit),
         Format::Tar => walk_tar(src, opts, data, visit),
         Format::TarGz => walk_tar(flate2::read::MultiGzDecoder::new(src), opts, data, visit),
@@ -97,7 +97,13 @@ fn walk(path: &Path, format: Format, opts: &ReadOpts, data: bool, counter: Arc<A
 
 fn local_time(y: i32, mo: u32, d: u32, h: u32, mi: u32, s: u32) -> Option<SystemTime> {
     use chrono::TimeZone;
-    let t = chrono::Local.with_ymd_and_hms(y, mo, d, h, mi, s).earliest()?;
+    let n = chrono::NaiveDate::from_ymd_opt(y, mo, d)?.and_hms_opt(h, mi, s)?;
+    // A time skipped by the change to summer time is read an hour later,
+    // as the clock shows it.
+    let t = chrono::Local
+        .from_local_datetime(&n)
+        .earliest()
+        .or_else(|| chrono::Local.from_local_datetime(&(n + chrono::Duration::hours(1))).earliest())?;
     Some(t.into())
 }
 
@@ -112,11 +118,17 @@ fn split_name(raw: &[u8], opts: &ReadOpts) -> (String, Option<Vec<u8>>) {
     }
 }
 
-fn walk_zip<R: Read + Seek>(src: R, opts: &ReadOpts, data: bool, visit: &mut Visit) -> Result<()> {
+fn walk_zip<R: Read + Seek>(src: R, path: &Path, opts: &ReadOpts, data: bool, visit: &mut Visit) -> Result<()> {
     let mut z = zip::ZipArchive::new(src).map_err(zip_err)?;
+    let exact = zip_exact_times(path, z.central_directory_start(), z.len());
     for i in 0..z.len() {
         let mut raw = {
             let e = z.by_index_data(i).map_err(zip_err)?;
+            // The exact time (UTC) when the archive has it (Info-ZIP, 7-Zip on
+            // Unix, RolidSCP), else the DOS time, which has no time zone and is
+            // read as local time.
+            let at = zip::HasZipMetadata::get_metadata(&e).central_header_start;
+            let exact = exact.binary_search_by_key(&at, |x| x.0).ok().map(|k| exact[k].1);
             let (name, non_utf8) = split_name(e.name_raw(), opts);
             let mode = e.unix_mode();
             let kind = if e.is_dir() {
@@ -129,15 +141,17 @@ fn walk_zip<R: Read + Seek>(src: R, opts: &ReadOpts, data: bool, visit: &mut Vis
                     _ => Kind::File,
                 }
             };
-            let mtime = e.last_modified().and_then(|t| {
-                local_time(
-                    t.year().into(),
-                    t.month().into(),
-                    t.day().into(),
-                    t.hour().into(),
-                    t.minute().into(),
-                    t.second().into(),
-                )
+            let mtime = exact.and_then(|t| unix_time(t.into())).or_else(|| {
+                e.last_modified().and_then(|t| {
+                    local_time(
+                        t.year().into(),
+                        t.month().into(),
+                        t.day().into(),
+                        t.hour().into(),
+                        t.minute().into(),
+                        t.second().into(),
+                    )
+                })
             });
             Raw {
                 name,
@@ -179,6 +193,48 @@ fn walk_zip<R: Read + Seek>(src: R, opts: &ReadOpts, data: bool, visit: &mut Vis
         }
     }
     Ok(())
+}
+
+/// The exact modification times of a zip's entries: the "UT" extra field
+/// (0x5455, seconds since 1970 in UTC) of the records in the central
+/// directory, as (position of the record, time), in the order of the file.
+/// The zip library parses the field but does not show it for an entry
+/// without reading each entry's local header (ten times slower listing), so
+/// the central directory is read once more here. Whatever cannot be read
+/// leaves the DOS times.
+fn zip_exact_times(path: &Path, start: u64, count: usize) -> Vec<(u64, u32)> {
+    let mut out = Vec::new();
+    let Ok(f) = File::open(path) else { return out };
+    let mut r = BufReader::with_capacity(256 << 10, f);
+    if r.seek(SeekFrom::Start(start)).is_err() {
+        return out;
+    }
+    let mut at = start;
+    let u16le = |b: &[u8], i: usize| u16::from_le_bytes([b[i], b[i + 1]]) as usize;
+    for _ in 0..count {
+        let mut h = [0u8; 46];
+        if r.read_exact(&mut h).is_err() || h[..4] != [0x50, 0x4b, 0x01, 0x02] {
+            break;
+        }
+        let (name, extra, comment) = (u16le(&h, 28), u16le(&h, 30), u16le(&h, 32));
+        let mut x = vec![0u8; name + extra];
+        if r.read_exact(&mut x).is_err() || r.seek_relative(comment as i64).is_err() {
+            break;
+        }
+        let mut e = &x[name..];
+        while e.len() >= 4 {
+            let (id, len) = (u16le(e, 0), u16le(e, 2));
+            let Some(body) = e.get(4..4 + len) else { break };
+            // Flags, then the modification time when bit 0 is set.
+            if id == 0x5455 && body.len() >= 5 && body[0] & 1 == 1 {
+                out.push((at, u32::from_le_bytes([body[1], body[2], body[3], body[4]])));
+                break;
+            }
+            e = &e[4 + len..];
+        }
+        at += (46 + name + extra + comment) as u64;
+    }
+    out
 }
 
 fn sevenz_raw(e: &sevenz_rust2::ArchiveEntry, encrypted: bool) -> Raw {

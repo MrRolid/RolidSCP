@@ -140,6 +140,10 @@ catch it again.
   confirmation first. A history of commands, never with passwords in it.
 - A log of operations you can browse.
 - Import of saved sites from WinSCP and FileZilla.
+- Keeping ACLs and extended attributes when copying between disks (a choice, off by default). SFTP
+  cannot carry them, so to and from a server it stays as it is.
+- A warning when a server's clock is off by more than a minute (it matters for "Overwrite only
+  older" with files changed on that server).
 
 Already available: ssh-agent and passphrase-protected keys, colors by file type, an external editor,
 and "Open with" associations per file type.

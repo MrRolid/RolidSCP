@@ -116,6 +116,17 @@ shortcuts is on the second page of this window.
   characters as `\n` or `\t`, each invalid byte as `\xFF`. A name that is not valid UTF-8 cannot be
   sent to a server (SFTP takes names as text); it is reported.
 - The transfer queue runs up to three transfers at a time. The speed limit is in the copy dialog.
+- **What a copy keeps** besides the content: the permissions (read, write, execute; setuid, setgid
+  and sticky are left out) and the modification time. It does not keep the owner and group (the copy
+  belongs to the user who writes it), ACLs, extended attributes (also SELinux labels and file
+  capabilities) or hard links (each link becomes a file of its own). SFTP cannot carry ACLs or extended
+  attributes at all. An overwritten file is replaced by a new one, so its own ACLs and attributes are
+  gone too; the new file gets what the folder gives new files (for example a default ACL).
+- **Times** are shown in this computer's time zone, the times of files on a server too, whatever the
+  server's own time zone. **Overwrite only older** compares the times to the second, independently of
+  time zones. A copy keeps the time of its source, so a wrong clock on the server does not matter for
+  copied files; it matters for files changed on the server, which get the server's time: with the
+  server's clock an hour ahead, a file changed there looks an hour newer.
 - **Dragging out to other applications** (X11): drag files or folders out of the window, for example
   onto a file manager or an editor. Local files are copied, with **Shift** moved. Files from a server or
   an archive are only copied: an application that supports saving directly (XDS) gets them downloaded
@@ -220,6 +231,9 @@ shortcuts is on the second page of this window.
 - Packing or extracting stopped by a crash or a kill leaves its unfinished `.filepart` file only
   until the next start of the program, which deletes it.
 - **Enter** on an archive opens it as a read-only folder; **F5** copies files out of it.
+- Times in a zip are kept to the second and in UTC (as Info-ZIP does), so they are right in another time
+  zone too. A zip from a program that writes only the old DOS time (no time zone, even seconds only) is
+  read in this computer's time zone.
 
 ## Search and checksums
 

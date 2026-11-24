@@ -131,6 +131,19 @@ de teclado está en la segunda página de esta ventana.
   se informa.
 - La cola de transferencias ejecuta hasta tres transferencias a la vez. El límite de velocidad está
   en el diálogo de copia.
+- **Qué conserva una copia** además del contenido: los permisos (lectura, escritura, ejecución; setuid,
+  setgid y sticky se omiten) y la hora de modificación. No conserva el propietario ni el grupo (la copia
+  pertenece al usuario que la escribe), las ACL, los atributos extendidos (tampoco las etiquetas de
+  SELinux ni las capabilities de archivo) ni los enlaces duros (cada enlace se convierte en un archivo
+  propio). SFTP no puede transmitir ACL ni atributos extendidos. Un archivo sobrescrito se sustituye por
+  uno nuevo, así que también desaparecen sus propias ACL y atributos; el archivo nuevo recibe lo que la
+  carpeta da a los archivos nuevos (por ejemplo, una ACL predeterminada).
+- **Las horas** se muestran en la zona horaria de este equipo, también las de los archivos de un
+  servidor, sea cual sea la zona horaria del servidor. **Sobrescribir solo los más antiguos** compara
+  las horas al segundo e independientemente de las zonas horarias. Una copia conserva la hora de su
+  origen, así que un reloj del servidor mal puesto no afecta a los archivos copiados; sí afecta a los
+  archivos modificados en el servidor, que reciben la hora del servidor: si su reloj va una hora
+  adelantado, un archivo modificado allí parece una hora más reciente.
 - **Arrastrar a otras aplicaciones** (X11): arrastre archivos o carpetas fuera de la ventana, por ejemplo
   a un gestor de archivos o a un editor. Los archivos locales se copian, con **Shift** se mueven. Los
   archivos de un servidor o de un archivo comprimido solo se copian: una aplicación que admite el guardado
@@ -243,6 +256,9 @@ de teclado está en la segunda página de esta ventana.
   archivo `.filepart` sin terminar solo hasta el siguiente inicio del programa, que lo borra.
 - **Enter** sobre un archivo comprimido lo abre como carpeta de solo lectura; **F5** copia archivos
   fuera de él.
+- Las horas en un zip se guardan al segundo y en UTC (como hace Info-ZIP), así que son correctas también
+  en otra zona horaria. Un zip de un programa que solo escribe la antigua hora DOS (sin zona horaria,
+  solo segundos pares) se lee en la zona horaria de este equipo.
 
 ## Búsqueda y sumas de comprobación
 

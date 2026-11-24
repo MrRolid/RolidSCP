@@ -112,6 +112,17 @@ klávesových zkratek je na druhé stránce tohoto okna.
   jako `\n` nebo `\t`, každý neplatný bajt jako `\xFF`. Název, který není platné UTF-8, na server
   poslat nejde (SFTP bere názvy jako text); program to oznámí.
 - Fronta přenosů běží nejvýš se třemi přenosy současně. Omezení rychlosti je v dialogu kopírování.
+- **Co kopie zachová** kromě obsahu: oprávnění (čtení, zápis, spouštění; setuid, setgid a sticky se
+  vynechávají) a čas změny. Nezachová vlastníka a skupinu (kopie patří uživateli, který ji zapisuje),
+  ACL, rozšířené atributy (ani štítky SELinuxu a capabilities souborů) ani pevné odkazy (z každého
+  odkazu je samostatný soubor). SFTP ACL ani rozšířené atributy přenést vůbec neumí. Přepsaný soubor je
+  nahrazen novým, takže zmizí i jeho vlastní ACL a atributy; nový soubor dostane to, co složka dává
+  novým souborům (například výchozí ACL).
+- **Časy** se zobrazují v časovém pásmu tohoto počítače, i časy souborů na serveru, ať má server
+  pásmo jakékoli. **Přepsat jen starší** porovnává časy na sekundu a nezávisle na časových pásmech.
+  Kopie si nese čas zdroje, takže špatné hodiny serveru u zkopírovaných souborů nevadí; vadí u souborů
+  změněných na serveru, které dostanou čas serveru: když jdou hodiny serveru o hodinu napřed, vypadá
+  soubor změněný na něm o hodinu novější.
 - **Tažení ven do jiných aplikací** (X11): soubory nebo složky vytáhněte z okna, třeba do správce
   souborů nebo editoru. Lokální soubory se kopírují, se **Shiftem** přesunou. Soubory ze serveru nebo
   z archivu se jen kopírují: aplikace, která umí přímé uložení (XDS), je dostane stažené do své složky
@@ -211,6 +222,9 @@ klávesových zkratek je na druhé stránce tohoto okna.
 - Balení nebo rozbalování ukončené pádem nebo zabitím programu nechá svůj nedokončený soubor
   `.filepart` jen do příštího spuštění programu, které ho smaže.
 - **Enter** na archivu ho otevře jako složku jen pro čtení; **F5** z něj kopíruje soubory ven.
+- Časy v zipu se ukládají na sekundu a v UTC (jako to dělá Info-ZIP), takže sedí i v jiném časovém
+  pásmu. Zip z programu, který zapisuje jen starý čas DOS (bez časového pásma, jen sudé sekundy), se
+  čte v časovém pásmu tohoto počítače.
 
 ## Hledání a kontrolní součty
 

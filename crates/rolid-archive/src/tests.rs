@@ -90,6 +90,31 @@ fn zip_roundtrip() {
     roundtrip(Format::Zip, None);
 }
 
+/// A zip keeps the exact time in UTC next to the DOS time (which has no time
+/// zone and only even seconds): the listing and the extracted file have the
+/// time to the second, whatever the time zone of the computer that packed it.
+#[test]
+fn zip_times_are_exact_and_in_utc() {
+    use std::time::{Duration, SystemTime};
+    let t = tempfile::tempdir().unwrap();
+    let d = t.path().join("d");
+    fs::create_dir(&d).unwrap();
+    let when = SystemTime::UNIX_EPOCH + Duration::from_secs(1_700_000_123); // an odd second
+    fs::write(d.join("f.txt"), "x").unwrap();
+    fs::File::options().write(true).open(d.join("f.txt")).unwrap().set_modified(when).unwrap();
+    for password in [None, Some("pw")] {
+        let out = t.path().join(format!("t{}.zip", password.is_some()));
+        ctl_run(|c| pack(std::slice::from_ref(&d), &out, Format::Zip, Level::Normal, password.map(pw).as_ref(), c)).unwrap();
+        let l = list(&out, Format::Zip, &ropts(password)).unwrap();
+        let item = l.items.iter().find(|i| i.path == "d/f.txt").unwrap();
+        assert_eq!(item.mtime, Some(when), "listing, password {password:?}");
+        let dest = t.path().join(format!("x{}", password.is_some()));
+        fs::create_dir(&dest).unwrap();
+        ctl_run(|c| extract(&out, Format::Zip, &dest, &ropts(password), Limits::default(), Exist::Overwrite, None, c)).unwrap();
+        assert_eq!(fs::metadata(dest.join("d/f.txt")).unwrap().modified().unwrap(), when, "extracted, password {password:?}");
+    }
+}
+
 #[test]
 fn sevenz_roundtrip() {
     roundtrip(Format::SevenZ, None);

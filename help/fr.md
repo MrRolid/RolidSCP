@@ -136,6 +136,19 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
   noms comme du texte) ; c’est signalé.
 - La file de transferts exécute jusqu'à trois transferts à la fois. La limite de vitesse se trouve
   dans la boîte de dialogue de copie.
+- **Ce qu'une copie conserve** en plus du contenu : les permissions (lecture, écriture, exécution ;
+  setuid, setgid et sticky sont omis) et la date de modification. Elle ne conserve pas le propriétaire
+  ni le groupe (la copie appartient à l'utilisateur qui l'écrit), les ACL, les attributs étendus (ni les
+  étiquettes SELinux ni les capabilities de fichier) ni les liens physiques (chaque lien devient un
+  fichier à part). SFTP ne peut pas du tout transmettre les ACL ni les attributs étendus. Un fichier
+  écrasé est remplacé par un nouveau, ses propres ACL et attributs disparaissent donc aussi ; le nouveau
+  fichier reçoit ce que le dossier donne aux nouveaux fichiers (par exemple une ACL par défaut).
+- **Les dates** sont affichées dans le fuseau horaire de cet ordinateur, celles des fichiers d'un
+  serveur aussi, quel que soit le fuseau du serveur. **Écraser seulement les plus anciens** compare les
+  dates à la seconde près, indépendamment des fuseaux horaires. Une copie garde la date de sa source,
+  une horloge de serveur déréglée ne gêne donc pas pour les fichiers copiés ; elle gêne pour les
+  fichiers modifiés sur le serveur, qui reçoivent l'heure du serveur : si son horloge avance d'une
+  heure, un fichier modifié là-bas paraît plus récent d'une heure.
 - **Glisser vers d'autres applications** (X11) : faites glisser des fichiers ou des dossiers hors de la
   fenêtre, par exemple vers un gestionnaire de fichiers ou un éditeur. Les fichiers locaux sont copiés,
   avec **Shift** déplacés. Les fichiers d'un serveur ou d'une archive sont seulement copiés : une
@@ -253,6 +266,9 @@ les raccourcis clavier se trouve sur la deuxième page de cette fenêtre.
   supprime.
 - **Enter** sur une archive l'ouvre comme dossier en lecture seule ; **F5** en copie des fichiers vers
   l'extérieur.
+- Les dates dans un zip sont gardées à la seconde près et en UTC (comme le fait Info-ZIP), elles sont
+  donc justes dans un autre fuseau horaire aussi. Un zip d'un programme qui n'écrit que l'ancienne heure
+  DOS (sans fuseau horaire, secondes paires seulement) est lu dans le fuseau horaire de cet ordinateur.
 
 ## Recherche et sommes de contrôle
 

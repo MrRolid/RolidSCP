@@ -121,6 +121,18 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
   Nazwy, która nie jest poprawnym UTF-8, nie można wysłać na serwer (SFTP przyjmuje nazwy jako
   tekst); program to zgłasza.
 - Kolejka transferów wykonuje do trzech transferów naraz. Limit prędkości jest w oknie kopiowania.
+- **Co zachowuje kopia** oprócz zawartości: uprawnienia (odczyt, zapis, wykonywanie; setuid, setgid i
+  sticky są pomijane) oraz czas modyfikacji. Nie zachowuje właściciela i grupy (kopia należy do
+  użytkownika, który ją zapisuje), list ACL, atrybutów rozszerzonych (także etykiet SELinux i
+  capabilities plików) ani twardych dowiązań (każde dowiązanie staje się osobnym plikiem). SFTP w ogóle
+  nie potrafi przenieść list ACL ani atrybutów rozszerzonych. Nadpisany plik jest zastępowany nowym,
+  więc znikają też jego własne listy ACL i atrybuty; nowy plik dostaje to, co folder nadaje nowym
+  plikom (na przykład domyślną listę ACL).
+- **Czasy** są pokazywane w strefie czasowej tego komputera, także czasy plików na serwerze, niezależnie
+  od strefy serwera. **Nadpisz tylko starsze** porównuje czasy z dokładnością do sekundy i niezależnie
+  od stref czasowych. Kopia zachowuje czas źródła, więc źle ustawiony zegar serwera nie ma znaczenia dla
+  skopiowanych plików; ma znaczenie dla plików zmienionych na serwerze, które dostają czas serwera: gdy
+  jego zegar spieszy się o godzinę, plik zmieniony na nim wygląda na godzinę nowszy.
 - **Przeciąganie do innych aplikacji** (X11): przeciągnij pliki lub foldery poza okno, np. do menedżera
   plików albo edytora. Pliki lokalne są kopiowane, z **Shift** przenoszone. Pliki z serwera lub archiwum
   są tylko kopiowane: aplikacja obsługująca bezpośredni zapis (XDS) dostaje je pobrane do swojego
@@ -231,6 +243,9 @@ wszystkich skrótów klawiszowych znajdziesz na drugiej stronie tego okna.
 - Pakowanie lub rozpakowywanie przerwane awarią albo zabiciem programu zostawia swój niedokończony
   plik `.filepart` tylko do następnego uruchomienia programu, które go usuwa.
 - **Enter** na archiwum otwiera je jako folder tylko do odczytu; **F5** kopiuje z niego pliki.
+- Czasy w zipie są zapisywane z dokładnością do sekundy i w UTC (jak robi to Info-ZIP), więc zgadzają
+  się także w innej strefie czasowej. Zip z programu, który zapisuje tylko stary czas DOS (bez strefy
+  czasowej, tylko parzyste sekundy), jest odczytywany w strefie czasowej tego komputera.
 
 ## Wyszukiwanie i sumy kontrolne
 

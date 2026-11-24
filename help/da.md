@@ -119,6 +119,18 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
   kontroltegn som `\n` eller `\t`, hver ugyldig byte som `\xFF`. Et navn, der ikke er gyldig UTF-8,
   kan ikke sendes til en server (SFTP tager navne som tekst); det meldes.
 - Overførselskøen kører op til tre overførsler ad gangen. Hastighedsgrænsen findes i kopieringsdialogen.
+- **Hvad en kopi bevarer** ud over indholdet: rettighederne (læse, skrive, køre; setuid, setgid og
+  sticky udelades) og ændringstidspunktet. Den bevarer ikke ejer og gruppe (kopien tilhører den
+  bruger, der skriver den), ACL'er, udvidede attributter (heller ikke SELinux-etiketter og
+  fil-capabilities) eller hårde links (hvert link bliver sin egen fil). SFTP kan slet ikke overføre
+  ACL'er eller udvidede attributter. En overskrevet fil erstattes af en ny, så dens egne ACL'er og
+  attributter forsvinder også; den nye fil får det, mappen giver nye filer (for eksempel en
+  standard-ACL).
+- **Tidspunkter** vises i denne computers tidszone, også tidspunkterne for filer på en server,
+  uanset serverens egen tidszone. **Overskriv kun ældre** sammenligner tidspunkterne på sekundet og
+  uafhængigt af tidszoner. En kopi beholder kildens tidspunkt, så et forkert ur på serveren betyder
+  intet for kopierede filer; det betyder noget for filer ændret på serveren, som får serverens tid:
+  går serverens ur en time for hurtigt, ser en fil ændret dér en time nyere ud.
 - **Træk ud til andre programmer** (X11): træk filer eller mapper ud af vinduet, for eksempel til en
   filhåndtering eller en editor. Lokale filer kopieres, med **Shift** flyttes de. Filer fra en server eller
   et arkiv kopieres kun: et program, der understøtter direkte gemning (XDS), får dem downloadet til sin
@@ -224,6 +236,9 @@ nederst. Listen over alle tastaturgenveje står på den anden side i dette vindu
 - Pakning eller udpakning, der stoppes af et nedbrud eller en dræbt proces, efterlader kun sin
   ufærdige `.filepart`-fil indtil næste start af programmet, som sletter den.
 - **Enter** på et arkiv åbner det som skrivebeskyttet mappe; **F5** kopierer filer ud af det.
+- Tidspunkter i en zip gemmes på sekundet og i UTC (som Info-ZIP gør), så de passer også i en anden
+  tidszone. En zip fra et program, der kun skriver den gamle DOS-tid (uden tidszone, kun lige
+  sekunder), læses i denne computers tidszone.
 
 ## Søgning og kontrolsummer
 

@@ -302,20 +302,29 @@ fn write_zip(
     use zip::write::{FileOptions, ZipFileBuilder};
     use zip::{AesMode, CompressionMethod, ZipWriter};
     let lvl = level_value(Format::Zip, o.level);
-    let opts = |s: &Src| -> zip::write::SimpleFileOptions {
+    let opts = |s: &Src| -> zip::write::FullFileOptions<'static, 'static> {
         // An empty file is stored, as 7-Zip does: compressing gives a 2-byte
         // stream that p7zip 16.02 (Ubuntu 22.04) rejects in an encrypted
         // entry ("CRC Failed in encrypted file"), although it is valid.
         let store = lvl.is_none()
             || (s.kind == SrcKind::File && s.size == 0)
             || (o.store_compressed && s.kind == SrcKind::File && already_compressed(&s.name));
-        let o: FileOptions<()> = FileOptions::default();
+        let o: zip::write::FullFileOptions = FileOptions::default();
         let o = if store {
             o.compression_method(CompressionMethod::Stored)
         } else {
             o.compression_method(CompressionMethod::Deflated).compression_level(lvl.map(i64::from))
         };
-        o.unix_permissions(s.mode).last_modified_time(zip_time(s.mtime))
+        let mut o = o.unix_permissions(s.mode).last_modified_time(zip_time(s.mtime));
+        // The exact time in UTC next to the DOS time (which has no time zone),
+        // as Info-ZIP writes it: the times are right in another time zone too.
+        if let Some(t) = s.mtime.and_then(|t| t.duration_since(SystemTime::UNIX_EPOCH).ok()).and_then(|d| u32::try_from(d.as_secs()).ok()) {
+            let mut ut = vec![1u8];
+            ut.extend_from_slice(&t.to_le_bytes());
+            // A field the library refuses only leaves the DOS time.
+            let _ = o.add_extra_field(0x5455, ut, false);
+        }
+        o
     };
     // Encrypted entries can only be written by the ZipWriter itself.
     let cost = |s: &Src| (password.is_none() && s.kind == SrcKind::File && s.size <= PAR_MAX).then_some(s.size + (64 << 10));
