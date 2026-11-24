@@ -73,13 +73,16 @@ def deep(d: bytes, depth: int) -> None:
     os.write(f, b"bottom\n")
     os.close(f)
     os.close(cur)
-    # 2) A path just under PATH_MAX (4096 bytes including the final NUL).
+    # 2) A path just under PATH_MAX (4096 bytes including the final NUL), with
+    #    32 bytes to spare for the copy: measure.sh copies it into work/deep-copy,
+    #    10 bytes longer than the source (without the margin, whether the copy
+    #    fits depended on the length of BASE).
     long_dir = os.path.join(d, b"long")
     os.mkdir(long_dir)
     path = os.path.abspath(long_dir)
     cur = os.open(long_dir, os.O_RDONLY | os.O_DIRECTORY)
     part = b"p" * 200
-    while len(path) + 1 + len(part) + 1 + len(b"end.txt") < 4095:
+    while len(path) + 1 + len(part) + 1 + len(b"end.txt") < 4095 - 32:
         os.mkdir(part, dir_fd=cur)
         nxt = os.open(part, os.O_RDONLY | os.O_DIRECTORY, dir_fd=cur)
         os.close(cur)

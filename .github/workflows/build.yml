@@ -250,6 +250,73 @@ jobs:
           chmod +x dist/*.AppImage
           bash packaging/ci/appimage-minimal.sh "$VERSION" "$(ls "$PWD"/dist/*.AppImage)"
 
+  performance:
+    name: Performance (load test with 10 000 files)
+    # Measured on every build; not needed for a release (shared runners are
+    # noisy), but a limit that is not met marks the run red.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: System packages
+        run: |
+          sudo apt-get update -q
+          # sshd for the SFTP steps, Xvfb and libXtst for the frame times of the window.
+          sudo apt-get install -y -q --no-install-recommends openssh-server xvfb libxtst6 \
+            libxkbcommon0 libxkbcommon-x11-0 libxcursor1 libxrender1 libxfixes3 libxi6 libxext6 \
+            libegl1 libgl1-mesa-dri mesa-vulkan-drivers
+
+      - name: Rust toolchain
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          rustup default "$RUST_TOOLCHAIN"
+
+      - name: Cargo cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-perf-${{ runner.os }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            cargo-perf-${{ runner.os }}-${{ env.RUST_TOOLCHAIN }}-
+
+      # The results of the last run that met the limits: the "Before" column.
+      - name: Previous results
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bench-results
+          key: bench-${{ github.run_id }}
+          restore-keys: |
+            bench-
+
+      - name: Load test
+        run: |
+          mkdir -p bench-results
+          [ -f bench-results/bench.tsv ] && mv bench-results/bench.tsv "$RUNNER_TEMP/before.tsv"
+          scripts/bench/measure.sh -n 10000 "$RUNNER_TEMP/bench" bench-results/bench.tsv > /dev/null
+          {
+            echo "## Load test, 10 000 files ($(nproc) CPUs, ${{ github.sha }})"
+            echo
+            if [ -f "$RUNNER_TEMP/before.tsv" ]; then
+              python3 scripts/bench/report.py bench-results/bench.tsv "$RUNNER_TEMP/before.tsv"
+            else
+              python3 scripts/bench/report.py bench-results/bench.tsv
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bench-${{ github.sha }}
+          path: bench-results/bench.tsv
+          if-no-files-found: error
+
+      - name: Limits
+        run: python3 scripts/bench/report.py --check bench-results/bench.tsv > /dev/null
+
   release:
     name: GitHub release
     if: startsWith(github.ref, 'refs/tags/v')
