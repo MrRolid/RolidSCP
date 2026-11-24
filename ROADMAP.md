@@ -96,16 +96,31 @@ catch it again.
     within 16 seconds, connected again within 7 seconds of the test machine being reachable,
     finished the transfer without the user, and the copy was equal by SHA-256.
   - Not done yet: a Windows server and a NAS.
-- **0.8.20 Polish:** moved from 0.8.18 and 0.8.19: X11 against Wayland, high-DPI screens, ACLs,
-  extended attributes, and time zones and server clocks that are off. A few symbols of the window
-  (the sort arrow, the plus of the tabs, the disk and info signs) come from the system's fonts and
-  are missing on a system without any; they should come from the program's own icons. Consistent
-  controls in every dialog, fuzz testing of everything the program reads (archives, server listings,
-  `known_hosts`), a licence check of all dependencies and a check of the code for matches with other
-  projects, and performance measured on every build. Two copies of the program running at once;
-  settings from older versions, going back to an older version and damaged settings files.
-  Keyboard-only use, screen readers and long translated texts. Signed checksums of the release files
-  and reproducible builds.
+- **0.8.20 Polish:** what was done:
+  - The remaining time of a transfer is calm: it counts down by itself, does not go up because of a
+    short drop in speed and shows "unknown" while the line stands still. Replayed on the recorded
+    outages of 0.8.19 it went up 0 to 3 times instead of 94 to 304 times; uploading 110 GiB on the
+    test machine it was within 5 % at every quarter.
+  - X11 and Wayland (Weston at scale 1 and 2), high-DPI screens at 125, 150 and 200 %, and the 22
+    dialogs in German, French and Polish: nothing cut off. The function-key bar keeps the labels that
+    fit. The symbols of the window come from the program's own icons, so a system without fonts shows
+    them too.
+  - The menu bar by keyboard (F10); screen readers hear the folder list, the item under the cursor,
+    the buttons and the dialogs; the transfer error summary is a dialog like the others.
+  - ACLs, extended attributes and times: what a copy keeps is tested against a real OpenSSH server
+    and written in the help; zip times are kept in UTC to the second, right in every time zone.
+  - Fuzz testing of everything the program reads, on every build (one crash found and fixed); the
+    licences, sources and security advisories of all dependencies checked with cargo deny on every
+    build; the code compared with all 904 libraries in the local cache (nothing taken over); a load
+    test with 10 000 files on every build, compared with the build before.
+  - Two copies of the program at once keep each other's changes (servers, settings, saved
+    passwords). A damaged settings file is kept as a copy and costs only what is damaged; values
+    of newer versions stay in the files, so going back to an older version and returning loses
+    nothing. Tested with the settings of every version from 0.1 to 0.8.19.
+  - Signed checksums of the release files and reproducible packages, checked by a second build in
+    CI; the AppImage update from 0.8.19 is checked against the release's checksums.
+  - Moved to 0.9: keeping ACLs and extended attributes on local copies, a warning for a server clock
+    that is off, context menus by keyboard. Not done yet: a Windows server and a NAS.
 
 ## 0.9.x: small new features
 

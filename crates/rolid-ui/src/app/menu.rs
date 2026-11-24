@@ -790,6 +790,15 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
             for news in [
                 trc!(
                     "news",
+                    "0.8.20 polish: a calm remaining time that does not jump; the menu bar by keyboard (F10); screen \
+                     readers hear the folder list, buttons and dialogs; long translations fit; zip times right in \
+                     every time zone; two copies of the program at once keep each other's changes; a damaged \
+                     settings file costs only what is damaged (a copy is kept), and going back to an older version \
+                     keeps the settings; fuzz tests, a licence check and a load test on every build; signed \
+                     checksums and reproducible packages"
+                ),
+                trc!(
+                    "news",
                     "0.8.19 updates and real hardware: the AppImage carries update information, so AppImageUpdate \
                      finds a new release on GitHub and downloads only what changed (a .zsync file comes with every \
                      release); tested on a separate computer: a file of 110 GiB up and down over the network, \
