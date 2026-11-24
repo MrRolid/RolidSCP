@@ -3,6 +3,7 @@ name = "rolid-view"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+publish.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "The F3 viewer without the UI: block reading of big files, line index, encodings, search, syntax highlighting"

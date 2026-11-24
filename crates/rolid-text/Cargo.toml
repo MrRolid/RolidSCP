@@ -3,6 +3,7 @@ name = "rolid-text"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+publish.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "Messages for the user made in the library crates and translated in the UI (no translation here)"

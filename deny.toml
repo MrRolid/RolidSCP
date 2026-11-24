@@ -1,0 +1,62 @@
+# cargo-deny: licences, sources and known security advisories of all
+# dependencies (`cargo deny check`, run in CI on every build).
+# The program is GPL-3.0-or-later: every library built into it must have a
+# licence that can be combined with it. For "A OR B" one allowed licence is
+# enough (self_cell: "Apache-2.0 OR GPL-2.0-only" is used under Apache-2.0).
+
+[graph]
+targets = ["x86_64-unknown-linux-gnu"]
+# Build and test tools are not distributed, but are checked too.
+all-features = false
+
+[licenses]
+confidence-threshold = 0.93
+# The list is shared with about.toml; a licence no crate uses now is fine.
+unused-allowed-license = "allow"
+# Keep in line with packaging/about/about.toml (the notices in the packages).
+allow = [
+    "GPL-3.0-or-later",
+    "MIT",
+    "MIT-0",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "0BSD",
+    "Unicode-3.0",
+    "BSL-1.0",
+    "MPL-2.0",
+    "CC0-1.0",
+    "Unlicense",
+    "bzip2-1.0.6",
+    "OFL-1.1",
+]
+
+[licenses.private]
+ignore = false
+
+[bans]
+# Two versions of one crate are common in a tree this size: shown, not an error.
+multiple-versions = "allow"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+
+[advisories]
+# Unmaintained crates deep in the tree (no fix to take) are not an error;
+# a vulnerability is.
+unmaintained = "none"
+yanked = "deny"
+ignore = [
+    # rsa (through russh, which pins the exact version): the Marvin timing
+    # attack needs very many timed private-key operations. The program uses
+    # an RSA key only to sign the login, once per connection, and has no
+    # fixed version to take. Remove when russh moves to a fixed rsa.
+    { id = "RUSTSEC-2023-0071", reason = "no fix; one RSA signature per login" },
+]

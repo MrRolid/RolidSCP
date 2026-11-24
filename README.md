@@ -402,6 +402,9 @@ and texts in the viewer) is fuzzed inside these tests with a few hundred damaged
 run: `ROLIDSCP_FUZZ_ITERS=200000 CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true cargo test --workspace --release fuzz_`;
 an input that fails is saved in `target/fuzz-fail/` and fed again with `ROLIDSCP_FUZZ_REPLAY=<file>`.
 
+Licences, sources and security advisories of all dependencies: `cargo deny check` (`deny.toml`,
+run in CI on every build).
+
 The packages are built by scripts in `packaging/`. All of them need `cargo-about` (license
 notices of all bundled libraries, refreshed on every build) and `python3`; the `.rpm` also needs
 `rpmbuild` (`sudo apt install rpm`), the AppImage `mksquashfs` and `zsyncmake` (`sudo apt install squashfs-tools zsync`)

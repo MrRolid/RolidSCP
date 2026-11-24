@@ -8,6 +8,8 @@ edition = "2021"
 license = "GPL-3.0-or-later"
 authors = ["Martin Vorel <martin@vorel.eu>"]
 repository = "https://github.com/MrRolid/RolidSCP"
+# Not published on crates.io (path dependencies between the crates).
+publish = false
 
 [profile.release]
 lto = "thin"

@@ -27,6 +27,7 @@ env:
   # The Rust version the project is developed and checked with.
   RUST_TOOLCHAIN: "1.99.1"
   CARGO_ABOUT_VERSION: "0.9.3"
+  CARGO_DENY_VERSION: "0.21.0"
 
 jobs:
   build:
@@ -85,14 +86,28 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
             ~/.cargo/bin/cargo-about
-          key: cargo-${{ runner.os }}-${{ env.RUST_TOOLCHAIN }}-about${{ env.CARGO_ABOUT_VERSION }}-${{ hashFiles('Cargo.lock') }}
+            ~/.cargo/bin/cargo-deny
+          key: cargo-${{ runner.os }}-${{ env.RUST_TOOLCHAIN }}-about${{ env.CARGO_ABOUT_VERSION }}-deny${{ env.CARGO_DENY_VERSION }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
-            cargo-${{ runner.os }}-${{ env.RUST_TOOLCHAIN }}-about${{ env.CARGO_ABOUT_VERSION }}-
+            cargo-${{ runner.os }}-${{ env.RUST_TOOLCHAIN }}-about${{ env.CARGO_ABOUT_VERSION }}-deny${{ env.CARGO_DENY_VERSION }}-
 
       - name: cargo-about
         run: |
           if ! cargo-about --version 2>/dev/null | grep -qx "cargo-about $CARGO_ABOUT_VERSION"; then
             cargo install cargo-about --locked --version "$CARGO_ABOUT_VERSION" --features cli --force
+          fi
+
+      - name: Licences, sources and advisories of the dependencies
+        run: |
+          if ! cargo-deny --version 2>/dev/null | grep -qx "cargo-deny $CARGO_DENY_VERSION"; then
+            cargo install cargo-deny --locked --version "$CARGO_DENY_VERSION" --force
+          fi
+          # deny.toml: licences that fit GPL-3.0-or-later, crates.io only.
+          cargo deny --locked check licenses bans sources
+          # A new advisory can appear any day without a change here: a warning on
+          # the run page, not a failed release build.
+          if ! cargo deny --locked check advisories; then
+            echo "::warning title=Security advisory::cargo deny check advisories found a problem in a dependency (see the log)"
           fi
 
       - name: Clippy
