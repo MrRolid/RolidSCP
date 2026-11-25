@@ -159,10 +159,18 @@ o beta verzi.
 - Přerušený přenos na produkční server se sám neobnoví; potvrzuješ ho znovu.
 
 **Servery a klíče**
-- Klíče serverů se ověřují proti `~/.ssh/known_hosts` (i hašované záznamy). U nového serveru se ukáže
-  typ klíče a otisk SHA256 a připojí se až po potvrzení; klíč se pak do toho souboru přidá. Změněný klíč
-  se odmítne; nový klíč přijmeš odstraněním starého řádku přes `ssh-keygen -R <server>`.
-  `/etc/ssh/ssh_known_hosts`, `@cert-authority` ani certifikáty serverů podporované nejsou.
+- Klíče serverů se ověřují proti dvěma seznamům: vlastnímu seznamu programu
+  (`~/.config/rolidscp/known_hosts`) a `~/.ssh/known_hosts`, který program jen čte a nikdy nemění
+  (rozumí hašovaným jménům, zástupným znakům, `!` i `@revoked`). U nového serveru se ukáže typ klíče
+  a otisk SHA256 a připojí se až po potvrzení; klíč se pak přidá do vlastního seznamu programu.
+  Změněný klíč se odmítne, stejně jako klíč označený `@revoked`. Když se oba seznamy u serveru
+  neshodují (jeden má klíč, který server poslal, druhý jiný klíč stejného typu), program se nepřipojí
+  a vypíše oba řádky. Nový klíč přijmeš odstraněním starého řádku, např.
+  `ssh-keygen -R <server> -f ~/.config/rolidscp/known_hosts` (bez `-f` pro `~/.ssh/known_hosts`).
+  Typy klíčů, které program u serveru už zná, si řekne jako první, takže server, který přidá klíč
+  Ed25519, nevypadá jako neznámý. Do 0.9.0 se potvrzené klíče přidávaly do `~/.ssh/known_hosts`;
+  zůstávají tam a dál platí. `/etc/ssh/ssh_known_hosts`, `@cert-authority` ani certifikáty serverů
+  podporované nejsou.
 - Přihlášení přes ssh-agent, soubor s klíčem (formát OpenSSH; PuTTY `.ppk` načte knihovna SSH, ale naše
   testy ho zatím nepokrývají), výchozí klíče `~/.ssh/id_ed25519`, `id_ecdsa`, `id_rsa`, heslo nebo
   keyboard-interactive. `~/.ssh/config`, skoky přes jiný server (ProxyJump, ProxyCommand) ani import
@@ -720,7 +728,7 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   `x-terminal-emulator` nebo jeden ze známých terminálů) ve složce aktivního panelu; v archivu ve
   složce, kde archiv leží.
 - Na serveru spustí `ssh -t` do složky panelu (přihlašovací shell) s `StrictHostKeyChecking=yes` a se
-  stejným `~/.ssh/known_hosts` jako aplikace; neznámý nebo změněný klíč spojení ukončí. Klíč z profilu
+  stejnými seznamy známých serverů jako aplikace (vlastní a `~/.ssh/known_hosts`); neznámý nebo změněný klíč spojení ukončí. Klíč z profilu
   se předá přes `-i`.
 - Heslo uložené v trezoru předá jednorázový pomocník `SSH_ASKPASS` (sama binárka `rolidscp`): ssh ho
   spustí, ten se přes soukromý socket (složka 0700, kontrola UID protistrany, náhodný token) zeptá
@@ -826,7 +834,7 @@ docs/          česká příručka, snímek obrazovky, texty vydání (docs/rele
 
 ## Bezpečnost (aktuální stav)
 
-- Striktní kontrola klíče serveru proti `~/.ssh/known_hosts`; neznámý klíč se přidá jen po potvrzení otisku, změněný klíč se odmítne (podrobnosti a omezení v [Ochrana dat](#ochrana-dat-a-chování-při-chybách)).
+- Striktní kontrola klíče serveru proti vlastnímu seznamu programu a `~/.ssh/known_hosts` (ten se jen čte); neznámý klíč se přidá do vlastního seznamu jen po potvrzení otisku, změněný klíč a neshoda obou seznamů se odmítnou (podrobnosti a omezení v [Ochrana dat](#ochrana-dat-a-chování-při-chybách)).
 - Přihlášení: nejdřív se zjistí, které metody server nabízí, a zkoušejí se jen ty, v pořadí ssh-agent →
   klíče (`~/.ssh/id_ed25519`, `id_ecdsa`, `id_rsa` nebo zadaný; zašifrovaný výchozí klíč bez hesla se tiše přeskočí)
   → heslo → keyboard-interactive (výzvu „Password“ zodpoví zadaným heslem; jiné výzvy, třeba ověřovací kód,

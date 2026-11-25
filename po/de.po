@@ -893,33 +893,45 @@ msgstr "keyboard-interactive mit der Antwort des Benutzers"
 msgid "too many rounds of prompts"
 msgstr "zu viele Abfragerunden"
 
-#: crates/rolid-ssh/src/lib.rs:90
+#: crates/rolid-ssh/src/lib.rs:109
 msgid "unknown server key {host}:{port} ({algorithm}) {fingerprint}"
 msgstr "unbekannter Serverschlüssel {host}:{port} ({algorithm}) {fingerprint}"
 
-#: crates/rolid-ssh/src/lib.rs:97
-msgid "WARNING: the key of server {host}:{port} has changed compared to known_hosts! It may be a man-in-the-middle attack. Connection refused."
-msgstr "WARNUNG: Der Schlüssel des Servers {host}:{port} hat sich gegenüber known_hosts geändert! Es könnte ein Man-in-the-Middle-Angriff sein. Verbindung abgelehnt."
+#: crates/rolid-ssh/src/lib.rs:116
+msgid "WARNING: the key of server {host}:{port} has changed compared to {file}, line {line}! It may be a man-in-the-middle attack. Connection refused."
+msgstr "WARNUNG: Der Schlüssel des Servers {host}:{port} hat sich gegenüber {file}, Zeile {line}, geändert! Es könnte ein Man-in-the-Middle-Angriff sein. Verbindung abgelehnt."
 
-#: crates/rolid-ssh/src/lib.rs:102
+#: crates/rolid-ssh/src/lib.rs:123
+msgid "The key of server {host}:{port} is marked as revoked in {file}, line {line}. Connection refused."
+msgstr "Der Schlüssel des Servers {host}:{port} ist in {file}, Zeile {line}, als widerrufen markiert. Verbindung abgelehnt."
+
+#: crates/rolid-ssh/src/lib.rs:130
+msgid "The lists of known servers disagree about server {host}:{port}: {knows}, line {knows_line}, has the key the server sent, but {other}, line {other_line}, has a different key of the same type. Connection refused. Find out from the server's administrator which key is right and delete the wrong line."
+msgstr "Die Listen bekannter Server sind sich beim Server {host}:{port} uneinig: {knows}, Zeile {knows_line}, hat den Schlüssel, den der Server geschickt hat, aber {other}, Zeile {other_line}, hat einen anderen Schlüssel desselben Typs. Verbindung abgelehnt. Fragen Sie den Administrator des Servers, welcher Schlüssel richtig ist, und löschen Sie die falsche Zeile."
+
+#: crates/rolid-ssh/src/lib.rs:139
 msgid "login failed. {report}"
 msgstr "Anmeldung fehlgeschlagen. {report}"
 
-#: crates/rolid-ssh/src/lib.rs:282
-#: crates/rolid-ssh/src/lib.rs:518
+#: crates/rolid-ssh/src/lib.rs:239
+msgid "cannot read the list of known servers {file}: {error}. Connection refused."
+msgstr "die Liste bekannter Server {file} kann nicht gelesen werden: {error}. Verbindung abgelehnt."
+
+#: crates/rolid-ssh/src/lib.rs:361
+#: crates/rolid-ssh/src/lib.rs:593
 msgid "the connection timed out"
 msgstr "Zeitüberschreitung der Verbindung"
 
-#: crates/rolid-ssh/src/lib.rs:300
-#: crates/rolid-ssh/src/lib.rs:517
+#: crates/rolid-ssh/src/lib.rs:375
+#: crates/rolid-ssh/src/lib.rs:592
 msgid "connection failed: {error}"
 msgstr "Verbindung fehlgeschlagen: {error}"
 
-#: crates/rolid-ssh/src/lib.rs:412
+#: crates/rolid-ssh/src/lib.rs:487
 msgid "the command on the server did not answer within {n} s"
 msgstr "der Befehl auf dem Server hat nicht innerhalb von {n} s geantwortet"
 
-#: crates/rolid-ssh/src/lib.rs:717
+#: crates/rolid-ssh/src/lib.rs:792
 msgid "{name}: unexpected answer from the server"
 msgstr "{name}: unerwartete Antwort vom Server"
 
@@ -1056,7 +1068,7 @@ msgid "The file is encrypted in the archive."
 msgstr "Die Datei ist im Archiv verschlüsselt."
 
 #: crates/rolid-ui/src/app/archdir_ui.rs:381
-#: crates/rolid-ui/src/app/session.rs:1051
+#: crates/rolid-ui/src/app/session.rs:1052
 #: crates/rolid-ui/src/app/unpack_ui.rs:432
 #: crates/rolid-ui/src/app/unpack_ui.rs:840
 msgid "Password:"
@@ -1257,7 +1269,7 @@ msgid "Calculate checksums"
 msgstr "Prüfsummen berechnen"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:151
-#: crates/rolid-ui/src/app/session.rs:1136
+#: crates/rolid-ui/src/app/session.rs:1137
 msgid "Options"
 msgstr "Optionen"
 
@@ -1339,7 +1351,7 @@ msgstr "In Datei speichern"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:248
 #: crates/rolid-ui/src/app/newfile_ui.rs:78
-#: crates/rolid-ui/src/app/session.rs:1027
+#: crates/rolid-ui/src/app/session.rs:1028
 #: crates/rolid-ui/src/app.rs:2887
 msgid "Name:"
 msgstr "Name:"
@@ -2740,7 +2752,7 @@ msgid "Enter credentials…"
 msgstr "Anmeldedaten eingeben…"
 
 #: crates/rolid-ui/src/app/link_ui.rs:404
-#: crates/rolid-ui/src/app/session.rs:1003
+#: crates/rolid-ui/src/app/session.rs:1004
 #: crates/rolid-ui/src/app/viewer/text/find.rs:241
 #: crates/rolid-ui/src/app/viewer/text.rs:479
 #: crates/rolid-ui/src/app.rs:2536
@@ -2748,29 +2760,29 @@ msgstr "Anmeldedaten eingeben…"
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: crates/rolid-ui/src/app/link_ui.rs:472
+#: crates/rolid-ui/src/app/link_ui.rs:474
 msgid "{error} (the server asks for more information)"
 msgstr "{error} (der Server fragt nach weiteren Angaben)"
 
-#: crates/rolid-ui/src/app/link_ui.rs:488
+#: crates/rolid-ui/src/app/link_ui.rs:495
 msgid "{m} min {s} s"
 msgstr "{m} Min. {s} s"
 
-#: crates/rolid-ui/src/app/link_ui.rs:490
+#: crates/rolid-ui/src/app/link_ui.rs:497
 msgid "{h} h {m} min"
 msgstr "{h} Std. {m} Min."
 
-#: crates/rolid-ui/src/app/link_ui.rs:492
+#: crates/rolid-ui/src/app/link_ui.rs:499
 msgid "{n} day"
 msgid_plural "{n} days"
 msgstr[0] "{n} Tag"
 msgstr[1] "{n} Tage"
 
-#: crates/rolid-ui/src/app/link_ui.rs:500
+#: crates/rolid-ui/src/app/link_ui.rs:507
 msgid "The clock of server {server} is {diff} ahead of this computer. Times of files changed on it are off by as much, and \"Overwrite only older\" may decide wrongly."
 msgstr "Die Uhr des Servers {server} geht gegenüber diesem Computer {diff} vor. Die Zeiten dort geänderter Dateien weichen ebenso ab, und „Nur ältere überschreiben“ kann falsch entscheiden."
 
-#: crates/rolid-ui/src/app/link_ui.rs:506
+#: crates/rolid-ui/src/app/link_ui.rs:513
 msgid "The clock of server {server} is {diff} behind this computer. Times of files changed on it are off by as much, and \"Overwrite only older\" may decide wrongly."
 msgstr "Die Uhr des Servers {server} geht gegenüber diesem Computer {diff} nach. Die Zeiten dort geänderter Dateien weichen ebenso ab, und „Nur ältere überschreiben“ kann falsch entscheiden."
 
@@ -2863,7 +2875,7 @@ msgid "New folder"
 msgstr "Neuer Ordner"
 
 #: crates/rolid-ui/src/app/menu.rs:135
-#: crates/rolid-ui/src/app/session.rs:1017
+#: crates/rolid-ui/src/app/session.rs:1018
 #: crates/rolid-ui/src/pane/views.rs:335
 msgid "Delete"
 msgstr "Löschen"
@@ -4286,7 +4298,7 @@ msgid "Text in the file:"
 msgstr "Text in der Datei:"
 
 #: crates/rolid-ui/src/app/search.rs:304
-#: crates/rolid-ui/src/app/session.rs:1055
+#: crates/rolid-ui/src/app/session.rs:1056
 msgid "optional"
 msgstr "optional"
 
@@ -4394,245 +4406,245 @@ msgstr "Die Verbindung zu „{name}“ verwendet ein gespeichertes Passwort."
 msgid "Not connected: the saved passwords are locked (Enter or Ctrl+R = try again)"
 msgstr "Nicht verbunden: Die gespeicherten Passwörter sind gesperrt (Enter oder Ctrl+R = erneut versuchen)"
 
-#: crates/rolid-ui/src/app/session.rs:403
+#: crates/rolid-ui/src/app/session.rs:404
 msgid "{report}; system keyring unavailable: {error}"
 msgstr "{report}; System-Schlüsselbund nicht verfügbar: {error}"
 
-#: crates/rolid-ui/src/app/session.rs:508
+#: crates/rolid-ui/src/app/session.rs:509
 msgid "Not connected: {error}  (Enter or Ctrl+R = try again)"
 msgstr "Nicht verbunden: {error}  (Enter oder Ctrl+R = erneut versuchen)"
 
-#: crates/rolid-ui/src/app/session.rs:667
+#: crates/rolid-ui/src/app/session.rs:668
 msgid "Profile saved."
 msgstr "Profil gespeichert."
 
-#: crates/rolid-ui/src/app/session.rs:670
-#: crates/rolid-ui/src/app/session.rs:737
-#: crates/rolid-ui/src/app/session.rs:791
+#: crates/rolid-ui/src/app/session.rs:671
+#: crates/rolid-ui/src/app/session.rs:738
+#: crates/rolid-ui/src/app/session.rs:792
 #: crates/rolid-ui/src/app/vault_ui.rs:479
 msgid "Cannot save the profiles: {error}"
 msgstr "Die Profile können nicht gespeichert werden: {error}"
 
-#: crates/rolid-ui/src/app/session.rs:690
+#: crates/rolid-ui/src/app/session.rs:691
 msgid "Password saved (protected by the master password)."
 msgstr "Passwort gespeichert (durch das Master-Passwort geschützt)."
 
-#: crates/rolid-ui/src/app/session.rs:700
+#: crates/rolid-ui/src/app/session.rs:701
 msgid "Profile saved, the saved password did not change (the master password was not entered)."
 msgstr "Profil gespeichert, das gespeicherte Passwort wurde nicht geändert (das Master-Passwort wurde nicht eingegeben)."
 
-#: crates/rolid-ui/src/app/session.rs:702
+#: crates/rolid-ui/src/app/session.rs:703
 msgid "Profile saved without a password (the master password was not entered)."
 msgstr "Profil ohne Passwort gespeichert (das Master-Passwort wurde nicht eingegeben)."
 
-#: crates/rolid-ui/src/app/session.rs:716
+#: crates/rolid-ui/src/app/session.rs:717
 msgid "The password did not change (the master password was not entered)."
 msgstr "Das Passwort wurde nicht geändert (das Master-Passwort wurde nicht eingegeben)."
 
-#: crates/rolid-ui/src/app/session.rs:718
+#: crates/rolid-ui/src/app/session.rs:719
 msgid "The password was not saved (the master password was not entered)."
 msgstr "Das Passwort wurde nicht gespeichert (das Master-Passwort wurde nicht eingegeben)."
 
-#: crates/rolid-ui/src/app/session.rs:743
+#: crates/rolid-ui/src/app/session.rs:744
 msgid "Copy created: {name}"
 msgstr "Kopie erstellt: {name}"
 
-#: crates/rolid-ui/src/app/session.rs:750
+#: crates/rolid-ui/src/app/session.rs:751
 msgid "The saved password of “{name}” will be copied to the new server."
 msgstr "Das gespeicherte Passwort von „{name}“ wird zum neuen Server kopiert."
 
-#: crates/rolid-ui/src/app/session.rs:753
+#: crates/rolid-ui/src/app/session.rs:754
 msgid "Copy created without a password: the original has no saved password."
 msgstr "Kopie ohne Passwort erstellt: Das Original hat kein gespeichertes Passwort."
 
-#: crates/rolid-ui/src/app/session.rs:759
+#: crates/rolid-ui/src/app/session.rs:760
 #: crates/rolid-ui/src/app/vault_ui.rs:243
 msgid "Cannot save the password: {error}"
 msgstr "Das Passwort kann nicht gespeichert werden: {error}"
 
-#: crates/rolid-ui/src/app/session.rs:768
+#: crates/rolid-ui/src/app/session.rs:769
 msgid "Copy created with the saved password."
 msgstr "Kopie mit dem gespeicherten Passwort erstellt."
 
-#: crates/rolid-ui/src/app/session.rs:771
+#: crates/rolid-ui/src/app/session.rs:772
 msgid "Copy created without the password (the master password was not entered)."
 msgstr "Kopie ohne Passwort erstellt (das Master-Passwort wurde nicht eingegeben)."
 
-#: crates/rolid-ui/src/app/session.rs:799
+#: crates/rolid-ui/src/app/session.rs:800
 msgid "Profile deleted."
 msgstr "Profil gelöscht."
 
-#: crates/rolid-ui/src/app/session.rs:874
+#: crates/rolid-ui/src/app/session.rs:875
 msgid "Login – {target}"
 msgstr "Anmeldung – {target}"
 
-#: crates/rolid-ui/src/app/session.rs:877
+#: crates/rolid-ui/src/app/session.rs:878
 msgid "The password was not accepted. Enter it again."
 msgstr "Das Passwort wurde nicht akzeptiert. Bitte erneut eingeben."
 
-#: crates/rolid-ui/src/app/session.rs:885
+#: crates/rolid-ui/src/app/session.rs:886
 msgid "The server asks (keyboard-interactive):"
 msgstr "Der Server fragt (keyboard-interactive):"
 
-#: crates/rolid-ui/src/app/session.rs:897
+#: crates/rolid-ui/src/app/session.rs:898
 msgid "Send"
 msgstr "Senden"
 
-#: crates/rolid-ui/src/app/session.rs:925
+#: crates/rolid-ui/src/app/session.rs:926
 msgid "Server manager"
 msgstr "Serververwaltung"
 
-#: crates/rolid-ui/src/app/session.rs:931
+#: crates/rolid-ui/src/app/session.rs:932
 msgid "＋ New / quick connect"
 msgstr "＋ Neu / Schnellverbindung"
 
-#: crates/rolid-ui/src/app/session.rs:939
+#: crates/rolid-ui/src/app/session.rs:940
 msgid "No saved servers yet."
 msgstr "Noch keine gespeicherten Server."
 
-#: crates/rolid-ui/src/app/session.rs:976
+#: crates/rolid-ui/src/app/session.rs:977
 msgid "Duplicate…"
 msgstr "Duplizieren…"
 
-#: crates/rolid-ui/src/app/session.rs:976
+#: crates/rolid-ui/src/app/session.rs:977
 msgid "A copy of the saved server with all its settings, under a new name. Changes in the form that are not saved are not copied."
 msgstr "Eine Kopie des gespeicherten Servers mit allen Einstellungen unter neuem Namen. Nicht gespeicherte Änderungen im Formular werden nicht kopiert."
 
-#: crates/rolid-ui/src/app/session.rs:992
+#: crates/rolid-ui/src/app/session.rs:993
 msgid "Copy the saved password too"
 msgstr "Auch das gespeicherte Passwort kopieren"
 
-#: crates/rolid-ui/src/app/session.rs:994
+#: crates/rolid-ui/src/app/session.rs:995
 msgid "The password is still in the system keyring of an older version: move it first (Settings → Master password)."
 msgstr "Das Passwort liegt noch im System-Schlüsselbund einer älteren Version: zuerst verschieben (Einstellungen → Master-Passwort)."
 
-#: crates/rolid-ui/src/app/session.rs:996
+#: crates/rolid-ui/src/app/session.rs:997
 msgid "Needs the master password."
 msgstr "Erfordert das Master-Passwort."
 
-#: crates/rolid-ui/src/app/session.rs:999
+#: crates/rolid-ui/src/app/session.rs:1000
 msgid "Create copy"
 msgstr "Kopie erstellen"
 
-#: crates/rolid-ui/src/app/session.rs:1014
+#: crates/rolid-ui/src/app/session.rs:1015
 msgid "Really delete?"
 msgstr "Wirklich löschen?"
 
-#: crates/rolid-ui/src/app/session.rs:1030
+#: crates/rolid-ui/src/app/session.rs:1031
 msgid "e.g. Web production"
 msgstr "z. B. Web-Produktion"
 
-#: crates/rolid-ui/src/app/session.rs:1034
+#: crates/rolid-ui/src/app/session.rs:1035
 msgid "Server:"
 msgstr "Server:"
 
-#: crates/rolid-ui/src/app/session.rs:1037
+#: crates/rolid-ui/src/app/session.rs:1038
 msgid "host or user@host:port"
 msgstr "Host oder user@host:port"
 
-#: crates/rolid-ui/src/app/session.rs:1045
+#: crates/rolid-ui/src/app/session.rs:1046
 msgid "Port:"
 msgstr "Port:"
 
-#: crates/rolid-ui/src/app/session.rs:1048
+#: crates/rolid-ui/src/app/session.rs:1049
 msgid "User:"
 msgstr "Benutzer:"
 
-#: crates/rolid-ui/src/app/session.rs:1053
+#: crates/rolid-ui/src/app/session.rs:1054
 msgid "saved (protected by the master password)"
 msgstr "gespeichert (durch das Master-Passwort geschützt)"
 
-#: crates/rolid-ui/src/app/session.rs:1054
+#: crates/rolid-ui/src/app/session.rs:1055
 msgid "saved in the system keyring (older version)"
 msgstr "im System-Schlüsselbund gespeichert (ältere Version)"
 
-#: crates/rolid-ui/src/app/session.rs:1059
+#: crates/rolid-ui/src/app/session.rs:1060
 msgid "Key:"
 msgstr "Schlüssel:"
 
-#: crates/rolid-ui/src/app/session.rs:1062
+#: crates/rolid-ui/src/app/session.rs:1063
 msgid "default: agent, ~/.ssh/id_*"
 msgstr "Standard: Agent, ~/.ssh/id_*"
 
-#: crates/rolid-ui/src/app/session.rs:1066
+#: crates/rolid-ui/src/app/session.rs:1067
 msgid "Key passphrase:"
 msgstr "Passphrase:"
 
-#: crates/rolid-ui/src/app/session.rs:1067
+#: crates/rolid-ui/src/app/session.rs:1068
 msgid "optional, not saved"
 msgstr "optional, wird nicht gespeichert"
 
-#: crates/rolid-ui/src/app/session.rs:1069
+#: crates/rolid-ui/src/app/session.rs:1070
 msgid "Start folder:"
 msgstr "Startordner:"
 
-#: crates/rolid-ui/src/app/session.rs:1072
+#: crates/rolid-ui/src/app/session.rs:1073
 msgid "home"
 msgstr "Home"
 
-#: crates/rolid-ui/src/app/session.rs:1076
+#: crates/rolid-ui/src/app/session.rs:1077
 msgid "Tab color:"
 msgstr "Tabfarbe:"
 
-#: crates/rolid-ui/src/app/session.rs:1106
+#: crates/rolid-ui/src/app/session.rs:1107
 msgid "Do not change the tab color"
 msgstr "Tabfarbe nicht ändern"
 
-#: crates/rolid-ui/src/app/session.rs:1120
+#: crates/rolid-ui/src/app/session.rs:1121
 msgid "Any color (16M shades)"
 msgstr "Beliebige Farbe (16 Mio. Farbtöne)"
 
-#: crates/rolid-ui/src/app/session.rs:1139
+#: crates/rolid-ui/src/app/session.rs:1140
 msgid "Save password (protected by the master password)"
 msgstr "Passwort speichern (durch das Master-Passwort geschützt)"
 
-#: crates/rolid-ui/src/app/session.rs:1142
+#: crates/rolid-ui/src/app/session.rs:1143
 msgid "The password is saved in an encrypted file. The first time you create a master password; after the application starts, you enter it once when a saved password is first used."
 msgstr "Das Passwort wird in einer verschlüsselten Datei gespeichert. Beim ersten Mal wird ein Master-Passwort erstellt; nach dem Start der Anwendung wird es einmal bei der ersten Verwendung eines gespeicherten Passworts eingegeben."
 
-#: crates/rolid-ui/src/app/session.rs:1149
+#: crates/rolid-ui/src/app/session.rs:1150
 msgid "⚠ Production server (red stripe, stricter confirmations)"
 msgstr "⚠ Produktionsserver (roter Streifen, strengere Bestätigungen)"
 
-#: crates/rolid-ui/src/app/session.rs:1154
-msgid "Unknown server (not in ~/.ssh/known_hosts)."
-msgstr "Unbekannter Server (nicht in ~/.ssh/known_hosts)."
-
 #: crates/rolid-ui/src/app/session.rs:1155
+msgid "Unknown server: its key is neither in the program's list of known servers nor in ~/.ssh/known_hosts."
+msgstr "Unbekannter Server: Sein Schlüssel ist weder in der Liste bekannter Server des Programms noch in ~/.ssh/known_hosts."
+
+#: crates/rolid-ui/src/app/session.rs:1156
 msgid "Key type: {algorithm}"
 msgstr "Schlüsseltyp: {algorithm}"
 
-#: crates/rolid-ui/src/app/session.rs:1159
+#: crates/rolid-ui/src/app/session.rs:1160
 msgid "Trust and connect"
 msgstr "Vertrauen und verbinden"
 
-#: crates/rolid-ui/src/app/session.rs:1162
-msgid "Check the fingerprint with the server administrator. Once confirmed, it is saved to known_hosts."
-msgstr "Den Fingerabdruck beim Serveradministrator überprüfen. Nach der Bestätigung wird er in known_hosts gespeichert."
+#: crates/rolid-ui/src/app/session.rs:1163
+msgid "Check the fingerprint with the server administrator. Once confirmed, it is saved to the program's list of known servers ({file}); ~/.ssh/known_hosts is not changed."
+msgstr "Prüfen Sie den Fingerabdruck mit dem Administrator des Servers. Nach der Bestätigung wird er in der Liste bekannter Server des Programms gespeichert ({file}); ~/.ssh/known_hosts wird nicht geändert."
 
-#: crates/rolid-ui/src/app/session.rs:1182
+#: crates/rolid-ui/src/app/session.rs:1186
 msgid "Connecting…"
 msgstr "Verbinde…"
 
-#: crates/rolid-ui/src/app/session.rs:1186
+#: crates/rolid-ui/src/app/session.rs:1190
 msgid "Connect"
 msgstr "Verbinden"
 
-#: crates/rolid-ui/src/app/session.rs:1187
+#: crates/rolid-ui/src/app/session.rs:1191
 msgid "Save profile"
 msgstr "Profil speichern"
 
-#: crates/rolid-ui/src/app/session.rs:1245
+#: crates/rolid-ui/src/app/session.rs:1249
 msgid "Cannot save the workspace: {error}"
 msgstr "Der Arbeitsbereich kann nicht gespeichert werden: {error}"
 
-#: crates/rolid-ui/src/app/session.rs:1293
-#: crates/rolid-ui/src/app/session.rs:1306
+#: crates/rolid-ui/src/app/session.rs:1297
+#: crates/rolid-ui/src/app/session.rs:1310
 msgid "{name} (copy)"
 msgstr "{name} (Kopie)"
 
-#: crates/rolid-ui/src/app/session.rs:1298
-#: crates/rolid-ui/src/app/session.rs:1312
+#: crates/rolid-ui/src/app/session.rs:1302
+#: crates/rolid-ui/src/app/session.rs:1316
 msgid "{name} (copy {n})"
 msgstr "{name} (Kopie {n})"
 
@@ -5008,27 +5020,23 @@ msgstr "Das gespeicherte Passwort für „{name}“ wird an das Terminal überge
 msgid "Cannot open a terminal on the server: the ssh program is not installed."
 msgstr "Das Terminal auf dem Server kann nicht geöffnet werden: Das Programm ssh ist nicht installiert."
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:85
-msgid "no home folder"
-msgstr "kein Benutzerordner"
-
-#: crates/rolid-ui/src/app/terminal_ui.rs:109
+#: crates/rolid-ui/src/app/terminal_ui.rs:106
 msgid "Cannot open a terminal: {error}"
 msgstr "Das Terminal kann nicht geöffnet werden: {error}"
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:115
+#: crates/rolid-ui/src/app/terminal_ui.rs:112
 msgid "No terminal program found. Set the TERMINAL environment variable or install one (e.g. xterm)."
 msgstr "Kein Terminalprogramm gefunden. Setzen Sie die Umgebungsvariable TERMINAL oder installieren Sie eines (z. B. xterm)."
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:137
+#: crates/rolid-ui/src/app/terminal_ui.rs:134
 msgid "Terminal on a production server"
 msgstr "Terminal auf einem Produktionsserver"
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:138
+#: crates/rolid-ui/src/app/terminal_ui.rs:135
 msgid "“{name}” is a production server. Commands typed in the terminal take effect immediately."
 msgstr "„{name}“ ist ein Produktionsserver. Im Terminal eingegebene Befehle wirken sofort."
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:139
+#: crates/rolid-ui/src/app/terminal_ui.rs:136
 msgid "Open terminal"
 msgstr "Terminal öffnen"
 

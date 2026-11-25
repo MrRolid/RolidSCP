@@ -179,8 +179,12 @@ and whether it is selected), the buttons and dialogs their names.
   once more (deleting cannot be confirmed with Enter).
 - On a production server copying, uploading, moving and creating a folder cannot be confirmed with
   Enter either, and copying never starts with Overwrite (Skip existing is preselected instead).
-- The server's key is checked against `~/.ssh/known_hosts`. A new key is added only after you
-  confirm its fingerprint; a changed key is refused.
+- The server's key is checked against two lists: the program's own list of known servers
+  (`~/.config/rolidscp/known_hosts`) and `~/.ssh/known_hosts`, which the program only reads and never
+  changes. A new key is added to the program's own list only after you confirm its fingerprint; a
+  changed key is refused, and so is a key marked `@revoked`. When the two lists disagree about a
+  server (one has the key the server sent, the other a different one), the program does not connect
+  and names both lines: ask the server's administrator which key is right and delete the wrong line.
 - Login tries ssh-agent, your keys, then the password. Saved passwords are kept encrypted, protected
   by a master password.
 - Saved passwords lock again a set time after their last use (Settings menu → master password, 60

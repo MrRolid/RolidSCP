@@ -183,8 +183,13 @@ om det er merket), knappene og dialogene sine navn.
 - På en produksjonsserver kan heller ikke kopiering, opplasting, flytting og oppretting av en mappe
   bekreftes med Enter, og kopiering starter aldri med Overskriv (Hopp over eksisterende er
   forhåndsvalgt).
-- Servernøkkelen kontrolleres mot `~/.ssh/known_hosts`. En ny nøkkel legges til først når du har
-  bekreftet fingeravtrykket; en endret nøkkel avvises.
+- Servernøkkelen kontrolleres mot to lister: programmets egen liste over kjente servere
+  (`~/.config/rolidscp/known_hosts`) og `~/.ssh/known_hosts`, som programmet bare leser og aldri
+  endrer. En ny nøkkel legges i programmets egen liste først når du har bekreftet fingeravtrykket; en
+  endret nøkkel avvises, og det samme gjør en nøkkel merket `@revoked`. Når de to listene er uenige
+  om en server (den ene har nøkkelen serveren sendte, den andre en annen), kobler ikke programmet til
+  og viser begge linjene: spør serverens administrator hvilken nøkkel som er riktig, og slett den
+  gale linjen.
 - Innloggingen prøver ssh-agent, nøklene dine og deretter passordet. Lagrede passord lagres kryptert,
   beskyttet av et hovedpassord.
 - Lagrede passord låses igjen en valgt tid etter siste bruk (menyen Innstillinger → hovedpassord, 60

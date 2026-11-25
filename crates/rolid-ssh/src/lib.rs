@@ -17,6 +17,7 @@ use tokio::io::AsyncSeekExt;
 
 pub mod auth;
 pub mod clock;
+pub mod hostkeys;
 pub mod link;
 mod upload;
 pub use auth::{KbdPrompter, KbdRequest};
@@ -32,10 +33,13 @@ pub struct ConnectParams {
     pub key_path: Option<PathBuf>,
     pub key_passphrase: Option<String>,
     /// SHA256 fingerprint of an unknown host key the user explicitly
-    /// accepted; it will be added to `~/.ssh/known_hosts`.
+    /// accepted; it is added to [`known_hosts`](Self::known_hosts).
     pub accept_fingerprint: Option<String>,
-    /// Override the known_hosts file (default `~/.ssh/known_hosts`).
+    /// The program's own list of known server keys: checked, and the keys the
+    /// user accepts are added to it. `None`: an accepted key is not saved.
     pub known_hosts: Option<PathBuf>,
+    /// Lists only read, never written (`~/.ssh/known_hosts`). See [`hostkeys`].
+    pub known_hosts_read: Vec<PathBuf>,
     /// Answers keyboard-interactive questions the client cannot answer itself.
     pub prompter: Option<Arc<dyn KbdPrompter>>,
     /// Do not use ssh-agent (tests, explicit choice).
@@ -76,7 +80,22 @@ pub enum SshError {
     HostKeyChanged {
         host: String,
         port: u16,
+        file: String,
         line: usize,
+    },
+    /// The key is marked `@revoked` in a list of known servers.
+    HostKeyRevoked {
+        host: String,
+        port: u16,
+        file: String,
+        line: usize,
+    },
+    /// One list knows the key the server sent, another has a different one.
+    HostKeysDisagree {
+        host: String,
+        port: u16,
+        knows: (String, usize),
+        other: (String, usize),
     },
     /// The authentication report (see [`auth::Report::text`]).
     AuthFailed(Text),
@@ -94,10 +113,28 @@ impl SshError {
                 algorithm = algorithm,
                 fingerprint = fingerprint
             ),
-            SshError::HostKeyChanged { host, port, .. } => txt!(
-                "WARNING: the key of server {host}:{port} has changed compared to known_hosts! It may be a man-in-the-middle attack. Connection refused.",
+            SshError::HostKeyChanged { host, port, file, line } => txt!(
+                "WARNING: the key of server {host}:{port} has changed compared to {file}, line {line}! It may be a man-in-the-middle attack. Connection refused.",
                 host = host,
-                port = port.to_string()
+                port = port.to_string(),
+                file = file,
+                line = line.to_string()
+            ),
+            SshError::HostKeyRevoked { host, port, file, line } => txt!(
+                "The key of server {host}:{port} is marked as revoked in {file}, line {line}. Connection refused.",
+                host = host,
+                port = port.to_string(),
+                file = file,
+                line = line.to_string()
+            ),
+            SshError::HostKeysDisagree { host, port, knows, other } => txt!(
+                "The lists of known servers disagree about server {host}:{port}: {knows}, line {knows_line}, has the key the server sent, but {other}, line {other_line}, has a different key of the same type. Connection refused. Find out from the server's administrator which key is right and delete the wrong line.",
+                host = host,
+                port = port.to_string(),
+                knows = knows.0.clone(),
+                knows_line = knows.1.to_string(),
+                other = other.0.clone(),
+                other_line = other.1.to_string()
             ),
             SshError::AuthFailed(report) => txt!("login failed. {report}", report = report),
             SshError::Other(t) => t.clone(),
@@ -120,9 +157,18 @@ enum HostKeyVerdict {
         algorithm: String,
         fingerprint: String,
     },
-    Changed {
-        line: usize,
-    },
+    /// Refused: changed, revoked, the lists disagree, a list cannot be read.
+    Refused(SshError),
+}
+
+/// A file name for the user: the home folder as `~`.
+fn shown(p: &std::path::Path) -> String {
+    if let Some(home) = std::env::home_dir() {
+        if let Ok(rest) = p.strip_prefix(&home) {
+            return format!("~/{}", rest.display());
+        }
+    }
+    p.display().to_string()
 }
 
 struct ClientHandler {
@@ -130,6 +176,7 @@ struct ClientHandler {
     port: u16,
     accept_fingerprint: Option<String>,
     known_hosts: Option<PathBuf>,
+    known_hosts_read: Vec<PathBuf>,
     verdict: Arc<Mutex<Option<HostKeyVerdict>>>,
     alive: Arc<Alive>,
 }
@@ -183,24 +230,35 @@ impl client::Handler for ClientHandler {
             // Host certificates are not supported yet.
             return Ok(false);
         };
-        let checked = match &self.known_hosts {
-            Some(p) if !p.exists() => Ok(false),
-            Some(p) => keys::check_known_hosts_path(&self.host, self.port, key, p),
-            None => keys::check_known_hosts(&self.host, self.port, key),
-        };
-        match checked {
-            Ok(true) => Ok(true),
-            Ok(false) => {
+        let name = hostkeys::host_port(&self.host, self.port);
+        let mut found = Vec::new();
+        for p in self.known_hosts.iter().chain(&self.known_hosts_read) {
+            match hostkeys::read(p) {
+                Ok(text) => found.push((p.clone(), hostkeys::check_text(&text, &name, key))),
+                Err(e) => {
+                    let refused = SshError::Other(txt!(
+                        "cannot read the list of known servers {file}: {error}. Connection refused.",
+                        file = shown(p),
+                        error = e.to_string()
+                    ));
+                    *self.verdict.lock().unwrap() = Some(HostKeyVerdict::Refused(refused));
+                    return Ok(false);
+                }
+            }
+        }
+        let (host, port) = (self.host.clone(), self.port);
+        let refused = match hostkeys::decide(&found) {
+            hostkeys::Verdict::Known => return Ok(true),
+            hostkeys::Verdict::Unknown => {
                 let fingerprint = key.fingerprint(HashAlg::Sha256).to_string();
                 if self.accept_fingerprint.as_deref() == Some(fingerprint.as_str()) {
-                    let learned = match &self.known_hosts {
+                    match &self.known_hosts {
                         Some(p) => {
-                            keys::known_hosts::learn_known_hosts_path(&self.host, self.port, key, p)
+                            if let Err(e) = hostkeys::learn(p, &self.host, self.port, key) {
+                                tracing_warn(&format!("cannot write {}: {e}", p.display()));
+                            }
                         }
-                        None => keys::known_hosts::learn_known_hosts(&self.host, self.port, key),
-                    };
-                    if let Err(e) = learned {
-                        tracing_warn(&format!("cannot write known_hosts: {e}"));
+                        None => tracing_warn("an accepted server key is not saved: no list of known servers"),
                     }
                     return Ok(true);
                 }
@@ -208,15 +266,35 @@ impl client::Handler for ClientHandler {
                     algorithm: key.algorithm().to_string(),
                     fingerprint,
                 });
-                Ok(false)
+                return Ok(false);
             }
-            Err(keys::Error::KeyChanged { line }) => {
-                *self.verdict.lock().unwrap() = Some(HostKeyVerdict::Changed { line });
-                Ok(false)
+            hostkeys::Verdict::Changed { file, line } => SshError::HostKeyChanged { host, port, file: shown(&file), line },
+            hostkeys::Verdict::Revoked { file, line } => SshError::HostKeyRevoked { host, port, file: shown(&file), line },
+            hostkeys::Verdict::Disagree { knows, other } => SshError::HostKeysDisagree {
+                host,
+                port,
+                knows: (shown(&knows.0), knows.1),
+                other: (shown(&other.0), other.1),
+            },
+        };
+        tracing::warn!("server key refused: {refused}");
+        *self.verdict.lock().unwrap() = Some(HostKeyVerdict::Refused(refused));
+        Ok(false)
+    }
+}
+
+/// The key types the lists of known servers have for the server of `p`.
+fn known_types(p: &ConnectParams) -> Vec<keys::Algorithm> {
+    let name = hostkeys::host_port(&p.host, p.port);
+    let mut v = Vec::new();
+    for f in p.known_hosts.iter().chain(&p.known_hosts_read) {
+        for a in hostkeys::known_types(&hostkeys::read(f).unwrap_or_default(), &name) {
+            if !v.contains(&a) {
+                v.push(a);
             }
-            Err(e) => Err(e.into()),
         }
     }
+    v
 }
 
 fn tracing_warn(msg: &str) {
@@ -250,7 +328,7 @@ impl SshConnection {
             keepalive_max: ka_max,
             nodelay: true,
             window_size: SSH_CHANNEL_WINDOW,
-
+            preferred: russh::Preferred { key: hostkeys::preferred(&known_types(p)).into(), ..Default::default() },
             ..Default::default()
         });
         let verdict = Arc::new(Mutex::new(None));
@@ -265,6 +343,7 @@ impl SshConnection {
             port: p.port,
             accept_fingerprint: p.accept_fingerprint.clone(),
             known_hosts: p.known_hosts.clone(),
+            known_hosts_read: p.known_hosts_read.clone(),
             verdict: verdict.clone(),
             alive: alive.clone(),
         };
@@ -292,11 +371,7 @@ impl SshConnection {
                         algorithm,
                         fingerprint,
                     },
-                    Some(HostKeyVerdict::Changed { line }) => SshError::HostKeyChanged {
-                        host: p.host.clone(),
-                        port: p.port,
-                        line,
-                    },
+                    Some(HostKeyVerdict::Refused(e)) => e,
                     None => SshError::Other(txt!("connection failed: {error}", error = e.to_string())),
                 });
             }

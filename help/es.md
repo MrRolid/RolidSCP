@@ -202,8 +202,13 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
 - En un servidor de producción tampoco se pueden confirmar con Enter la copia, la subida, el
   movimiento ni la creación de una carpeta, y la copia nunca empieza con Sobrescribir (está
   preseleccionado Omitir existentes).
-- La clave del servidor se comprueba con `~/.ssh/known_hosts`. Una clave nueva solo se añade después
-  de que usted confirme su huella; una clave cambiada se rechaza.
+- La clave del servidor se comprueba con dos listas: la lista propia de servidores conocidos del
+  programa (`~/.config/rolidscp/known_hosts`) y `~/.ssh/known_hosts`, que el programa solo lee y nunca
+  cambia. Una clave nueva solo se añade a la lista del programa después de que usted confirme su
+  huella; una clave cambiada se rechaza, igual que una clave marcada con `@revoked`. Cuando las dos
+  listas no coinciden sobre un servidor (una tiene la clave que envió el servidor, la otra una
+  distinta), el programa no se conecta e indica ambas líneas: pregunte al administrador del servidor
+  qué clave es la correcta y borre la línea equivocada.
 - El inicio de sesión prueba ssh-agent, sus claves y después la contraseña. Las contraseñas
   guardadas se conservan cifradas, protegidas por una contraseña maestra.
 - Las contraseñas guardadas se vuelven a bloquear un tiempo ajustable después de su último uso (menú

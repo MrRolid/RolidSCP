@@ -188,8 +188,12 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
 - Na serwerze produkcyjnym również kopiowania, wysyłania, przenoszenia i tworzenia folderu nie da
   się potwierdzić klawiszem Enter, a kopiowanie nigdy nie zaczyna się od opcji Nadpisz (wstępnie
   wybrane jest Pomiń istniejące).
-- Klucz serwera jest sprawdzany w `~/.ssh/known_hosts`. Nowy klucz jest dodawany dopiero po
-  potwierdzeniu jego odcisku; zmieniony klucz jest odrzucany.
+- Klucz serwera jest sprawdzany na dwóch listach: własnej liście znanych serwerów programu
+  (`~/.config/rolidscp/known_hosts`) i w `~/.ssh/known_hosts`, który program tylko czyta i nigdy nie
+  zmienia. Nowy klucz trafia na listę programu dopiero po potwierdzeniu jego odcisku; zmieniony klucz
+  jest odrzucany, podobnie jak klucz oznaczony `@revoked`. Gdy obie listy nie zgadzają się co do
+  serwera (jedna ma klucz wysłany przez serwer, druga inny), program się nie łączy i podaje oba
+  wiersze: zapytaj administratora serwera, który klucz jest właściwy, i usuń błędny wiersz.
 - Logowanie próbuje kolejno ssh-agent, Twoje klucze, a potem hasło. Zapisane hasła są przechowywane
   w postaci zaszyfrowanej, chronione hasłem głównym.
 - Zapisane hasła blokują się ponownie po ustawionym czasie od ostatniego użycia (menu Ustawienia → hasło

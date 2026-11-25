@@ -1,13 +1,14 @@
 //! Fuzzing of reading `known_hosts` files (the program's own and
 //! `~/.ssh/known_hosts`): plain and hashed names, ports, markers, comments,
-//! damaged keys. A damaged file must give "unknown", "changed" or an error,
-//! never a panic.
+//! damaged keys. A damaged file must give "unknown", "changed" or "revoked",
+//! never a panic. The reader is the program's own (`rolid_ssh::hostkeys`).
 //!
 //! See `crates/rolid-core/tests/support/mutate.rs` (ROLIDSCP_FUZZ_ITERS).
 
 #[path = "../../rolid-core/tests/support/mutate.rs"]
 mod mutate;
 
+use rolid_ssh::hostkeys;
 use russh::keys;
 
 const KEY: &str = "AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl";
@@ -23,11 +24,12 @@ fn fuzz_known_hosts_files() {
         format!("example.com,[example.com]:22 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ\nexample.com ssh-ed25519 {KEY}\n").into_bytes(),
     ];
     let dict: &[&[u8]] = &[b"|1|", b"[", b"]:", b",", b"@cert-authority ", b"@revoked ", b"ssh-ed25519 ", b"ecdsa-sha2-nistp256 ", b"ssh-rsa ", b"*", b"?", b"!", b"=", b"\n"];
-    let file = std::path::Path::new(env!("CARGO_TARGET_TMPDIR")).join("fuzz_known_hosts");
     let check = |b: &[u8]| {
-        std::fs::write(&file, b).unwrap();
+        let text = String::from_utf8_lossy(b);
         for (host, port) in [("example.com", 22), ("example.com", 2222), ("192.0.2.1", 22), ("a.example.net", 22)] {
-            let _ = keys::check_known_hosts_path(host, port, &key, &file);
+            let name = hostkeys::host_port(host, port);
+            let _ = hostkeys::check_text(&text, &name, &key);
+            let _ = hostkeys::preferred(&hostkeys::known_types(&text, &name));
         }
     };
     if mutate::replay(check) {

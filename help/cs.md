@@ -176,8 +176,12 @@ označená), tlačítka a dialogy své názvy.
   ptají ještě jednou (mazání nejde potvrdit Enterem).
 - Na produkčním serveru nejde Enterem potvrdit ani kopírování, nahrávání, přesun a vytvoření složky
   a kopírování nikdy nezačíná volbou Přepsat (předvybrané je Přeskočit existující).
-- Klíč serveru se kontroluje proti `~/.ssh/known_hosts`. Nový klíč se přidá jen po potvrzení
-  otisku; změněný klíč se odmítne.
+- Klíč serveru se kontroluje proti dvěma seznamům: vlastnímu seznamu známých serverů programu
+  (`~/.config/rolidscp/known_hosts`) a `~/.ssh/known_hosts`, který program jen čte a nikdy nemění.
+  Nový klíč se přidá do vlastního seznamu programu jen po potvrzení otisku; změněný klíč se odmítne,
+  stejně jako klíč označený `@revoked`. Když se oba seznamy u serveru neshodují (jeden má klíč, který
+  server poslal, druhý jiný), program se nepřipojí a vypíše oba řádky: zeptejte se správce serveru,
+  který klíč je správný, a špatný řádek smažte.
 - Přihlášení zkouší ssh-agent, vaše klíče a pak heslo. Uložená hesla jsou šifrovaná a chráněná
   hlavním heslem.
 - Uložená hesla se znovu zamknou po nastavené době od posledního použití (nabídka Nastavení → hlavní

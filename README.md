@@ -169,11 +169,18 @@ use it on data that matters: RolidSCP is beta software.
 - An interrupted transfer to a production server is not resumed by itself; you confirm it again.
 
 **Servers and keys**
-- Server keys are checked against `~/.ssh/known_hosts` (also hashed entries). A new server shows its
-  key type and SHA256 fingerprint and connects only after you trust it; the key is then added to
-  that file. A changed key is refused; to accept a new key, remove the old line with
-  `ssh-keygen -R <host>`. `/etc/ssh/ssh_known_hosts`, `@cert-authority` and host certificates are not
-  supported.
+- Server keys are checked against two lists: the program's own (`~/.config/rolidscp/known_hosts`)
+  and `~/.ssh/known_hosts`, which the program only reads and never changes (hashed names, wildcards,
+  `!` and `@revoked` are understood). A new server shows its key type and SHA256 fingerprint and
+  connects only after you trust it; the key then goes to the program's own list. A changed key is
+  refused, and so is a key marked `@revoked`. When the two lists disagree about a server (one has
+  the key the server sent, the other a different key of the same type), the program does not
+  connect and names both lines. To accept a new key, remove the old line, for example with
+  `ssh-keygen -R <host> -f ~/.config/rolidscp/known_hosts` (or without `-f` for `~/.ssh/known_hosts`).
+  The key types already known for a server are asked for first, so a server that adds an Ed25519 key
+  is not taken for an unknown one. Up to 0.9.0 trusted keys were added to `~/.ssh/known_hosts`; they
+  stay there and still count. `/etc/ssh/ssh_known_hosts`, `@cert-authority` and host certificates are
+  not supported.
 - Login with ssh-agent, a key file (OpenSSH format; PuTTY `.ppk` is read by the SSH library, but not
   yet covered by our tests), the default keys `~/.ssh/id_ed25519`,
   `id_ecdsa`, `id_rsa`, a password or keyboard-interactive. `~/.ssh/config`, jump hosts
@@ -255,7 +262,8 @@ hung network mount) waits until you cancel it.
 - Server manager (Ctrl+O) with saved profiles, start folder, tab color and a *production server*
   flag (red stripe, warnings, Enter does not confirm dangerous operations; see
   [Production servers](#data-safety-and-error-handling) for what is covered).
-- SSH/SFTP via [russh](https://github.com/Eugeny/russh): strict check against `~/.ssh/known_hosts`,
+- SSH/SFTP via [russh](https://github.com/Eugeny/russh): strict check against the program's own list
+  of known servers and `~/.ssh/known_hosts`,
   ssh-agent, keys, password, keyboard-interactive. No `~/.ssh/config` and no
   jump hosts yet.
 - Saved passwords live in an encrypted vault (`vault.bin`, Argon2id + XChaCha20-Poly1305) protected
@@ -268,7 +276,7 @@ hung network mount) waits until you cancel it.
 - Automatic reconnect after a lost connection; interrupted transfers continue from the partial file
   while the program runs (see [Data safety](#data-safety-and-error-handling)).
 - Ctrl+P opens the system terminal in the panel's folder; on a server `ssh` into the folder with the
-  same strict `known_hosts` check. A password saved in the vault is passed by a one-time
+  same strict check against both lists of known servers. A password saved in the vault is passed by a one-time
   `SSH_ASKPASS` helper over a private socket (answers only that server's password question, once;
   never on the command line, in the environment, a file or the log); production servers ask first.
 - Drag and drop from the system file manager (X11, also XWayland; on Wayland not yet supported by

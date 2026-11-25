@@ -212,8 +212,13 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
 - Sur un serveur de production, la copie, l’envoi, le déplacement et la création d’un dossier ne se
   confirment pas non plus avec Entrée, et la copie ne commence jamais par Écraser (Ignorer les
   existants est présélectionné).
-- La clé du serveur est vérifiée dans `~/.ssh/known_hosts`. Une nouvelle clé n'est ajoutée qu'après
-  confirmation de son empreinte ; une clé modifiée est refusée.
+- La clé du serveur est vérifiée dans deux listes : la liste des serveurs connus propre au
+  programme (`~/.config/rolidscp/known_hosts`) et `~/.ssh/known_hosts`, que le programme lit seulement
+  et ne modifie jamais. Une nouvelle clé n'est ajoutée à la liste du programme qu'après confirmation
+  de son empreinte ; une clé modifiée est refusée, de même qu'une clé marquée `@revoked`. Quand les
+  deux listes ne s'accordent pas sur un serveur (l'une a la clé envoyée par le serveur, l'autre une
+  clé différente), le programme ne se connecte pas et indique les deux lignes : demandez à
+  l'administrateur du serveur quelle clé est la bonne et supprimez la mauvaise ligne.
 - La connexion essaie ssh-agent, vos clés, puis le mot de passe. Les mots de passe enregistrés sont
   conservés chiffrés, protégés par un mot de passe principal.
 - Les mots de passe enregistrés se verrouillent à nouveau après un délai réglable depuis leur dernière

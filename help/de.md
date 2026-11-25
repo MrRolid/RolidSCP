@@ -202,8 +202,13 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
 - Auf einem Produktionsserver lassen sich auch Kopieren, Hochladen, Verschieben und das Anlegen
   eines Ordners nicht mit Enter bestätigen, und Kopieren beginnt nie mit Überschreiben (vorgewählt
   ist Vorhandene überspringen).
-- Der Serverschlüssel wird mit `~/.ssh/known_hosts` abgeglichen. Ein neuer Schlüssel wird erst
-  hinzugefügt, nachdem sein Fingerabdruck bestätigt wurde; ein geänderter Schlüssel wird abgelehnt.
+- Der Serverschlüssel wird mit zwei Listen abgeglichen: der eigenen Liste bekannter Server des
+  Programms (`~/.config/rolidscp/known_hosts`) und `~/.ssh/known_hosts`, die das Programm nur liest
+  und nie ändert. Ein neuer Schlüssel kommt erst in die eigene Liste, nachdem sein Fingerabdruck
+  bestätigt wurde; ein geänderter Schlüssel wird abgelehnt, ebenso ein mit `@revoked` markierter.
+  Sind sich beide Listen bei einem Server uneinig (eine hat den Schlüssel, den der Server schickt,
+  die andere einen anderen), verbindet das Programm nicht und nennt beide Zeilen: Fragen Sie den
+  Administrator des Servers, welcher Schlüssel richtig ist, und löschen Sie die falsche Zeile.
 - Die Anmeldung versucht ssh-agent, dann die eigenen Schlüssel, dann das Passwort. Gespeicherte
   Passwörter werden verschlüsselt aufbewahrt, geschützt durch ein Master-Passwort.
 - Gespeicherte Passwörter werden eine einstellbare Zeit nach ihrer letzten Verwendung wieder gesperrt

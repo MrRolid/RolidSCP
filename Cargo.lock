@@ -4588,6 +4588,8 @@ name = "rolid-ssh"
 version = "0.9.0"
 dependencies = [
  "async-trait",
+ "data-encoding",
+ "hmac",
  "rolid-core",
  "rolid-edit",
  "rolid-local",
@@ -4595,6 +4597,7 @@ dependencies = [
  "rolid-text",
  "russh",
  "russh-sftp",
+ "sha1",
  "thiserror 2.0.21",
  "tokio",
  "tracing",

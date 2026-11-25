@@ -114,14 +114,38 @@ pub struct SshTarget {
     pub path: String,
 }
 
-/// The known_hosts file the application checks servers against.
-pub fn known_hosts() -> Option<PathBuf> {
+/// OpenSSH's list of known servers: read, never written by the program.
+pub fn ssh_known_hosts() -> Option<PathBuf> {
     dirs::home_dir().map(|h| h.join(".ssh").join("known_hosts"))
+}
+
+/// The program's own list of known servers, where the keys you accept go
+/// (since 0.9.1; before, they went to `~/.ssh/known_hosts`).
+pub fn own_known_hosts() -> PathBuf {
+    rolid_config::config_dir().join("known_hosts")
+}
+
+/// The lists the application checks servers against, its own first.
+pub fn known_hosts() -> Vec<PathBuf> {
+    std::iter::once(own_known_hosts()).chain(ssh_known_hosts()).collect()
+}
+
+/// `UserKnownHostsFile=…` for ssh: the files quoted, as its configuration
+/// parser splits the value at spaces and expands `%` and `~`.
+fn known_hosts_option(files: &[PathBuf]) -> String {
+    let quoted: Vec<String> = files
+        .iter()
+        .map(|f| {
+            let s = f.display().to_string().replace('\\', "\\\\").replace('"', "\\\"").replace('%', "%%");
+            format!("\"{s}\"")
+        })
+        .collect();
+    format!("UserKnownHostsFile={}", quoted.join(" "))
 }
 
 /// `ssh` with the application's host key checking, into `t.path` with a login shell.
 /// `askpass`: (helper program, socket, token) when a password is offered.
-pub fn ssh_command(t: &SshTarget, known_hosts: &Path, askpass: Option<(&Path, &Path, &str)>) -> Vec<String> {
+pub fn ssh_command(t: &SshTarget, known_hosts: &[PathBuf], askpass: Option<(&Path, &Path, &str)>) -> Vec<String> {
     let mut c: Vec<String> = Vec::new();
     if let Some((helper, sock, token)) = askpass {
         c.push("env".into());
@@ -134,7 +158,7 @@ pub fn ssh_command(t: &SshTarget, known_hosts: &Path, askpass: Option<(&Path, &P
     c.push("-t".into());
     c.extend(["-p".into(), t.port.to_string(), "-l".into(), t.user.clone()]);
     c.extend(["-o".into(), "StrictHostKeyChecking=yes".into()]);
-    c.extend(["-o".into(), format!("UserKnownHostsFile={}", known_hosts.display())]);
+    c.extend(["-o".into(), known_hosts_option(known_hosts)]);
     c.extend(["-o".into(), "GlobalKnownHostsFile=/dev/null".into()]);
     if let Some(k) = &t.key {
         c.extend(["-i".into(), k.clone()]);
@@ -345,15 +369,17 @@ mod tests {
     #[test]
     fn ssh_command_has_no_password() {
         let t = SshTarget { host: "srv".into(), port: 2222, user: "u".into(), key: Some("/k/id".into()), path: "/var/www/it's".into() };
-        let c = ssh_command(&t, Path::new("/h/.ssh/known_hosts"), Some((Path::new("/usr/bin/rolidscp"), Path::new("/run/x/s"), "tok")));
+        let kh = [PathBuf::from("/c/rolid scp/known_hosts"), PathBuf::from("/h/.ssh/known_hosts")];
+        let c = ssh_command(&t, &kh, Some((Path::new("/usr/bin/rolidscp"), Path::new("/run/x/s"), "tok")));
         let joined = c.join(" ");
         assert!(joined.contains("StrictHostKeyChecking=yes"));
-        assert!(joined.contains("UserKnownHostsFile=/h/.ssh/known_hosts"));
+        assert!(joined.contains(r#"UserKnownHostsFile="/c/rolid scp/known_hosts" "/h/.ssh/known_hosts""#));
         assert!(joined.contains("SSH_ASKPASS=/usr/bin/rolidscp"));
         assert!(joined.contains("-i /k/id"));
         assert_eq!(c[c.len() - 2], "srv");
         assert!(c.last().unwrap().ends_with(r"sh '/var/www/it'\''s'"));
-        let plain = ssh_command(&t, Path::new("/kh"), None);
+        let plain = ssh_command(&t, &[PathBuf::from("/kh")], None);
+        assert_eq!(known_hosts_option(&[PathBuf::from(r#"/a"b\c%d"#)]), r#"UserKnownHostsFile="/a\"b\\c%%d""#);
         assert_eq!(plain[0], "ssh");
         assert!(!plain.join(" ").contains("SSH_ASKPASS"));
     }

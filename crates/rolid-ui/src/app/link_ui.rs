@@ -456,6 +456,8 @@ async fn reconnect_once(
         password: password.as_ref().map(|p| p.to_string()),
         key_path: target.key_path.clone().map(Into::into),
         prompter: Some(Arc::new(NoPrompt { asked: asked.clone() })),
+        known_hosts: Some(crate::terminal::own_known_hosts()),
+        known_hosts_read: crate::terminal::ssh_known_hosts().into_iter().collect(),
         ..Default::default()
     };
     let r = SshConnection::connect(&params).await;
@@ -475,7 +477,12 @@ async fn reconnect_once(
             };
             Attempt::NeedsUser(NeedUser::Credentials, m)
         }
-        Err(e @ (SshError::UnknownHostKey { .. } | SshError::HostKeyChanged { .. })) => {
+        Err(
+            e @ (SshError::UnknownHostKey { .. }
+            | SshError::HostKeyChanged { .. }
+            | SshError::HostKeyRevoked { .. }
+            | SshError::HostKeysDisagree { .. }),
+        ) => {
             Attempt::NeedsUser(NeedUser::HostKey, e.text())
         }
         Err(SshError::Other(m)) => Attempt::Retry(m),

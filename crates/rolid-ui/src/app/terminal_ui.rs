@@ -81,10 +81,7 @@ impl App {
             self.last_error = Some(tr!("Cannot open a terminal on the server: the ssh program is not installed."));
             return;
         }
-        let Some(kh) = terminal::known_hosts() else {
-            self.launch_ssh_failed(tr!("no home folder"));
-            return;
-        };
+        let kh = terminal::known_hosts();
         let offer = match password {
             Some(pw) => match terminal::offer(&req.target.user, &req.target.host, pw) {
                 Ok(o) => Some(o),

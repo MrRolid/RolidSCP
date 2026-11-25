@@ -382,7 +382,8 @@ impl App {
                             key_path: target.key_path.clone().map(Into::into),
                             key_passphrase: passphrase.as_ref().map(|p| p.to_string()),
                             accept_fingerprint,
-                            known_hosts: None,
+                            known_hosts: Some(crate::terminal::own_known_hosts()),
+                            known_hosts_read: crate::terminal::ssh_known_hosts().into_iter().collect(),
                             prompter: Some(prompter),
                             ..Default::default()
                         };
@@ -1151,7 +1152,7 @@ impl App {
             });
 
             if let Some((alg, fp)) = &f.unknown_host {
-                dialog::warn(ui, tr!("Unknown server (not in ~/.ssh/known_hosts)."), false);
+                dialog::warn(ui, tr!("Unknown server: its key is neither in the program's list of known servers nor in ~/.ssh/known_hosts."), false);
                 ui.label(tr!("Key type: {algorithm}", algorithm = alg));
                 ui.monospace(fp.as_str());
                 let trust = ui
@@ -1159,7 +1160,10 @@ impl App {
                         let r = crate::look::btn(Role::Trust, tr!("Trust and connect")).ui(ui).clicked();
                         dialog::help(
                             ui,
-                            tr!("Check the fingerprint with the server administrator. Once confirmed, it is saved to known_hosts."),
+                            tr!(
+                                "Check the fingerprint with the server administrator. Once confirmed, it is saved to the program's list of known servers ({file}); ~/.ssh/known_hosts is not changed.",
+                                file = crate::terminal::own_known_hosts().display().to_string()
+                            ),
                         );
                         r
                     })
