@@ -15,7 +15,8 @@ souborem `SHA256SUMS` pro kontrolu staženého souboru (`sha256sum -c --ignore-m
 Všechny jsou pro Linux na 64bitovém x86 (amd64 / x86_64).
 
 Od 0.8.20 je u vydání i `SHA256SUMS.asc`, podpis OpenPGP kontrolních součtů klíčem vydání z tohoto
-repozitáře, [`docs/release-key.asc`](release-key.asc). S klíčem, podpisem a součty v jedné složce:
+repozitáře, [`docs/release-key.asc`](release-key.asc) („RolidSCP release“, otisk
+`9B4B 4478 C213 BD34 3FC2  92C5 2EC7 4F7C CADB 33A2`). S klíčem, podpisem a součty v jedné složce:
 
 ```sh
 gpg --import release-key.asc

@@ -24,8 +24,8 @@ with `SHA256SUMS` for checking the download (`sha256sum -c --ignore-missing SHA2
 All of them are for Linux on 64-bit x86 (amd64 / x86_64).
 
 From 0.8.20 on, `SHA256SUMS.asc` is the OpenPGP signature of the checksums, made by the release key
-in this repository, [`docs/release-key.asc`](docs/release-key.asc). With the key, the signature
-and the checksums in one folder:
+in this repository, [`docs/release-key.asc`](docs/release-key.asc) ("RolidSCP release", fingerprint
+`9B4B 4478 C213 BD34 3FC2  92C5 2EC7 4F7C CADB 33A2`). With the key, the signature and the checksums in one folder:
 
 ```sh
 gpg --import release-key.asc
