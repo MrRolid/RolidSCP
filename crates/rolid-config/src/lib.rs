@@ -1141,6 +1141,11 @@ pub fn merge_edits<T: Serialize + for<'de> Deserialize<'de> + Clone>(base: &T, o
     }
 }
 
+/// A new id of a saved server: the time in microseconds, a counter and 32
+/// random bits. The random part keeps two running copies of the program
+/// apart: both counting from 0, they once gave two servers duplicated at
+/// the same moment the same id, and the merge of the shared file then took
+/// them for one server.
 pub fn new_id() -> String {
     use std::sync::atomic::{AtomicU32, Ordering};
     static N: AtomicU32 = AtomicU32::new(0);
@@ -1148,7 +1153,13 @@ pub fn new_id() -> String {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_micros())
         .unwrap_or(0);
-    format!("{t:x}{:02x}", N.fetch_add(1, Ordering::Relaxed) & 0xff)
+    let mut r = [0u8; 4];
+    let r = match getrandom::fill(&mut r) {
+        Ok(()) => u32::from_le_bytes(r),
+        // No random numbers: the process id still tells the copies apart.
+        Err(_) => std::process::id(),
+    };
+    format!("{t:x}{:02x}{r:08x}", N.fetch_add(1, Ordering::Relaxed) & 0xff)
 }
 
 /// System keyring access. All calls block (D-Bus etc.): call them off the UI thread.
@@ -1523,6 +1534,32 @@ path = "/srv"
         // An older file without the key loads with the defaults.
         let old: Settings = toml::from_str("").unwrap();
         assert!(old.columns.is_empty());
+    }
+
+    /// Ids made at the same moment by two copies of the program differ
+    /// (the counter of each copy starts at 0).
+    #[test]
+    fn new_ids_of_two_copies_differ() {
+        if std::env::var_os("ROLIDSCP_TEST_ID").is_some() {
+            println!("ID {}", new_id());
+            return;
+        }
+        let ids: std::collections::HashSet<String> = (0..1000).map(|_| new_id()).collect();
+        assert_eq!(ids.len(), 1000);
+        // Two processes, each with its first id: the time may be the same, the rest not.
+        let exe = std::env::current_exe().unwrap();
+        let run = || {
+            std::process::Command::new(&exe)
+                .args(["--exact", "tests::new_ids_of_two_copies_differ", "--test-threads=1", "--nocapture"])
+                .env("ROLIDSCP_TEST_ID", "1")
+                .output()
+                .unwrap()
+        };
+        let id = |o: std::process::Output| {
+            String::from_utf8(o.stdout).unwrap().lines().find_map(|l| l.split_once("ID ").map(|(_, id)| id.trim().to_owned())).unwrap()
+        };
+        let (a, b) = (id(run()), id(run()));
+        assert_ne!(&a[a.len() - 8..], &b[b.len() - 8..], "{a} {b}");
     }
 
     #[test]

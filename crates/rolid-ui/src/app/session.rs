@@ -1285,7 +1285,10 @@ impl App {
 
 /// The name of a copy: "Web (copy)", then "Web (copy 2)"… (unique among
 /// the saved servers).
+/// A copy of a copy is numbered from the original name ("Web (copy 2)",
+/// not "Web (copy) (copy)").
 pub fn copy_name(name: &str, profiles: &Profiles) -> String {
+    let name = copy_base(name);
     let taken = |n: &str| profiles.list.iter().any(|p| p.name == n);
     let first = tr!("{name} (copy)", name = name);
     if !taken(&first) {
@@ -1297,9 +1300,47 @@ pub fn copy_name(name: &str, profiles: &Profiles) -> String {
         .unwrap_or(first)
 }
 
+/// The original name of a copy ("Web" of "Web (copy)" and "Web (copy 3)");
+/// any other name as it is.
+fn copy_base(name: &str) -> &str {
+    let one = tr!("{name} (copy)", name = "\u{1}");
+    if let Some((pre, suf)) = one.split_once('\u{1}') {
+        if let Some(b) = name.strip_prefix(pre).and_then(|r| r.strip_suffix(suf)).filter(|b| !b.is_empty()) {
+            return b;
+        }
+    }
+    let numbered = tr!("{name} (copy {n})", name = "\u{1}", n = "\u{2}");
+    let parts: Vec<&str> = numbered.split(['\u{1}', '\u{2}']).collect();
+    if let ([pre, mid, suf], true) = (parts.as_slice(), numbered.find('\u{1}') < numbered.find('\u{2}')) {
+        let base = name.strip_prefix(*pre).and_then(|r| r.strip_suffix(*suf)).and_then(|r| {
+            let digits = r.trim_end_matches(|c: char| c.is_ascii_digit());
+            (digits.len() < r.len()).then_some(digits)?.strip_suffix(*mid)
+        });
+        if let Some(b) = base.filter(|b| !b.is_empty()) {
+            return b;
+        }
+    }
+    name
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_copy_of_a_copy_is_numbered_from_the_original() {
+        let mut ps = Profiles::default();
+        let p = |id: &str, name: &str| Profile { id: id.into(), name: name.into(), ..Default::default() };
+        ps.upsert(p("1", "Web"));
+        ps.upsert(p("2", "Web (copy)"));
+        assert_eq!(copy_name("Web (copy)", &ps), "Web (copy 2)");
+        ps.upsert(p("3", "Web (copy 2)"));
+        assert_eq!(copy_name("Web (copy 2)", &ps), "Web (copy 3)");
+        // Names that only look a little like a copy stay whole.
+        for n in ["(copy)", "Web (copy x)", "Web (copy )", "Web copy"] {
+            assert_eq!(copy_base(n), n);
+        }
+    }
 
     #[test]
     fn copies_get_unique_names() {
