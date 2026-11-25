@@ -2,10 +2,10 @@
 # The program killed (SIGKILL) at a random moment of an operation (roadmap
 # 0.8.16): copying and moving to and from a throwaway SSH server on 127.0.0.1,
 # uploading an edited file (F4), packing, extracting, saving the settings and
-# the password vault. After each kill the state is checked (nothing lost,
-# nothing damaged under its real name, settings and vault readable), the work
-# is finished the way the program does it and compared byte by byte
-# (crates/rolid-ui/src/bench_kill.rs).
+# the password vault, moving local files to the trash. After each kill the
+# state is checked (nothing lost, nothing damaged under its real name,
+# settings and vault readable), the work is finished the way the program does
+# it and compared byte by byte (crates/rolid-ui/src/bench_kill.rs).
 #
 #   scripts/bench/kill.sh [-n ROUNDS] [-o OPS] BASE [RESULTS.tsv]
 #
@@ -65,11 +65,12 @@ stage() { # OP STAGE
 fresh_source() { # OP: an empty target (also after a failed check) and a new source for a move
   case $1 in copy_* | move_*) rm -rf "${W:?}/$1-to" ;; esac
   case $1 in move_*) rm -rf "${W:?}/$1-from"; mkdir -p "$W/$1-from"; cp -r "$W/src/data" "$W/$1-from/" ;; esac
+  case $1 in trash) rm -rf "${W:?}/trash-from" "${W:?}/trash-bin"; mkdir -p "$W/trash-from"; cp -r "$W/src/data" "$W/trash-from/" ;; esac
 }
 note "preparing"
 stage prepare prepare | grep -E "panicked|SKIP" >&2 || true
 
-OPS=(copy_up copy_down move_up move_down f4 pack unpack settings vault)
+OPS=(copy_up copy_down move_up move_down f4 pack unpack settings vault trash)
 [ -z "$ONLY" ] || IFS=, read -r -a OPS <<<"$ONLY"
 declare -A LONG OK FAIL FINISHED
 note "how long each operation takes when it is not killed"

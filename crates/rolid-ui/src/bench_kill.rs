@@ -10,7 +10,7 @@
 //! - `ROLIDSCP_BIG_SSH`: the server (see `bench_big`)
 //! - `ROLIDSCP_KILL_DIR`: the work folder (seen by the server too)
 //! - `ROLIDSCP_KILL_OP`: `copy_up`, `copy_down`, `move_up`, `move_down`, `f4`,
-//!   `pack`, `unpack`, `settings`, `vault`
+//!   `pack`, `unpack`, `settings`, `vault`, `trash`
 //! - `ROLIDSCP_KILL_STAGE`: `prepare` (once), `do`, `check`
 //!
 //! `check` prints `KILLCHECK <op> ok <what was found>` or panics.
@@ -306,6 +306,47 @@ fn bench_kill() {
             std::fs::remove_dir_all(w.join("unpack")).unwrap();
             assert_eq!(parts, 0, "the part file of the killed extraction is cleaned up");
             println!("KILLCHECK unpack ok complete={ok} part_file_cleaned={cleaned} part_files={parts}");
+        }
+        ("trash", "do") => {
+            // Every file on its own (as F8 on marked files), then the folders.
+            let from = w.join("trash-from/data");
+            for i in 0..FILES {
+                rolid_local::trash::trash_with(&from.join(rel(i)), &w.join("trash-bin")).unwrap();
+            }
+            for d in ["a", "b"] {
+                rolid_local::trash::trash_with(&from.join(d), &w.join("trash-bin")).unwrap();
+            }
+        }
+        ("trash", "check") => {
+            // Every file is complete in its place or in the trash with an info
+            // file naming its place; nothing in the trash lacks its info.
+            let from = w.join("trash-from/data");
+            let bin = w.join("trash-bin");
+            let left = real_files_complete(&from).0;
+            let in_bin = files(&bin.join("files"));
+            let mut found = 0;
+            for f in &in_bin {
+                let top = f.split('/').next().unwrap();
+                let info = std::fs::read_to_string(bin.join("info").join(format!("{top}.trashinfo")))
+                    .unwrap_or_else(|_| panic!("{f} is in the trash without its info file"));
+                let place = info.lines().find_map(|l| l.strip_prefix("Path=")).expect("the info file names the place").to_string();
+                let rest = f.strip_prefix(top).unwrap();
+                // A file trashed alone (rest empty) or inside its trashed folder;
+                // the rest is plain ASCII, the same encoded.
+                let i = (0..FILES)
+                    .find(|i| rolid_local::trash::encode_path(&from.join(rel(*i))) == format!("{place}{rest}"))
+                    .unwrap_or_else(|| panic!("{f} in the trash is none of the files ({place})"));
+                assert!(std::fs::read(bin.join("files").join(f)).unwrap() == expected(i), "{f} in the trash is damaged");
+                found += 1;
+            }
+            assert_eq!(left + found, FILES, "every file is in its place or in the trash");
+            // Info files of a move the kill stopped (allowed by the specification;
+            // file managers skip them).
+            let orphans = files(&bin.join("info"))
+                .iter()
+                .filter(|n| !bin.join("files").join(n.trim_end_matches(".trashinfo")).exists())
+                .count();
+            println!("KILLCHECK trash ok in_place={left} in_trash={found} info_without_file={orphans}");
         }
         ("settings", "do") => {
             let (a, b) = (settings_text(SETTINGS_A), settings_text(SETTINGS_B));

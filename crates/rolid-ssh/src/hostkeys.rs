@@ -228,14 +228,22 @@ pub fn learn(path: &Path, host: &str, port: u16, key: &PublicKey) -> std::io::Re
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir)?;
     }
-    let old = read(path)?;
+    use std::os::unix::fs::FileExt;
     let line = key.to_openssh().map_err(std::io::Error::other)?;
+    let mut f = std::fs::OpenOptions::new().read(true).create(true).append(true).mode(0o600).open(path)?;
+    // Another running copy may be adding its line now: the end of the file
+    // is looked at and written under one lock.
+    f.lock()?;
+    let len = f.metadata()?.len();
+    let mut last = [b'\n'];
+    if len > 0 {
+        f.read_exact_at(&mut last, len - 1)?;
+    }
     let mut text = String::new();
-    if !old.is_empty() && !old.ends_with('\n') {
+    if last[0] != b'\n' {
         text.push('\n');
     }
     text.push_str(&format!("{} {line}\n", host_port(host, port)));
-    let mut f = std::fs::OpenOptions::new().create(true).append(true).mode(0o600).open(path)?;
     f.write_all(text.as_bytes())?;
     f.sync_all()
 }
@@ -362,6 +370,34 @@ mod tests {
         assert!(matches!(check_text(&t, &host_port("db", 2222), &key(EC)), Found::Match { line: 3 }));
         use std::os::unix::fs::PermissionsExt;
         assert_eq!(std::fs::metadata(&p).unwrap().permissions().mode() & 0o777, 0o600);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    /// Two running copies trusting keys at the same moment: every line is
+    /// kept whole (one append each).
+    #[test]
+    fn keys_learned_at_once_by_several_copies_are_all_kept() {
+        let dir = std::env::temp_dir().join(format!("rolid-hostkeys-many-{}", std::process::id()));
+        let p = dir.join("known_hosts");
+        std::thread::scope(|s| {
+            for t in 0..8 {
+                let p = &p;
+                s.spawn(move || {
+                    for i in 0..25 {
+                        let k = if (t + i) % 2 == 0 { ED_A } else { EC };
+                        learn(p, &format!("h{t}-{i}"), 22, &key(k)).unwrap();
+                    }
+                });
+            }
+        });
+        let text = read(&p).unwrap();
+        assert_eq!(text.lines().count(), 200);
+        for t in 0..8 {
+            for i in 0..25 {
+                let k = if (t + i) % 2 == 0 { ED_A } else { EC };
+                assert!(matches!(check_text(&text, &format!("h{t}-{i}"), &key(k)), Found::Match { .. }), "h{t}-{i}");
+            }
+        }
         std::fs::remove_dir_all(&dir).unwrap();
     }
 }
