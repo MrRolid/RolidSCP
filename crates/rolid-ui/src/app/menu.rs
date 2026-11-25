@@ -846,6 +846,15 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
             for news in [
                 trc!(
                     "news",
+                    "0.9.1 jump hosts: a saved server can be reached through another saved server (Connect through \
+                     in the server manager), with the keys of both checked, after a drop-out the same way and in the \
+                     terminal (Ctrl+P) too; server keys are checked against ~/.ssh/known_hosts as well, which the \
+                     program never writes to, and when the two lists disagree it does not connect; F8 moves local \
+                     files to the trash of the desktop and Shift+F8 deletes permanently; on Wayland, dragging files \
+                     to and from other programs works through XWayland (a setting, Help → Drag and drop on Wayland)"
+                ),
+                trc!(
+                    "news",
                     "0.9.0 settings window: the settings in a window of their own (Ctrl+,) with a tree of sections \
                      and a field that finds a setting, and saving changes only what was changed in the window; a \
                      saved server can be duplicated, with or without its saved password; context menus by keyboard \

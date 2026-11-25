@@ -26,6 +26,13 @@
 # For -d down the server needs python3 and this folder's sparsefile.py, at
 # BIG_SPARSEFILE (default ~/rolid/scripts/bench/sparsefile.py there).
 #
+# Through a jump host (0.9.1): BIG_JUMP_HOST, BIG_JUMP_PORT (default 22),
+# BIG_JUMP_USER, BIG_JUMP_KEY. The program then connects to BIG_TARGET_HOST
+# (default 127.0.0.1: the jump host itself), BIG_PORT, as the jump host sees
+# it; this script still watches the files at BIG_HOST directly, so BIG_HOST
+# must be the machine the target is. BIG_KNOWN_HOSTS needs the keys of both
+# names.
+#
 # Needs Xvfb, ImageMagick's import and python3 with libX11/libXtst
 # (scripts/bench/xinput.py). Processes are stopped by the PIDs they were
 # started with.
@@ -87,6 +94,17 @@ cat >"$BASE/cfg/settings.toml" <<EOF
 language = "en"
 speed_limit_kib = $LIMIT
 EOF
+TARGET_HOST=$BIG_HOST JUMP_TOML=
+if [ -n "${BIG_JUMP_HOST:-}" ]; then
+  : "${BIG_JUMP_USER:?}" "${BIG_JUMP_KEY:?}"
+  TARGET_HOST=${BIG_TARGET_HOST:-127.0.0.1}
+  JUMP_TOML="
+[right.tab.location.target.jump]
+host = \"$BIG_JUMP_HOST\"
+port = ${BIG_JUMP_PORT:-22}
+user = \"$BIG_JUMP_USER\"
+key_path = \"$BIG_JUMP_KEY\""
+fi
 cat >"$BASE/cfg/workspace.toml" <<EOF
 active_side = $([ "$WAY" = up ] && echo 0 || echo 1)
 
@@ -111,10 +129,11 @@ kind = "remote"
 path = "$RDIR"
 
 [right.tab.location.target]
-host = "$BIG_HOST"
+host = "$TARGET_HOST"
 port = $BIG_PORT
 user = "$BIG_USER"
 key_path = "$BIG_KEY"
+$JUMP_TOML
 EOF
 
 DISP=
@@ -132,14 +151,18 @@ APID=$!
 LOG=$BASE/log/rolidscp.log
 X() { python3 "$HERE/xinput.py" "$@"; }
 shot() { import -window root "$OUT/$1.png" 2>/dev/null || true; }
-for _ in $(seq 300); do grep -q "login successful" "$LOG" 2>/dev/null && break; kill -0 "$APID" || break; sleep 0.2; done
-grep -q "login successful" "$LOG" 2>/dev/null || { shot start; tail -5 "$BASE/app.out" >&2; echo "the program did not log in" >&2; exit 1; }
+# Through a jump host: two logins (the jump host, then the server).
+LOGINS=$([ -n "${BIG_JUMP_HOST:-}" ] && echo 2 || echo 1)
+logged_in() { local n; n=$(grep -c "login successful" "$LOG" 2>/dev/null) || true; [ "${n:-0}" -ge "$LOGINS" ]; }
+for _ in $(seq 300); do logged_in && break; kill -0 "$APID" || break; sleep 0.2; done
+logged_in || { shot start; tail -5 "$BASE/app.out" >&2; echo "the program did not log in" >&2; exit 1; }
 sleep 2
 # The active panel (local for up, the server for down): "..", big.bin; F5.
 X focus RolidSCP >/dev/null 2>&1 || true
 X key Home; sleep 0.4; X key Down; sleep 0.4; X key F5; sleep 1.2; shot dialog; X key enter
 note "transfer $WAY started ($GIB GiB, limit $LIMIT KiB/s)"
 result outage.way "$WAY" -
+result outage.jump_host "$([ -n "${BIG_JUMP_HOST:-}" ] && echo 1 || echo 0)" bool
 result outage.size "$SIZE" B
 
 echo -e "time\tseconds\tbytes\tlog_lost\tlog_restored" >"$OUT/progress.tsv"

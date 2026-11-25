@@ -142,15 +142,17 @@ tests are run again.
     tab's tooltip and under "Overwrite only older"); it can be turned off.
   - Found by the two-copies test: two copies of the program adding or duplicating a server at the
     same moment could give both the same id, and the merge kept only one. Fixed.
-- **0.9.1 Jump host:**
-  - Server keys checked against `~/.ssh/known_hosts` too, next to the program's own file. The program
-    never writes to `~/.ssh/known_hosts`: keys you accept go only to its own file. When the two files
-    disagree about a server, the program does not connect and tells you why. (Comes first: the jump
-    host checks the keys of two servers.)
-  - Connecting through a jump host (ProxyJump): a connection can go through another saved
-    connection, with its own key or password; the keys of both servers are checked, the connection
-    is restored after a drop-out, and the terminal (Ctrl+P) goes the same way.
-  - Trash for local deleting.
+- **0.9.1 Jump host (done):**
+  - Server keys checked against `~/.ssh/known_hosts` too, next to the program's own list, read by the
+    program itself as OpenSSH reads it (hashed names, wildcards, negation, `@revoked`). The program
+    never writes to `~/.ssh/known_hosts`: keys you accept go only to its own list. When the two lists
+    disagree about a server, the program does not connect and names both lines. The key types already
+    known for a server are asked for first.
+  - Connecting through a jump host (ProxyJump): a saved server can go through another saved server,
+    at most four in a row, with its own key or password; the keys of both servers are checked, the
+    connection is restored after a drop-out the same way, and the terminal (Ctrl+P) goes the same way.
+  - Trash for local deleting: F8 moves files on local disks to the desktop's trash (FreeDesktop.org,
+    also the trash of another disk), Shift+F8 deletes permanently; servers are always permanent.
   - Drag and drop on Wayland (issue #1), the cheap part: winit 0.30, which eframe uses, has no drag
     and drop on Wayland, so files cannot be dragged in or out there. A setting "On Wayland, use X11
     (XWayland)" (off by default, takes effect after a restart, says what is lost: sharpness at
@@ -159,6 +161,8 @@ tests are run again.
     drag leaves the window on Wayland, and the help in all languages. Tested in nested GNOME (mutter
     48): through XWayland dragging works both ways. Fixed with it: a drag out ended without a drop
     when the desktop hid its target window at the release (KWin).
+  - Found by the two-copies test: two copies trusting server keys at the same moment could add an
+    empty line to the list (harmless). Fixed; the kill test now covers the trash too.
 - **0.9.2 SSH config and proxies:**
   - `~/.ssh/config`.
   - SOCKS5 and HTTP CONNECT proxies and `ProxyCommand`, also when they come from `~/.ssh/config`.
