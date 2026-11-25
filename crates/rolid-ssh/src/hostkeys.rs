@@ -235,7 +235,7 @@ pub fn learn(path: &Path, host: &str, port: u16, key: &PublicKey) -> std::io::Re
     // is looked at and written under one lock.
     f.lock()?;
     let len = f.metadata()?.len();
-    let mut last = [b'\n'];
+    let mut last = *b"\n";
     if len > 0 {
         f.read_exact_at(&mut last, len - 1)?;
     }
