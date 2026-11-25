@@ -6,7 +6,7 @@ use std::time::SystemTime;
 
 use async_trait::async_trait;
 use eframe::egui::{self, Color32, Stroke, Vec2};
-use rolid_config::{secrets, Location, PanelTab, Profile, RemoteTarget, SideState, Workspace};
+use rolid_config::{secrets, Location, PanelTab, Profile, Profiles, RemoteTarget, SideState, Workspace};
 use rolid_core::color::{Rgb, PASTEL_PRESETS};
 use rolid_core::vfs::{Reader, Writer};
 use rolid_core::{Entry, Vfs, VfsError, VfsResult};
@@ -190,6 +190,10 @@ pub struct ConnectForm {
     pub accept_fingerprint: Option<String>,
     pub focus: bool,
     pub confirm_delete: bool,
+    /// "Duplicate" was pressed: the choice whether to copy the password shows.
+    pub confirm_duplicate: bool,
+    /// ... copy the saved password too (off unless chosen).
+    pub duplicate_password: bool,
 }
 
 impl ConnectForm {
@@ -229,6 +233,8 @@ impl ConnectForm {
         self.unknown_host = None;
         self.accept_fingerprint = None;
         self.confirm_delete = false;
+        self.confirm_duplicate = false;
+        self.duplicate_password = false;
     }
 
     fn clear_for_new(&mut self) {
@@ -469,6 +475,7 @@ impl App {
                 let link = self.register_connection(&meta.target, conn);
                 // Replacements cut off at the last visit (lost connection, crash).
                 self.repair_replacements(meta.target.key(), false);
+                self.check_server_clock(&meta.target.key());
                 let sftp: Arc<dyn Vfs> = Arc::new(rolid_ssh::RemoteFs::with_session(link, sftp));
                 if let Dialog::Connect(f) = &mut self.dialog {
                     if f.target == Some(at) {
@@ -714,6 +721,69 @@ impl App {
         }
     }
 
+    /// A copy of a saved server under a new name and id (the password is a
+    /// separate entry of the vault, copied only with `with_password`). The
+    /// copy is selected in the site manager.
+    pub(super) fn duplicate_profile(&mut self, id: &str, with_password: bool) {
+        let Some(src) = self.profiles.get(id).cloned() else { return };
+        let new_id = rolid_config::new_id();
+        let mut p = src.clone();
+        p.id = new_id.clone();
+        p.name = copy_name(&src.name, &self.profiles);
+        p.save_password = false;
+        p.password_store = rolid_config::PasswordStore::Vault;
+        self.profiles.upsert(p.clone());
+        if let Err(e) = rolid_config::save_profiles(&mut self.profiles) {
+            self.last_error = Some(tr!("Cannot save the profiles: {error}", error = e));
+            return;
+        }
+        tracing::info!("profile duplicated (password copied: {})", if with_password { "asked" } else { "no" });
+        if let Dialog::Connect(f) = &mut self.dialog {
+            f.load_profile(&p);
+            f.info = Some(tr!("Copy created: {name}", name = p.name.as_str()));
+        }
+        if !with_password || !src.password_in_vault() {
+            return;
+        }
+        let (src_id, cancel_id) = (src.id.clone(), new_id.clone());
+        self.with_vault(
+            tr!("The saved password of “{name}” will be copied to the new server.", name = src.name.as_str()),
+            Box::new(move |a: &mut App| {
+                let Some(pw) = a.vault_password(&src_id) else {
+                    a.duplicate_note(&new_id, tr!("Copy created without a password: the original has no saved password."));
+                    return;
+                };
+                let Some(v) = a.vault.open.as_mut() else { return };
+                v.set(&new_id, secrecy::SecretString::from(pw.as_str()));
+                if let Err(e) = v.save() {
+                    a.last_error = Some(tr!("Cannot save the password: {error}", error = e.text()));
+                    return;
+                }
+                if let Some(p) = a.profiles.list.iter_mut().find(|p| p.id == new_id) {
+                    p.save_password = true;
+                    p.password_store = rolid_config::PasswordStore::Vault;
+                }
+                a.save_profiles_or_report();
+                a.site_manager_password_saved(&new_id);
+                a.duplicate_note(&new_id, tr!("Copy created with the saved password."));
+            }),
+            Some(Box::new(move |a: &mut App| {
+                a.duplicate_note(&cancel_id, tr!("Copy created without the password (the master password was not entered)."));
+            })),
+        );
+    }
+
+    /// A message about a copy in the site manager (if it shows the copy).
+    fn duplicate_note(&mut self, id: &str, msg: String) {
+        match &mut self.dialog {
+            Dialog::Connect(f) if f.selected.as_deref() == Some(id) => {
+                f.error = None;
+                f.info = Some(msg);
+            }
+            _ => self.last_error = Some(msg),
+        }
+    }
+
     fn delete_profile(&mut self, id: String) {
         let in_keyring = self.profiles.get(&id).is_some_and(|p| p.password_in_keyring());
         self.profiles.remove(&id);
@@ -899,6 +969,44 @@ impl App {
                                 }
                             }
                         });
+                    // Duplicating the selected profile (asks whether to copy the password).
+                    if let Some(src) = f.selected.as_deref().and_then(|id| profiles.get(id)) {
+                        ui.add_space(4.0);
+                        if !f.confirm_duplicate {
+                            let r = crate::look::btn(Role::Copy, tr!("Duplicate…")).ui(ui).on_hover_text(tr!(
+                                "A copy of the saved server with all its settings, under a new name. Changes in the form that are not saved are not copied."
+                            ));
+                            if r.clicked() {
+                                if src.save_password {
+                                    f.confirm_duplicate = true;
+                                    f.duplicate_password = false;
+                                } else {
+                                    let id = src.id.clone();
+                                    act = Some(Box::new(move |a: &mut App| a.duplicate_profile(&id, false)));
+                                }
+                            }
+                        } else {
+                            egui::Frame::group(ui.style()).show(ui, |ui| {
+                                ui.set_width(200.0);
+                                let in_vault = src.password_in_vault();
+                                ui.add_enabled(in_vault, egui::Checkbox::new(&mut f.duplicate_password, tr!("Copy the saved password too")));
+                                if !in_vault {
+                                    dialog::note(ui, tr!("The password is still in the system keyring of an older version: move it first (Settings → Master password)."));
+                                } else if f.duplicate_password {
+                                    dialog::note(ui, tr!("Needs the master password."));
+                                }
+                                ui.horizontal(|ui| {
+                                    if crate::look::btn(Role::Copy, tr!("Create copy")).ui(ui).clicked() {
+                                        let (id, pw) = (src.id.clone(), f.duplicate_password && in_vault);
+                                        act = Some(Box::new(move |a: &mut App| a.duplicate_profile(&id, pw)));
+                                    }
+                                    if ui.button(tr!("Cancel")).clicked() {
+                                        f.confirm_duplicate = false;
+                                    }
+                                });
+                            });
+                        }
+                    }
                     // Deleting the selected profile (asks once more).
                     if let Some(id) = f.selected.clone() {
                         ui.add_space(4.0);
@@ -1175,9 +1283,35 @@ impl App {
     }
 }
 
+/// The name of a copy: "Web (copy)", then "Web (copy 2)"… (unique among
+/// the saved servers).
+pub fn copy_name(name: &str, profiles: &Profiles) -> String {
+    let taken = |n: &str| profiles.list.iter().any(|p| p.name == n);
+    let first = tr!("{name} (copy)", name = name);
+    if !taken(&first) {
+        return first;
+    }
+    (2..)
+        .map(|i| tr!("{name} (copy {n})", name = name, n = i))
+        .find(|n| !taken(n))
+        .unwrap_or(first)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn copies_get_unique_names() {
+        let mut ps = Profiles::default();
+        let p = |id: &str, name: &str| Profile { id: id.into(), name: name.into(), host: "example.com".into(), port: 22, user: "alex".into(), ..Default::default() };
+        ps.upsert(p("1", "Web"));
+        assert_eq!(copy_name("Web", &ps), "Web (copy)");
+        ps.upsert(p("2", "Web (copy)"));
+        assert_eq!(copy_name("Web", &ps), "Web (copy 2)");
+        ps.upsert(p("3", "Web (copy 2)"));
+        assert_eq!(copy_name("Web", &ps), "Web (copy 3)");
+    }
 
     #[test]
     fn typed_password_is_used_unchanged() {

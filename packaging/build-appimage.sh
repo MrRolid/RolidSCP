@@ -68,11 +68,15 @@ for lib in $(sed -n '/^pub const LIBS/,/^];/p' crates/rolid-ui/src/bundled_libs.
     pkg=$(dpkg -S "$(readlink -f "$src")" 2>/dev/null | head -1 | cut -d: -f1)
     if [ -n "$pkg" ] && [ -f "/usr/share/doc/$pkg/copyright" ]; then
         cp "/usr/share/doc/$pkg/copyright" "$APPDIR/usr/share/licenses/rolidscp/bundled/$pkg.copyright"
+        # The mode of the system's copy differs between runner images.
+        chmod 644 "$APPDIR/usr/share/licenses/rolidscp/bundled/$pkg.copyright"
     else
         echo "no copyright file for $lib" >&2
         exit 1
     fi
-    echo "bundled $lib ($pkg)"
+    # With the version: a security update of the system package between two
+    # builds changes the AppImage (the reproducibility check then says why).
+    echo "bundled $lib ($pkg $(dpkg-query -W -f '${Version}' "$pkg" 2>/dev/null))"
 done
 
 SQUASHFS=$STAGE/rolidscp.squashfs

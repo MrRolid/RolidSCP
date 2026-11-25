@@ -558,6 +558,7 @@ impl App {
         let mut close = false;
         let mut start: Option<Conflict> = None;
         let mut into: Option<PaneRef> = None;
+        let clock_note = self.clock_note();
         let panes: Vec<(PaneRef, String, Option<Refusal>)> = self
             .drop
             .zones
@@ -593,7 +594,7 @@ impl App {
                         let heading = tr!("Existing files");
                         dialog::group(ui, &heading, |ui| {
                             dialog::warn(ui, tr!("⚠ Already in the target: {names}. What to do with the existing files?", names = names), false);
-                            super::conflict_choice(ui, &mut ask.conflict);
+                            super::conflict_choice(ui, &mut ask.conflict, clock_note.as_deref());
                         });
                     }
                     if !r.plan.problems.is_empty() {

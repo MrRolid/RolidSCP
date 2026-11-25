@@ -27,6 +27,10 @@ pub struct LinkEntry {
     seen_gen: u64,
     /// Saved password for reconnecting (only while the vault is unlocked).
     password: Arc<Mutex<Option<Zeroizing<String>>>>,
+    /// The server's clock against this computer's (read after connecting).
+    pub clock: Option<rolid_ssh::clock::ClockOffset>,
+    /// The line at the bottom already said that the clock is off.
+    clock_warned: bool,
 }
 
 #[derive(Default)]
@@ -105,7 +109,7 @@ impl App {
                 let seen_gen = link.generation();
                 self.links.map.insert(
                     key,
-                    LinkEntry { link: link.clone(), target: target.clone(), seen_gen, password: Arc::default() },
+                    LinkEntry { link: link.clone(), target: target.clone(), seen_gen, password: Arc::default(), clock: None, clock_warned: false },
                 );
                 link
             }
@@ -207,11 +211,86 @@ impl App {
         }
         // First put back what the loss cut off, then upload the edits again.
         self.repair_replacements(key.to_string(), true);
+        self.check_server_clock(key);
         // An error caused by the loss is no longer true.
         if self.last_error.is_some() && self.last_error == self.links.error_during_loss {
             self.last_error = None;
             self.links.error_during_loss = None;
         }
+    }
+
+    /// Ask server `key` for its time (in the background); a clock off by
+    /// more than a minute is said once in the line at the bottom.
+    pub(super) fn check_server_clock(&mut self, key: &str) {
+        if self.settings.clock_warning_off {
+            return;
+        }
+        let Some(link) = self.link(key) else { return };
+        let key = key.to_string();
+        self.spawn(async move {
+            let r = match link.current() {
+                Some((_, conn)) => rolid_ssh::clock::measure(&conn).await,
+                None => None,
+            };
+            super::Msg::Then { job: None, f: Box::new(move |a: &mut App| a.on_server_clock(&key, r)) }
+        });
+    }
+
+    fn on_server_clock(&mut self, key: &str, r: Option<rolid_ssh::clock::ClockOffset>) {
+        let Some(e) = self.links.map.get_mut(key) else { return };
+        match r {
+            Some(o) => tracing::info!("server clock of {key}: {:+} s (± {} s)", o.secs, o.uncertainty),
+            None => tracing::info!("server clock of {key}: not known (no shell or no answer)"),
+        }
+        // A reading replaces the last one; no reading keeps it.
+        if r.is_some() {
+            e.clock = r;
+        }
+        let Some(o) = e.clock.filter(|o| o.is_off()) else {
+            e.clock_warned = false;
+            return;
+        };
+        if std::mem::replace(&mut e.clock_warned, true) || self.settings.clock_warning_off {
+            return;
+        }
+        let server = self.server_name(key);
+        tracing::warn!("the clock of {key} is off by {} s", o.secs);
+        self.last_error = Some(clock_warning(&server, o));
+    }
+
+    /// The name of a server for messages: its saved name, or user@host.
+    fn server_name(&self, key: &str) -> String {
+        let e = self.links.map.get(key);
+        e.and_then(|e| e.target.profile.as_deref())
+            .and_then(|id| self.profiles.get(id))
+            .map(|p| p.name.clone())
+            .or_else(|| e.map(|e| e.link.label.clone()))
+            .unwrap_or_else(|| key.to_string())
+    }
+
+    /// A note for the transfer dialogs when a server shown in a panel has a
+    /// clock that is off (the panels are where a transfer goes from and to).
+    pub(super) fn clock_note(&self) -> Option<String> {
+        self.sides.iter().find_map(|side| {
+            let key = side.current().pane.remote.as_ref()?.target.key();
+            let o = self.clock_off(&key)?;
+            let diff = clock_diff(o.secs.unsigned_abs());
+            let server = self.server_name(&key);
+            Some(if o.secs > 0 {
+                tr!("⚠ The clock of {server} is {diff} ahead: files changed on it look newer than they are.", server = server, diff = diff)
+            } else {
+                tr!("⚠ The clock of {server} is {diff} behind: files changed on it look older than they are.", server = server, diff = diff)
+            })
+        })
+    }
+
+    /// The clock of server `key`, when it is off by more than a minute.
+    /// Nothing when the warning is turned off in the settings.
+    pub(super) fn clock_off(&self, key: &str) -> Option<rolid_ssh::clock::ClockOffset> {
+        if self.settings.clock_warning_off {
+            return None;
+        }
+        self.links.map.get(key).and_then(|e| e.clock).filter(|o| o.is_off())
     }
 
     /// Finish or undo replacements of files on server `key` that a lost
@@ -403,9 +482,48 @@ async fn reconnect_once(
     }
 }
 
+/// How far a clock is off, in words: "5 min 12 s", "2 h 3 min", "3 days".
+pub fn clock_diff(secs: u64) -> String {
+    if secs < 3600 {
+        tr!("{m} min {s} s", m = secs / 60, s = secs % 60)
+    } else if secs < 2 * 86_400 {
+        tr!("{h} h {m} min", h = secs / 3600, m = secs / 60 % 60)
+    } else {
+        trn!("{n} day", "{n} days", secs / 86_400)
+    }
+}
+
+/// The line at the bottom about a server's clock that is off.
+pub fn clock_warning(server: &str, o: rolid_ssh::clock::ClockOffset) -> String {
+    let diff = clock_diff(o.secs.unsigned_abs());
+    if o.secs > 0 {
+        tr!(
+            "The clock of server {server} is {diff} ahead of this computer. Times of files changed on it are off by as much, and \"Overwrite only older\" may decide wrongly.",
+            server = server,
+            diff = diff
+        )
+    } else {
+        tr!(
+            "The clock of server {server} is {diff} behind this computer. Times of files changed on it are off by as much, and \"Overwrite only older\" may decide wrongly.",
+            server = server,
+            diff = diff
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn clock_differences_in_words() {
+        assert_eq!(clock_diff(65), "1 min 5 s");
+        assert_eq!(clock_diff(3600), "1 h 0 min");
+        assert_eq!(clock_diff(3 * 3600 + 125), "3 h 2 min");
+        assert_eq!(clock_diff(3 * 86_400), "3 days");
+        let o = rolid_ssh::clock::ClockOffset { secs: -3600, uncertainty: 1 };
+        assert!(clock_warning("Web", o).contains("behind"));
+    }
 
     #[test]
     fn locking_wipes_the_reconnect_passwords() {
@@ -413,7 +531,7 @@ mod tests {
         let target = RemoteTarget { profile: Some("p".into()), host: "h".into(), port: 22, user: "u".into(), key_path: None };
         for (key, pw) in [("a", Some("secret")), ("b", None)] {
             let slot = Arc::new(Mutex::new(pw.map(|p| Zeroizing::new(p.to_string()))));
-            st.map.insert(key.into(), LinkEntry { link: Link::new_lost(key, "lost"), target: target.clone(), seen_gen: 0, password: slot });
+            st.map.insert(key.into(), LinkEntry { link: Link::new_lost(key, "lost"), target: target.clone(), seen_gen: 0, password: slot, clock: None, clock_warned: false });
         }
         assert_eq!(st.wipe_passwords(), 1);
         assert!(st.map.values().all(|e| e.password.lock().unwrap().is_none()));

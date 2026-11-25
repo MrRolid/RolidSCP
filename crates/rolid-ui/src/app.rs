@@ -23,6 +23,7 @@ mod refresh;
 mod rename_ui;
 mod search;
 mod session;
+mod settings_ui;
 mod size_ui;
 mod unpack_ui;
 mod vault_ui;
@@ -352,8 +353,6 @@ enum Dialog {
     OpenWith(Box<ctx_ui::OpenWithForm>),
     /// "Select / unselect group" by mask.
     MarkGroup(Box<view_ui::MarkForm>),
-    /// Settings (view, thumbnails).
-    Settings(Box<view_ui::SettingsForm>),
     /// Pack / extract / test archives.
     Archive(Box<archive_ui::ArchiveDialog>),
     /// A typed rename needs an answer (production, existing target).
@@ -427,6 +426,11 @@ pub struct App {
     folder_pick: Option<folder_pick::FolderPick>,
     /// Open F3 viewers.
     viewers: viewer::Viewers,
+    /// The settings window, while open.
+    settings_win: Option<Box<settings_ui::SettingsWin>>,
+    /// Ctrl+Shift+F10 / Ctrl+Menu: open the menu of the active tab of this
+    /// panel in the next frame.
+    tab_menu_kb: Option<usize>,
     /// X11: asks the X server where the cursor is while files are dragged in.
     x11: Option<x11_drag::Tracker>,
     x11_tried: bool,
@@ -546,6 +550,8 @@ impl App {
             x11_win: None,
             folder_pick: None,
             viewers: viewer::Viewers::default(),
+            settings_win: None,
+            tab_menu_kb: None,
             x11: None,
             x11_tried: false,
             drag_log: None,
@@ -717,6 +723,11 @@ impl App {
     /// Apply what changed in the settings taken from the file.
     fn settings_taken(&mut self, before: &rolid_config::Settings) {
         tracing::info!("settings saved by another copy taken");
+        self.settings_changed(before);
+    }
+
+    /// Apply what changed in the settings (speed limit, language, font).
+    fn settings_changed(&mut self, before: &rolid_config::Settings) {
         if before.speed_limit_kib != self.settings.speed_limit_kib {
             self.rate_limit.set_rate(self.settings.speed_limit_kib.unwrap_or(0).saturating_mul(1024));
         }
@@ -1815,6 +1826,13 @@ impl App {
             on!(Modifiers::ALT, Key::F5, |a: &mut Self| a.ask_pack());
             on!(Modifiers::ALT | Modifiers::SHIFT, Key::F9, |a: &mut Self| a.ask_archive(unpack_ui::Purpose::Test));
             on!(Modifiers::ALT, Key::F9, |a: &mut Self| a.ask_archive(unpack_ui::Purpose::Extract));
+            // Context menus by keyboard (before F10: egui ignores an extra
+            // Shift when matching).
+            on!(ctrl_shift, Key::F10, |a: &mut Self| a.tab_menu_by_key());
+            on!(Modifiers::CTRL, Key::Menu, |a: &mut Self| a.tab_menu_by_key());
+            on!(Modifiers::SHIFT, Key::F10, |a: &mut Self| a.item_menu_by_key());
+            on!(Modifiers::NONE, Key::Menu, |a: &mut Self| a.item_menu_by_key());
+            on!(Modifiers::COMMAND, Key::Comma, |a: &mut Self| a.open_settings());
             on!(Modifiers::NONE, Key::F10, |a: &mut Self| {
                 a.menu_keys.on = true;
                 a.menu_keys.start = true;
@@ -2148,6 +2166,20 @@ impl App {
 
     // ------------------------------------------------------------------- UI
 
+    /// Shift+F10 / the Menu key: the context menu of the item under the
+    /// cursor (or of the folder, when there is none).
+    fn item_menu_by_key(&mut self) {
+        with_pane(self, |p| {
+            p.menu_request = 3;
+            p.scroll_to_cursor = true;
+        });
+    }
+
+    /// Ctrl+Shift+F10 / Ctrl+Menu: the menu of the active tab.
+    fn tab_menu_by_key(&mut self) {
+        self.tab_menu_kb = Some(self.active_side);
+    }
+
     /// Tab row of one panel.
     fn tab_bar(&mut self, ui: &mut egui::Ui, side: usize) {
         let mut activate = None;
@@ -2155,6 +2187,7 @@ impl App {
         let mut new_tab = false;
         let mut menu_act: Option<Action> = None;
         let side_active = self.active_side == side;
+        let tab_kb = self.tab_menu_kb.take_if(|s| *s == side).is_some();
         let tips: Vec<String> = self.sides[side].tabs.iter().map(|t| self.tab_tooltip(side, t)).collect();
         let lost: Vec<TabId> = self.sides[side]
             .tabs
@@ -2222,10 +2255,11 @@ impl App {
                 if resp.middle_clicked() {
                     close = Some(idx);
                 }
-                egui::Popup::context_menu(&resp)
+                let kb = tab_kb && idx == active_idx;
+                dialog::context_popup(&resp, kb.then(|| resp.rect.left_bottom()))
                     .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside)
                     .show(|ui| {
-                        if let Some(a) = App::tab_menu(ui, side, idx, tab, &mut self.renaming) {
+                        if let Some(a) = App::tab_menu(ui, side, idx, tab, &mut self.renaming, kb) {
                             menu_act = Some(a);
                         }
                     });
@@ -2686,7 +2720,7 @@ impl App {
             self.ctx_dialog_ui(ctx);
             return;
         }
-        if matches!(self.dialog, Dialog::MarkGroup(_) | Dialog::Settings(_)) {
+        if matches!(self.dialog, Dialog::MarkGroup(_)) {
             self.view_dialog_ui(ctx);
             return;
         }
@@ -2720,6 +2754,7 @@ impl App {
         }
         let mut next: Option<Dialog> = None;
         let mut act: Option<Action> = None;
+        let clock_note = self.clock_note();
         let mut speed = self.settings.speed_limit_kib;
         let mut speed_changed = false;
         let mut dest_changed = false;
@@ -2732,7 +2767,6 @@ impl App {
             | Dialog::PermsConfirm(_)
             | Dialog::OpenWith(_)
             | Dialog::MarkGroup(_)
-            | Dialog::Settings(_)
             | Dialog::Archive(_)
             | Dialog::Rename(_)
             | Dialog::Move(_)
@@ -2790,7 +2824,7 @@ impl App {
                                 false,
                             );
                         }
-                        conflict_choice(ui, conflict);
+                        conflict_choice(ui, conflict, clock_note.as_deref());
                     });
                     let heading = tr!("Transfer");
                     dialog::group(ui, &heading, |ui| {
@@ -2992,7 +3026,9 @@ fn preset_conflict(p: rolid_config::ConflictPreset) -> Option<Conflict> {
 
 /// The choice of what to do with existing files (F5 and drag and drop).
 /// "Overwrite" is shown in a warning color while it is selected.
-fn conflict_choice(ui: &mut egui::Ui, conflict: &mut Option<Conflict>) {
+/// `clock`: a server of the transfer has a clock that is off (said under
+/// "Overwrite only older" while it is chosen).
+fn conflict_choice(ui: &mut egui::Ui, conflict: &mut Option<Conflict>, clock: Option<&str>) {
     for (c, label) in [
         (Conflict::Skip, tr!("Skip existing")),
         (Conflict::Newer, tr!("Overwrite only older (by modification date)")),
@@ -3011,6 +3047,9 @@ fn conflict_choice(ui: &mut egui::Ui, conflict: &mut Option<Conflict>) {
     }
     if conflict.is_none() {
         ui.colored_label(WARN_ORANGE, tr!("Choose what to do with existing files: nothing is preselected."));
+    }
+    if let (Some(Conflict::Newer), Some(note)) = (*conflict, clock) {
+        dialog::warn(ui, note, false);
     }
 }
 
@@ -3150,6 +3189,7 @@ impl eframe::App for App {
         crate::dialog::block_keys(false);
         self.folder_pick_ui(&ctx);
         self.viewers_ui(&ctx);
+        self.settings_window_ui(&ctx);
         self.report_window(&ctx);
         self.edits_list_ui(&ctx);
         self.edit_prompt_ui(&ctx);

@@ -306,6 +306,7 @@ impl App {
     }
 
     fn move_dialog_ui(&mut self, ctx: &egui::Context) {
+        let clock_note = self.clock_note();
         let (dst_entries, dst_path, dst_label, dst_fs) = match &self.dialog {
             Dialog::Move(f) => match self.pane(f.to) {
                 Some(d) => (d.entries.iter().map(|e| e.name.clone()).collect::<Vec<_>>(), d.path.clone(), d.display_label(), d.fs.clone()),
@@ -396,7 +397,7 @@ impl App {
                         false,
                     );
                 }
-                conflict_choice(ui, &mut f.conflict);
+                conflict_choice(ui, &mut f.conflict, clock_note.as_deref());
             });
             if f.by_copy {
                 ui.horizontal(|ui| {

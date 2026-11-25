@@ -96,6 +96,9 @@ impl App {
                 if keyed(ui, trc!("verb", "Open"), "Enter") {
                     set(Box::new(|a| a.activate_entry(a.active_ref())));
                 }
+                if keyed(ui, tr!("Context menu of the item…"), "Shift+F10") {
+                    set(Box::new(|a| a.item_menu_by_key()));
+                }
                 if keyed(ui, tr!("Open with…"), "Shift+Enter") {
                     set(Box::new(|a| a.ask_open_with(a.active_ref())));
                 }
@@ -176,7 +179,7 @@ impl App {
             }).response.id);
 
             tops.push(ui.menu_button(trc!("menu", "Settings"), |ui| {
-                if keyed(ui, tr!("Settings…"), "") {
+                if keyed(ui, tr!("Settings…"), "Ctrl+,") {
                     set(Box::new(|a| a.open_settings()));
                 }
                 if keyed(ui, tr!("Server manager…"), "Ctrl+O") {
@@ -185,7 +188,9 @@ impl App {
                 if keyed(ui, tr!("Rename tab"), &tr!("double-click the tab")) {
                     set(Box::new(|a| a.start_rename_tab()));
                 }
-                ui.add_enabled(false, egui::Button::new(tr!("Tab color")).shortcut_text(tr!("right-click the tab")));
+                if keyed(ui, tr!("Tab menu (color, close other tabs)…"), "Ctrl+Shift+F10") {
+                    set(Box::new(|a| a.tab_menu_by_key()));
+                }
                 ui.separator();
                 if keyed(ui, tr!("Open settings folder"), "") {
                     set(Box::new(|a| {
@@ -226,7 +231,7 @@ impl App {
                 });
                 ui.separator();
                 if keyed(ui, tr!("External editor (F4)…"), "") {
-                    set(Box::new(|a| a.ask_editor_command()));
+                    set(Box::new(|a| a.open_settings_at(super::settings_ui::Sec::Editor)));
                 }
                 ui.menu_button(tr!("Master password (saved passwords)"), |ui| {
                     let state = match (vault_exists, vault_open) {
@@ -568,7 +573,9 @@ const SHORTCUTS: &[(&str, &[(&str, &str)])] = &[
             ("Ctrl+← / Ctrl+→", n!("open folder in the left / right panel")),
             ("Ctrl+R", n!("refresh")),
             (nc!("keys", "right-click a file"), n!("context menu")),
+            ("Shift+F10 / Menu", n!("context menu of the item under the cursor (↑ ↓ items, Enter picks, Esc closes)")),
             ("F10", n!("the menu bar: ← → menus, ↑ ↓ items, → submenu, Enter picks, Esc closes")),
+            ("Ctrl+,", n!("settings (a window of their own; Ctrl+F finds a setting)")),
         ],
     ),
     (
@@ -611,6 +618,7 @@ const SHORTCUTS: &[(&str, &[(&str, &str)])] = &[
             ("Ctrl+P", n!("terminal in the current folder (on a server: ssh into it, with the saved password)")),
             (nc!("keys", "double-click a tab"), n!("rename the tab")),
             (nc!("keys", "right-click a tab"), n!("tab color, Rename tab")),
+            ("Ctrl+Shift+F10 / Ctrl+Menu", n!("menu of the active tab: color, rename, close other tabs")),
         ],
     ),
     (
@@ -788,6 +796,15 @@ pub fn about_ui(ctx: &egui::Context, btc: &str, font_desc: &str) -> bool {
         egui::ScrollArea::vertical().max_height(crate::fonts::fs(36.0)).id_salt("about-news").show(ui, |ui| {
             ui.weak(RichText::new(tr!("What's new")).strong());
             for news in [
+                trc!(
+                    "news",
+                    "0.9.0 settings window: the settings in a window of their own (Ctrl+,) with a tree of sections \
+                     and a field that finds a setting, and saving changes only what was changed in the window; a \
+                     saved server can be duplicated, with or without its saved password; context menus by keyboard \
+                     (Shift+F10 or the Menu key for the item under the cursor, Ctrl+Shift+F10 for the tab, the tab \
+                     colors too); a warning when the clock of a server is off by more than a minute, because \
+                     “Overwrite only older” compares the times of files"
+                ),
                 trc!(
                     "news",
                     "0.8.20 polish: a calm remaining time that does not jump; the menu bar by keyboard (F10); screen \

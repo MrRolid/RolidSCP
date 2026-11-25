@@ -514,6 +514,9 @@ pub struct Settings {
     /// Column widths of the listing, by panel and view style ("left/full").
     #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
     pub columns: std::collections::BTreeMap<String, ColumnWidths>,
+    /// No warning when a server's clock is off by more than a minute (0.9.0).
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub clock_warning_off: bool,
 }
 
 /// Widths of the listing columns set by dragging, in points at text size 1:1
@@ -1123,6 +1126,19 @@ pub fn save_workspace(w: &Workspace) -> Result<(), String> {
 /// Serialized form, used to detect changes cheaply.
 pub fn workspace_fingerprint(w: &Workspace) -> String {
     toml::to_string(w).unwrap_or_default()
+}
+
+/// Three-way merge of two edits of the same value (see [`shared::merge3`]):
+/// `ours` and `theirs` both started from `base`; what only one side changed
+/// is kept, and where both changed the same value, `ours` wins. Used by the
+/// settings window, so that saving it does not undo what was changed
+/// meanwhile elsewhere (a menu, another copy of the program).
+pub fn merge_edits<T: Serialize + for<'de> Deserialize<'de> + Clone>(base: &T, ours: &T, theirs: &T) -> T {
+    let v = |t: &T| toml::Value::try_from(t).ok();
+    match (v(base), v(ours), v(theirs)) {
+        (Some(b), Some(o), Some(t)) => shared::merge3(Some(&b), &o, &t).try_into::<T>().unwrap_or_else(|_| ours.clone()),
+        _ => ours.clone(),
+    }
 }
 
 pub fn new_id() -> String {

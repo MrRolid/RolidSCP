@@ -25,6 +25,12 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
   onglet à l'autre. Un clic droit sur un onglet propose Dupliquer, Renommer, Couleur, Fermer et Fermer
   les autres onglets ; un double-clic le renomme. L'info-bulle d'un onglet montre son serveur, son
   adresse et son chemin. **Ctrl+K** trouve un onglet ou un serveur enregistré par son nom.
+- Menus contextuels au clavier : **Shift+F10** ou la touche **Menu** ouvre le menu de l'élément sous le
+  curseur (sur `..` ou dans un dossier vide, le menu du dossier), **Ctrl+Shift+F10** ou **Ctrl+Menu** le
+  menu de l'onglet actif. **↑ ↓** déplacent, **→** ouvre un sous-menu (dans Changer la couleur, **↓**
+  ou **Tab** parcourent les couleurs), **Entrée** choisit, **Échap** ferme. Les deux sont aussi dans
+  la barre de menus : **Fichier → Menu contextuel de l'élément…** et **Paramètres → Menu de
+  l'onglet…**.
 - **Ctrl+D** ajoute le dossier aux favoris ou l'en retire. Les favoris et les dossiers récents sont
   dans le menu du bouton ★ de la barre (`*` quand la barre est masquée) ; **Fichier → Dossiers
   favoris…** permet de les nommer et de les ordonner.
@@ -171,6 +177,10 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
 - **Ctrl+O** ouvre le gestionnaire de serveurs. Saisissez le serveur sous la forme `host` ou
   `user@host:port`, enregistrez-le comme profil avec un nom et une couleur d'onglet, puis connectez-vous
   avec **Enter**.
+- **Dupliquer…** sous la liste des serveurs enregistrés crée une copie avec tous ses réglages sous un
+  nouveau nom (« Web (copie) »). Si le serveur a un mot de passe enregistré, vous choisissez s'il est
+  copié aussi (il faut alors le mot de passe principal) ; par défaut, il ne l'est pas. Les
+  modifications non enregistrées du formulaire ne sont pas copiées.
 - Marquez un serveur comme **serveur de production** : ses onglets ont un en-tête rouge et les actions
   dangereuses demandent une confirmation supplémentaire (la suppression ne peut pas être confirmée avec
   Enter).
@@ -210,6 +220,12 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
   mot de passe principal est demandé d'abord, sinon ssh le demande lui-même. Pour un serveur de
   production, une confirmation est demandée avant. Le mot de passe ne passe jamais par une ligne de
   commande, un fichier ou le journal.
+- Après la connexion, le programme demande l'heure au serveur (`date -u +%s`, seulement si le serveur
+  a un shell, 5 secondes au plus). Si l'horloge du serveur est décalée de plus d'une minute, la ligne
+  du bas le signale une fois, l'info-bulle de l'onglet l'affiche et les dialogues de copie et de
+  déplacement avertissent sous « Écraser les plus anciens » : les fichiers modifiés sur ce serveur ont
+  des dates décalées d'autant. L'avertissement se désactive dans **Paramètres → Connexions aux
+  serveurs**.
 - **Ctrl+L** ramène le panneau actif sur le disque local.
 
 ## Afficher des fichiers (F3)
@@ -309,9 +325,18 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
 
 ## Paramètres
 
-- **Paramètres → Paramètres…** contient la langue, le format de date, la police (intégrée ou du
-  système), la taille du texte, le hinting et le contraste, la barre d'outils, les couleurs par type de
-  fichier, les miniatures et les limites des archives.
+- **Paramètres → Paramètres…** (**Ctrl+,**) ouvre les paramètres dans une fenêtre à part. À gauche, un
+  arbre de sections : Apparence (langue et dates, police, panneaux, couleurs par type de fichier,
+  miniatures), Fichiers (copie et déplacement, archives), Outils (visionneuse, éditeur externe) et
+  Serveurs et sécurité (connexions aux serveurs, mots de passe enregistrés).
+- Le champ du haut (**Ctrl+F**) trouve un paramètre dans toutes les sections à la fois, en anglais ou
+  dans la langue de la fenêtre, avec ou sans accents ; **Échap** vide le champ.
+- **Enregistrer** enregistre et ferme la fenêtre, **Appliquer** enregistre et la laisse ouverte,
+  **Annuler** ou la fermeture de la fenêtre abandonne les modifications. L'enregistrement ne change
+  que ce que vous avez modifié dans la fenêtre : ce qui a été changé entre-temps dans les menus ou
+  dans une autre fenêtre du programme est conservé. Les menus gardent leurs éléments rapides (limite
+  de vitesse, choix en cas de conflit, actualisation automatique, éditeur externe) ; ce sont les mêmes
+  paramètres.
 - Par défaut, la langue suit celle du système (`LC_ALL`, `LC_MESSAGES`, `LANG`). Elle peut être
   choisie dans les Paramètres et change immédiatement. Votre propre traduction
   `~/.config/rolidscp/lang/<langue>.po` est utilisée à la place de celle intégrée.

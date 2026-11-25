@@ -24,6 +24,12 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
   pestaña. Con clic derecho en una pestaña: Duplicar, Renombrar, Color, Cerrar y Cerrar las demás
   pestañas; doble clic la renombra. La información sobre una pestaña muestra su servidor, dirección y
   ruta. **Ctrl+K** busca una pestaña o un servidor guardado por su nombre.
+- Menús contextuales con el teclado: **Shift+F10** o la tecla **Menú** abre el menú del elemento bajo
+  el cursor (en `..` o en una carpeta vacía, el menú de la carpeta), **Ctrl+Shift+F10** o
+  **Ctrl+Menú** el menú de la pestaña activa. **↑ ↓** mueven, **→** abre un submenú (en Cambiar color,
+  **↓** o **Tab** recorren los colores), **Enter** elige, **Esc** cierra. Ambos están también en la
+  barra de menús: **Archivo → Menú contextual del elemento…** y **Configuración → Menú de la
+  pestaña…**.
 - **Ctrl+D** añade la carpeta a favoritos o la quita. Los favoritos y las carpetas recientes están en
   el menú del botón ★ de la barra (`*` cuando la barra está oculta); **Archivo → Carpetas favoritas…**
   permite nombrarlas y ordenarlas.
@@ -163,6 +169,10 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
 
 - **Ctrl+O** abre el gestor de servidores. Introduzca el servidor como `host` o `user@host:port`,
   guárdelo como perfil con un nombre y un color de pestaña, y conéctese con **Enter**.
+- **Duplicar…** bajo la lista de servidores guardados crea una copia con todos sus ajustes con un
+  nombre nuevo («Web (copia)»). Si el servidor tiene una contraseña guardada, puede elegir si se copia
+  también (para ello hace falta la contraseña maestra); por defecto no. Los cambios no guardados del
+  formulario no se copian.
 - Marque un servidor como **servidor de producción**: sus pestañas tienen un encabezado rojo y las
   acciones peligrosas piden confirmación una vez más (la eliminación no se puede confirmar con
   Enter).
@@ -201,6 +211,11 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
   contraseña de ese servidor, una vez; si las contraseñas están bloqueadas, primero se pide la
   contraseña maestra; si no, ssh la pide él mismo. En un servidor de producción se pide confirmación
   antes. La contraseña nunca pasa por una línea de comandos, un archivo ni el registro.
+- Tras conectar, el programa pregunta al servidor su hora (`date -u +%s`, solo donde el servidor tiene
+  shell, 5 segundos como máximo). Si el reloj del servidor se desvía más de un minuto, la línea
+  inferior lo indica una vez, la información de la pestaña lo muestra y los diálogos de copiar y mover
+  avisan bajo «Sobrescribir solo más antiguos»: los archivos modificados en ese servidor tienen fechas
+  desfasadas lo mismo. El aviso se puede desactivar en **Configuración → Conexiones a servidores**.
 - **Ctrl+L** devuelve el panel activo al disco local.
 
 ## Ver archivos (F3)
@@ -298,9 +313,17 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
 
 ## Configuración
 
-- **Configuración → Configuración…** contiene el idioma, el formato de fecha, la fuente (integrada o
-  del sistema), el tamaño del texto, el hinting y el contraste, la barra de herramientas, los
-  colores por tipo de archivo, las miniaturas y los límites de los archivos comprimidos.
+- **Configuración → Configuración…** (**Ctrl+,**) abre la configuración en su propia ventana. A la
+  izquierda hay un árbol de secciones: Apariencia (idioma y fechas, fuente, paneles, colores por tipo
+  de archivo, miniaturas), Archivos (copiar y mover, archivos comprimidos), Herramientas (visor,
+  editor externo) y Servidores y seguridad (conexiones a servidores, contraseñas guardadas).
+- El campo de arriba (**Ctrl+F**) busca un ajuste en todas las secciones a la vez, en inglés o en el
+  idioma de la ventana, con o sin tildes; **Esc** vacía el campo.
+- **Guardar** guarda y cierra la ventana, **Aplicar** guarda y la deja abierta, **Cancelar** o cerrar
+  la ventana descarta los cambios. Al guardar solo cambia lo que usted modificó en la ventana: lo que
+  se cambió mientras tanto en los menús o en otra ventana del programa se conserva. Los menús
+  mantienen sus elementos rápidos (límite de velocidad, opciones en conflictos, actualización
+  automática, editor externo); son los mismos ajustes.
 - De forma predeterminada el idioma sigue al sistema (`LC_ALL`, `LC_MESSAGES`, `LANG`). Se puede
   elegir en Configuración y cambia al instante. Su propia traducción
   `~/.config/rolidscp/lang/<language>.po` se usa en lugar de la integrada.

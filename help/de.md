@@ -22,6 +22,11 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
   Ein Rechtsklick auf einen Tab bietet Duplizieren, Umbenennen, Farbe, Schließen und Andere Tabs
   schließen; ein Doppelklick benennt ihn um. Der Tooltip eines Tabs zeigt Server, Adresse und Pfad.
   **Ctrl+K** sucht einen Tab oder gespeicherten Server nach Namen.
+- Kontextmenüs per Tastatur: **Shift+F10** oder die **Menü**-Taste öffnet das Menü des Eintrags unter
+  dem Cursor (auf `..` oder in einem leeren Ordner das Menü des Ordners), **Ctrl+Shift+F10** oder
+  **Ctrl+Menü** das Menü des aktiven Tabs. **↑ ↓** bewegen, **→** öffnet ein Untermenü (in Farbe
+  ändern gehen **↓** oder **Tab** durch die Farben), **Enter** wählt, **Esc** schließt. Beides steht
+  auch in der Menüleiste: **Datei → Kontextmenü des Eintrags…** und **Einstellungen → Tab-Menü…**.
 - **Ctrl+D** fügt den Ordner zu den Favoriten hinzu oder entfernt ihn. Favoriten und zuletzt besuchte
   Ordner stehen im Menü der Schaltfläche ★ der Leiste (`*`, wenn die Leiste ausgeblendet ist); **Datei
   → Favoritenordner…** benennt und ordnet sie.
@@ -164,6 +169,10 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
 
 - **Ctrl+O** öffnet die Serververwaltung. Den Server als `host` oder `user@host:port` eingeben, als
   Profil mit Namen und Tabfarbe speichern und mit **Enter** verbinden.
+- **Duplizieren…** unter der Liste der gespeicherten Server legt eine Kopie mit allen Einstellungen
+  unter neuem Namen an („Web (Kopie)“). Hat der Server ein gespeichertes Passwort, lässt sich wählen,
+  ob es mitkopiert wird (dafür ist das Master-Passwort nötig); standardmäßig nicht. Nicht gespeicherte
+  Änderungen im Formular werden nicht kopiert.
 - Einen Server als **Produktionsserver** kennzeichnen: Seine Tabs erhalten einen roten Kopf, und
   gefährliche Aktionen fragen noch einmal nach (Löschen lässt sich nicht mit Enter bestätigen).
 - Auf einem Produktionsserver lassen sich auch Kopieren, Hochladen, Verschieben und das Anlegen
@@ -204,6 +213,12 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
   beantwortet, und zwar einmal; sind die Passwörter gesperrt, wird zuerst das Hauptpasswort
   abgefragt, sonst fragt ssh selbst. Bei Produktionsservern wird vorher nachgefragt. Das Passwort
   gelangt nie in eine Befehlszeile, eine Datei oder das Protokoll.
+- Nach dem Verbinden fragt das Programm den Server nach seiner Zeit (`date -u +%s`, nur wenn der
+  Server eine Shell hat, höchstens 5 Sekunden). Weicht die Uhr des Servers um mehr als eine Minute ab,
+  meldet das die Zeile unten einmal, der Tooltip des Tabs zeigt es, und die Dialoge zum Kopieren und
+  Verschieben warnen unter „Nur ältere überschreiben“: Auf diesem Server geänderte Dateien haben
+  ebenso verschobene Zeiten. Die Warnung lässt sich unter **Einstellungen → Serververbindungen**
+  abschalten.
 - **Ctrl+L** schaltet das aktive Panel zurück auf den lokalen Datenträger.
 
 ## Dateien anzeigen (F3)
@@ -301,9 +316,17 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
 
 ## Einstellungen
 
-- **Einstellungen → Einstellungen…** enthält Sprache, Datumsformat, Schrift (integriert oder vom
-  System), Textgröße, Hinting und Kontrast, die Werkzeugleiste, Farben nach Dateityp, Miniaturen und
-  Archivgrenzen.
+- **Einstellungen → Einstellungen…** (**Ctrl+,**) öffnet die Einstellungen in einem eigenen Fenster.
+  Links steht ein Baum der Abschnitte: Darstellung (Sprache und Datum, Schrift, Panels, Farben nach
+  Dateityp, Miniaturen), Dateien (Kopieren und Verschieben, Archive), Werkzeuge (Betrachter, externer
+  Editor) und Server und Sicherheit (Serververbindungen, gespeicherte Passwörter).
+- Das Feld oben (**Ctrl+F**) findet eine Einstellung in allen Abschnitten zugleich, auf Englisch oder
+  in der Sprache des Fensters, mit oder ohne Akzente; **Esc** leert das Feld.
+- **Speichern** speichert und schließt das Fenster, **Übernehmen** speichert und lässt es offen,
+  **Abbrechen** oder das Schließen des Fensters verwirft die Änderungen. Gespeichert wird nur, was im
+  Fenster geändert wurde: Was inzwischen über die Menüs oder in einem anderen Fenster des Programms
+  geändert wurde, bleibt. Die Menüs behalten ihre schnellen Einträge (Übertragungslimit, Wahl bei
+  Konflikten, automatische Aktualisierung, externer Editor); es sind dieselben Einstellungen.
 - Die Sprache richtet sich standardmäßig nach dem System (`LC_ALL`, `LC_MESSAGES`, `LANG`). Sie lässt
   sich in den Einstellungen wählen und wechselt sofort. Eine eigene Übersetzung
   `~/.config/rolidscp/lang/<Sprache>.po` wird anstelle der integrierten verwendet.

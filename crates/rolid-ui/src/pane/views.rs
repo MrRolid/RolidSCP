@@ -247,6 +247,13 @@ impl Pane {
     }
 
     fn interact_item(&mut self, ui: &egui::Ui, resp: &Response, idx: usize, row: Row, events: &mut Vec<PaneEvent>) {
+        // Shift+F10 / the Menu key: the context menu of the cursor row, with
+        // the keyboard in it.
+        let kb = self.menu_request > 0 && idx == self.cursor;
+        if kb {
+            self.menu_request = 0;
+        }
+        let kb_pos = kb.then(|| resp.rect.left_bottom() + Vec2::new(24.0, 0.0));
         // Dragging a row (not "..", not one being renamed): the app takes over.
         if resp.drag_started_by(egui::PointerButton::Primary) {
             if let Row::Entry(i) = row {
@@ -280,7 +287,7 @@ impl Pane {
             }
         }
         if row == Row::Up {
-            self.folder_menu(resp, events);
+            self.folder_menu(resp, events, kb_pos);
         }
         if let Row::Entry(i) = row {
             let is_file = self.entries.get(i).is_some_and(|e| !e.is_dir_like());
@@ -290,7 +297,7 @@ impl Pane {
             let is_archive = is_file && rolid_archive::Format::from_name(&name).is_some();
             // Inside an archive nothing can be written.
             let writable = !self.fs.read_only();
-            resp.context_menu(|ui| {
+            crate::dialog::context_popup(resp, kb_pos).show(|ui| {
                 let mut picked: Option<PaneCmd> = None;
                 let item = |ui: &mut egui::Ui, picked: &mut Option<PaneCmd>, text: &str, key: &str, cmd: PaneCmd, on: bool| {
                     let b = egui::Button::new(text).shortcut_text(key);
@@ -299,7 +306,15 @@ impl Pane {
                         ui.close();
                     }
                 };
-                item(ui, &mut picked, &trc!("verb", "Open"), "Enter", PaneCmd::Open, true); // i18n-ok: key name
+                let b = egui::Button::new(trc!("verb", "Open")).shortcut_text("Enter"); // i18n-ok: key name
+                let r = ui.add(b);
+                if kb {
+                    r.request_focus();
+                }
+                if r.clicked() {
+                    picked = Some(PaneCmd::Open);
+                    ui.close();
+                }
                 ui.add_enabled_ui(is_file, |ui| {
                     ui.menu_button(tr!("Open with"), |ui| {
                         for (cmd, text) in open_with_items(&name) {
@@ -348,16 +363,23 @@ impl Pane {
 
     /// The context menu of the folder itself: a right click on the empty
     /// space of the list (or on "..").
-    pub(super) fn folder_menu(&self, resp: &Response, events: &mut Vec<PaneEvent>) {
+    /// `kb`: opened by the keyboard at this position, the first item takes the focus.
+    pub(super) fn folder_menu(&self, resp: &Response, events: &mut Vec<PaneEvent>, kb: Option<egui::Pos2>) {
         if resp.secondary_clicked() {
             events.push(PaneEvent::Focus);
         }
         let in_folder = self.search.is_none();
         let writable = in_folder && !self.fs.read_only() && !self.offline;
-        resp.context_menu(|ui| {
+        crate::dialog::context_popup(resp, kb).show(|ui| {
             let mut picked: Option<PaneCmd> = None;
+            let mut focus = kb.is_some();
             let mut item = |ui: &mut egui::Ui, text: &str, key: &str, cmd: PaneCmd, on: bool| {
-                if ui.add_enabled(on, egui::Button::new(text).shortcut_text(key)).clicked() {
+                let r = ui.add_enabled(on, egui::Button::new(text).shortcut_text(key));
+                if focus && on {
+                    r.request_focus();
+                    focus = false;
+                }
+                if r.clicked() {
                     picked = Some(cmd);
                     ui.close();
                 }

@@ -21,6 +21,11 @@ om det er merket), knappene og dialogene sine navn.
   skriv for å filtrere. **Ctrl+W** lukker fanen, **Ctrl+Tab** bytter fane. Høyreklikk på en fane gir
   Dupliser, Gi nytt navn, Farge, Lukk og Lukk andre faner; dobbeltklikk gir den nytt navn. Verktøytipset
   til en fane viser server, adresse og sti. **Ctrl+K** finner en fane eller en lagret server etter navn.
+- Hurtigmenyer med tastaturet: **Shift+F10** eller **Meny**-tasten åpner menyen for elementet under
+  markøren (på `..` eller i en tom mappe menyen for mappen), **Ctrl+Shift+F10** eller **Ctrl+Meny**
+  menyen for den aktive fanen. **↑ ↓** flytter, **→** åpner en undermeny (i Endre farge går **↓**
+  eller **Tab** gjennom fargene), **Enter** velger, **Esc** lukker. Begge finnes også i menylinjen:
+  **Fil → Hurtigmeny for elementet …** og **Innstillinger → Fanemeny …**.
 - **Ctrl+D** legger mappen til i favorittene eller fjerner den. Favorittene og de nylige mappene ligger
   i menyen til linjens ★-knapp (`*` når linjen er skjult); **Fil → Favorittmapper…** gir dem navn og
   rekkefølge.
@@ -147,6 +152,10 @@ om det er merket), knappene og dialogene sine navn.
 
 - **Ctrl+O** åpner Serverbehandling. Skriv inn serveren som `host` eller `user@host:port`, lagre den som en
   profil med navn og fanefarge, og koble til med **Enter**.
+- **Dupliser …** under listen over lagrede servere lager en kopi med alle innstillingene under et nytt
+  navn («Web (kopi)»). Når serveren har et lagret passord, velger du om det også skal kopieres (det
+  krever hovedpassordet); som standard gjør det ikke det. Endringer i skjemaet som ikke er lagret,
+  kopieres ikke.
 - Merk en server som **produksjonsserver**: fanene får rød overskrift, og farlige handlinger spør
   én gang til (sletting kan ikke bekreftes med Enter).
 - På en produksjonsserver kan heller ikke kopiering, opplasting, flytting og oppretting av en mappe
@@ -183,6 +192,11 @@ om det er merket), knappene og dialogene sine navn.
   (`SSH_ASKPASS`) som bare svarer på passordspørsmålet for den serveren, én gang; er passordene låst,
   blir du først spurt om hovedpassordet, ellers spør ssh selv. Produksjonsservere spør før terminalen
   åpnes. Passordet havner aldri på en kommandolinje, i en fil eller i loggen.
+- Etter tilkobling spør programmet serveren om klokkeslettet (`date -u +%s`, bare der serveren har et
+  skall, høyst 5 sekunder). Når klokken på serveren går feil med mer enn ett minutt, sier linjen
+  nederst fra én gang, verktøytipset til fanen viser det, og dialogene for kopiering og flytting
+  advarer under «Overskriv bare eldre»: filer som endres på den serveren, har tider som er like mye
+  feil. Advarselen kan slås av i **Innstillinger → Servertilkoblinger**.
 - **Ctrl+L** setter det aktive panelet tilbake til den lokale disken.
 
 ## Vise filer (F3)
@@ -276,9 +290,17 @@ om det er merket), knappene og dialogene sine navn.
 
 ## Innstillinger
 
-- **Innstillinger → Innstillinger …** inneholder språk, datoformat, skrift (innebygd eller fra
-  systemet), tekststørrelse, hinting og kontrast, verktøylinjen, farger etter filtype, miniatyrbilder og
-  grenser for arkiver.
+- **Innstillinger → Innstillinger …** (**Ctrl+,**) åpner innstillingene i et eget vindu. Til venstre
+  er et tre med deler: Utseende (språk og datoer, skrift, paneler, farger etter filtype,
+  miniatyrbilder), Filer (kopiering og flytting, arkiver), Verktøy (fremviser, eksternt
+  redigeringsprogram) og Servere og sikkerhet (servertilkoblinger, lagrede passord).
+- Feltet øverst (**Ctrl+F**) finner en innstilling i alle delene på én gang, på engelsk eller på
+  språket i vinduet, med eller uten aksenter; **Esc** tømmer feltet.
+- **Lagre** lagrer og lukker vinduet, **Bruk** lagrer og lar det være åpent, **Avbryt** eller å lukke
+  vinduet forkaster endringene. Lagringen endrer bare det du endret i vinduet: det som er endret i
+  mellomtiden i menyene eller i et annet vindu av programmet, blir stående. Menyene beholder
+  hurtigvalgene sine (hastighetsgrense, valg ved konflikt, automatisk oppdatering, eksternt
+  redigeringsprogram); det er de samme innstillingene.
 - Språket følger systemet som standard (`LC_ALL`, `LC_MESSAGES`, `LANG`). Det kan velges i
   Innstillinger og endres med en gang. Din egen oversettelse `~/.config/rolidscp/lang/<language>.po` brukes
   i stedet for den innebygde.

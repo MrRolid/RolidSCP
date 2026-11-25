@@ -165,7 +165,6 @@ pub enum EditPrompt {
     Conflict { id: u64, remote: RemoteStamp },
     Production { id: u64 },
     Unsaved { ids: Vec<u64>, then: AfterUnsaved },
-    Editor { cmd: String },
     /// An edit left behind by a crashed instance, with changes not on the server.
     Recovered { orphan: Box<Orphan> },
 }
@@ -1280,11 +1279,6 @@ impl App {
         }
     }
 
-    pub(super) fn ask_editor_command(&mut self) {
-        let cmd = self.settings.editor_command.clone().unwrap_or_default();
-        self.edits.prompts.push(EditPrompt::Editor { cmd });
-    }
-
     // ------------------------------------------------------------------- UI
 
     pub(super) fn edits_blocks_input(&self) -> bool {
@@ -1714,41 +1708,6 @@ impl App {
                         }));
                         done = true;
                     } else if esc || dialog::cancel_pressed(ui) {
-                        done = true;
-                    }
-                });
-            }
-            EditPrompt::Editor { cmd } => {
-                win(tr!("External editor (F4)"), Role::Edit).show(ctx, |ui| {
-                    dialog::lead(ui, tr!("The command that opens the file. {{file}} is replaced by the path to the file."));
-                    ui.horizontal(|ui| {
-                        ui.add(egui::TextEdit::singleline(cmd).desired_width(dialog::width() - 30.0).hint_text(editor::detect_default()));
-                        dialog::help(
-                            ui,
-                            format!(
-                                "{}\n\n{}",
-                                tr!("Empty = automatic (now: {command}).", command = editor::detect_default()),
-                                tr!("A terminal editor only through a terminal, e.g.: x-terminal-emulator -e nano {{file}}")
-                            ),
-                        );
-                    });
-                    let check = if cmd.trim().is_empty() {
-                        Ok(())
-                    } else {
-                        editor::build(cmd, std::path::Path::new("/tmp/x")).map(|_| ())
-                    };
-                    if let Err(e) = &check {
-                        dialog::warn(ui, rolid_i18n::t(e), true);
-                    }
-                    let b = dialog::buttons(ui, [dialog::btn(Role::Save, tr!("Save")).default(true).enabled(check.is_ok()), dialog::cancel()]);
-                    if b[0] {
-                        let c = cmd.trim().to_string();
-                        act = Some(Box::new(move |a: &mut App| {
-                            a.settings.editor_command = (!c.is_empty()).then_some(c);
-                            a.save_settings();
-                        }));
-                        done = true;
-                    } else if b[1] || esc {
                         done = true;
                     }
                 });

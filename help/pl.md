@@ -22,6 +22,11 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
   karcie oferuje Duplikuj, Zmień nazwę, Kolor, Zamknij i Zamknij pozostałe karty; dwuklik zmienia nazwę.
   Dymek nad kartą pokazuje serwer, adres i ścieżkę. **Ctrl+K** znajduje kartę lub zapisany serwer po
   nazwie.
+- Menu kontekstowe z klawiatury: **Shift+F10** lub klawisz **Menu** otwiera menu elementu pod kursorem
+  (na `..` lub w pustym folderze menu folderu), **Ctrl+Shift+F10** lub **Ctrl+Menu** menu aktywnej
+  karty. **↑ ↓** przechodzą, **→** otwiera podmenu (w Zmień kolor kolory przechodzi się **↓** lub
+  **Tab**), **Enter** wybiera, **Esc** zamyka. Oba są też na pasku menu: **Plik → Menu kontekstowe
+  elementu…** i **Ustawienia → Menu karty…**.
 - **Ctrl+D** dodaje folder do ulubionych albo go z nich usuwa. Ulubione i ostatnie foldery są w menu
   przycisku ★ paska (`*`, gdy pasek jest ukryty); **Plik → Ulubione foldery…** pozwala je nazwać i
   uporządkować.
@@ -152,6 +157,9 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
 
 - **Ctrl+O** otwiera menedżer serwerów. Wpisz serwer jako `host` lub `user@host:port`, zapisz go
   jako profil z nazwą i kolorem karty i połącz się klawiszem **Enter**.
+- **Duplikuj…** pod listą zapisanych serwerów tworzy kopię ze wszystkimi ustawieniami pod nową nazwą
+  („Web (kopia)”). Gdy serwer ma zapisane hasło, wybierasz, czy też ma zostać skopiowane (potrzebne
+  jest do tego hasło główne); domyślnie nie. Niezapisane zmiany w formularzu nie są kopiowane.
 - Oznacz serwer jako **serwer produkcyjny**: jego karty mają czerwony nagłówek, a niebezpieczne
   działania wymagają dodatkowego potwierdzenia (usuwania nie można potwierdzić klawiszem Enter).
 - Na serwerze produkcyjnym również kopiowania, wysyłania, przenoszenia i tworzenia folderu nie da
@@ -189,6 +197,11 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
   są zablokowane, najpierw pyta o hasło główne, w przeciwnym razie ssh pyta samo. Przy serwerze
   produkcyjnym najpierw pyta o potwierdzenie. Hasło nigdy nie trafia do wiersza poleceń, pliku ani
   dziennika.
+- Po połączeniu program pyta serwer o jego czas (`date -u +%s`, tylko tam, gdzie serwer ma powłokę,
+  najwyżej 5 sekund). Gdy zegar serwera różni się o więcej niż minutę, wiersz na dole mówi o tym raz,
+  pokazuje to dymek karty, a okna kopiowania i przenoszenia ostrzegają pod „Nadpisz tylko starsze”:
+  pliki zmienione na tym serwerze mają czasy przesunięte o tyle samo. Ostrzeżenie można wyłączyć w
+  **Ustawienia → Połączenia z serwerami**.
 - **Ctrl+L** przełącza aktywny panel z powrotem na dysk lokalny.
 
 ## Podgląd plików (F3)
@@ -285,9 +298,17 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
 
 ## Ustawienia
 
-- **Ustawienia → Ustawienia…** zawiera język, format daty, czcionkę (wbudowaną lub systemową),
-  rozmiar tekstu, hinting i kontrast, pasek narzędzi, kolory typów plików, miniatury i limity
-  archiwów.
+- **Ustawienia → Ustawienia…** (**Ctrl+,**) otwiera ustawienia we własnym oknie. Po lewej jest drzewo
+  sekcji: Wygląd (język i daty, czcionka, panele, kolory wg typu pliku, miniatury), Pliki (kopiowanie
+  i przenoszenie, archiwa), Narzędzia (podgląd, edytor zewnętrzny) oraz Serwery i bezpieczeństwo
+  (połączenia z serwerami, zapisane hasła).
+- Pole na górze (**Ctrl+F**) znajduje ustawienie we wszystkich sekcjach naraz, po angielsku lub w
+  języku okna, ze znakami diakrytycznymi lub bez; **Esc** czyści pole.
+- **Zapisz** zapisuje i zamyka okno, **Zastosuj** zapisuje i zostawia je otwarte, **Anuluj** lub
+  zamknięcie okna odrzuca zmiany. Zapis zmienia tylko to, co zmieniłeś w oknie: to, co w międzyczasie
+  zmieniło się w menu lub w innym oknie programu, zostaje. Menu zachowują szybkie pozycje (limit
+  prędkości, wybór przy konflikcie, automatyczne odświeżanie, edytor zewnętrzny); to te same
+  ustawienia.
 - Język domyślnie jest zgodny z systemem (`LC_ALL`, `LC_MESSAGES`, `LANG`). Można go wybrać
   w Ustawieniach i zmienia się od razu. Własne tłumaczenie `~/.config/rolidscp/lang/<language>.po`
   jest używane zamiast wbudowanego.

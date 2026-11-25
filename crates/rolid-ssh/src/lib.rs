@@ -16,6 +16,7 @@ use russh_sftp::protocol::{FileAttributes, OpenFlags};
 use tokio::io::AsyncSeekExt;
 
 pub mod auth;
+pub mod clock;
 pub mod link;
 mod upload;
 pub use auth::{KbdPrompter, KbdRequest};

@@ -21,6 +21,11 @@ and whether it is selected), the buttons and dialogs their names.
   type to filter it. **Ctrl+W** closes the tab, **Ctrl+Tab** switches tabs. A right click on a tab
   offers Duplicate, Rename, Color, Close and Close other tabs; a double click renames it. Hover over a
   tab to see its server, address and path. **Ctrl+K** finds a tab or a saved server by name.
+- Context menus by keyboard: **Shift+F10** or the **Menu** key opens the menu of the item under the
+  cursor (on `..` or in an empty folder the menu of the folder), **Ctrl+Shift+F10** or **Ctrl+Menu**
+  the menu of the active tab. **↑ ↓** move, **→** opens a submenu (in Change color **↓** or **Tab**
+  goes through the colors), **Enter** picks, **Esc** closes. Both are also in the menu bar: **File →
+  Context menu of the item…** and **Settings → Tab menu…**.
 - **Ctrl+D** adds the folder to the favorites or removes it. The favorites and the recent folders are
   under the ★ button of the bar (`*` when the bar is hidden); **File → Favorite folders…** renames and
   orders them.
@@ -145,6 +150,9 @@ and whether it is selected), the buttons and dialogs their names.
 
 - **Ctrl+O** opens the server manager. Enter the server as `host` or `user@host:port`, save it as a
   profile with a name and a tab color, and connect with **Enter**.
+- **Duplicate…** under the list of saved servers makes a copy with all its settings under a new name
+  ("Web (copy)"). When the server has a saved password, you choose whether it is copied too (that
+  needs the master password); by default it is not. Unsaved changes in the form are not copied.
 - Mark a server as a **production server**: its tabs get a red header, and dangerous actions ask
   once more (deleting cannot be confirmed with Enter).
 - On a production server copying, uploading, moving and creating a folder cannot be confirmed with
@@ -179,6 +187,11 @@ and whether it is selected), the buttons and dialogs their names.
   that answers only the password question of that server, once; with locked passwords you are
   asked for the master password first, otherwise ssh asks itself. Production servers ask before
   the terminal opens. The password never goes into a command line, a file or the log.
+- After connecting, the program asks the server for its time (`date -u +%s`, only where the server
+  has a shell, at most 5 seconds). When the server's clock is off by more than a minute, the line at
+  the bottom says so once, the tab's tooltip shows it, and the copy and move dialogs warn under
+  "Overwrite only older": files changed on that server have times that are off by as much. The
+  warning can be turned off in **Settings → Server connections**.
 - **Ctrl+L** switches the active panel back to the local disk.
 
 ## Viewing files (F3)
@@ -272,9 +285,17 @@ and whether it is selected), the buttons and dialogs their names.
 
 ## Settings
 
-- **Settings → Settings…** holds the language, the date format, the font (built-in or from the
-  system), text size, hinting and contrast, the toolbar, file type colors, thumbnails and archive
-  limits.
+- **Settings → Settings…** (**Ctrl+,**) opens the settings in a window of their own. On the left is a
+  tree of sections: Appearance (language and dates, font, panels, colors by file type, thumbnails),
+  Files (copying and moving, archives), Tools (viewer, external editor) and Servers and security
+  (server connections, saved passwords).
+- Type into the field at the top (**Ctrl+F**) to find a setting in all the sections at once, in
+  English or in the language of the window, with or without accents; **Esc** clears the field.
+- **Save** saves and closes the window, **Apply** saves and keeps it open, **Cancel** or closing the
+  window throws the changes away. Saving changes only what you changed in the window: what was
+  changed meanwhile in the menus or in another window of the program stays. The menus keep their
+  quick items (speed limit, conflict choices, automatic refresh, external editor); they are the
+  same settings.
 - The language follows the system by default (`LC_ALL`, `LC_MESSAGES`, `LANG`). It can be chosen in
   Settings and changes at once. Your own translation `~/.config/rolidscp/lang/<language>.po` is used
   instead of the built-in one.

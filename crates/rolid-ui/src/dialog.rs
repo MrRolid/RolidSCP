@@ -200,6 +200,35 @@ impl Window {
     }
 }
 
+/// Run `f` as if inside a dialog `w` points wide (for [`buttons`] in a
+/// window of its own).
+pub fn with_width<R>(w: f32, f: impl FnOnce() -> R) -> R {
+    let w0 = WIDTH.replace(w);
+    let r = f();
+    WIDTH.set(w0);
+    r
+}
+
+/// The context menu of `resp` (opened by a right click), which the
+/// keyboard can open too: `kb` = open it now at that position (a menu
+/// opened by a key has no pointer position to appear at).
+pub fn context_popup(resp: &egui::Response, kb: Option<egui::Pos2>) -> egui::Popup<'_> {
+    let ctx = &resp.ctx;
+    let id = egui::Popup::default_response_id(resp);
+    let at = id.with("kb-pos");
+    if let Some(pos) = kb {
+        ctx.data_mut(|d| d.insert_temp(at, pos));
+        egui::Popup::open_id(ctx, id);
+    }
+    let p = egui::Popup::context_menu(resp);
+    if egui::Popup::is_id_open(ctx, id) && egui::Popup::position_of_id(ctx, id).is_none() {
+        if let Some(pos) = ctx.data(|d| d.get_temp::<egui::Pos2>(at)) {
+            return p.at_position(pos);
+        }
+    }
+    p
+}
+
 /// Width of the content of the dialog being drawn.
 pub fn width() -> f32 {
     WIDTH.get()

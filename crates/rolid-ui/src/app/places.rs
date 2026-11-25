@@ -745,13 +745,26 @@ impl App {
         if r.production {
             lines.push(tr!("Production server"));
         }
+        if let Some(o) = self.clock_off(&r.target.key()) {
+            let diff = super::link_ui::clock_diff(o.secs.unsigned_abs());
+            lines.push(if o.secs > 0 {
+                tr!("⚠ The server's clock is {diff} ahead", diff = diff)
+            } else {
+                tr!("⚠ The server's clock is {diff} behind", diff = diff)
+            });
+        }
         format!("{}\n\n{hint}", lines.join("\n"))
     }
 
     /// The tab menu (right button on a tab). Returns the action chosen.
-    pub(super) fn tab_menu(ui: &mut egui::Ui, side: usize, idx: usize, tab: &mut Tab, renaming: &mut Option<(TabId, String, bool)>) -> Option<Action> {
+    /// `kb`: opened by the keyboard, the first item takes the focus.
+    pub(super) fn tab_menu(ui: &mut egui::Ui, side: usize, idx: usize, tab: &mut Tab, renaming: &mut Option<(TabId, String, bool)>, kb: bool) -> Option<Action> {
         let mut act: Option<Action> = None;
-        if ui.button(tr!("Duplicate tab")).clicked() {
+        let first = ui.button(tr!("Duplicate tab"));
+        if kb {
+            first.request_focus();
+        }
+        if first.clicked() {
             act = Some(Box::new(move |a: &mut App| a.duplicate_tab(side, idx)));
             ui.close();
         }
@@ -786,7 +799,13 @@ fn color_menu(ui: &mut egui::Ui, tab: &mut Tab) {
                 .fill(rgb32(*c))
                 .stroke(if *c == tab.color { Stroke::new(2.0, Color32::BLACK) } else { Stroke::new(1.0, Color32::GRAY) })
                 .min_size(Vec2::new(24.0, 24.0));
-            if ui.add(sw).on_hover_text(rolid_i18n::t_str(name)).clicked() {
+            let r = ui.add(sw).on_hover_text(rolid_i18n::t_str(name));
+            // The keyboard's place among the swatches (they have their own frame).
+            if r.has_focus() {
+                ui.painter().rect_stroke(r.rect.expand(2.0), 3.0, Stroke::new(2.0, ui.visuals().selection.stroke.color), egui::StrokeKind::Outside);
+            }
+            r.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, true, *c == tab.color, rolid_i18n::t_str(name)));
+            if r.clicked() {
                 tab.color = *c;
             }
             if i % 8 == 7 {

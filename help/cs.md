@@ -22,6 +22,11 @@ označená), tlačítka a dialogy své názvy.
   tlačítko na záložce nabídne Duplikovat, Přejmenovat, Barvu, Zavřít a Zavřít ostatní záložky; dvojklik
   ji přejmenuje. Bublina nad záložkou ukáže server, adresu a cestu. **Ctrl+K** najde záložku nebo
   uložený server podle názvu.
+- Kontextová menu z klávesnice: **Shift+F10** nebo klávesa **Menu** otevře menu položky pod kurzorem
+  (na `..` nebo v prázdné složce menu složky), **Ctrl+Shift+F10** nebo **Ctrl+Menu** menu aktivní
+  záložky. **↑ ↓** přechází, **→** otevře podnabídku (ve Změnit barvu se barvami prochází **↓** nebo
+  **Tab**), **Enter** vybere, **Esc** zavře. Obojí je i v liště menu: **Soubor → Kontextové menu
+  položky…** a **Nastavení → Menu záložky…**.
 - **Ctrl+D** přidá složku do oblíbených nebo ji z nich odebere. Oblíbené a poslední složky jsou pod
   tlačítkem ★ lišty (při skryté liště `*`); **Soubor → Oblíbené složky…** je pojmenuje a seřadí.
 - V nabídce **Ctrl+T** (a tlačítka **+** u záložek) jsou oblíbené vždy vidět: **＋ Přidat aktuální
@@ -141,6 +146,9 @@ označená), tlačítka a dialogy své názvy.
 
 - **Ctrl+O** otevře správce serverů. Server zadáte jako `host` nebo `user@host:port`, uložíte ho
   jako profil s názvem a barvou záložky a připojíte se **Enterem**.
+- **Duplikovat…** pod seznamem uložených serverů vytvoří kopii se všemi nastaveními pod novým názvem
+  („Web (kopie)“). Když má server uložené heslo, vybereš, jestli se zkopíruje také (k tomu je potřeba
+  hlavní heslo); standardně ne. Neuložené změny ve formuláři se nekopírují.
 - Server můžete označit jako **produkční**: jeho záložky mají červenou hlavičku a nebezpečné akce se
   ptají ještě jednou (mazání nejde potvrdit Enterem).
 - Na produkčním serveru nejde Enterem potvrdit ani kopírování, nahrávání, přesun a vytvoření složky
@@ -173,6 +181,11 @@ označená), tlačítka a dialogy své názvy.
   odpoví jen na dotaz na heslo k tomuto serveru, a to jednou; jsou-li hesla zamčená, nejdřív se
   zeptá na hlavní heslo, jinak se ssh zeptá samo. U produkčního serveru se před otevřením zeptá.
   Heslo nikdy nejde do příkazové řádky, souboru ani logu.
+- Po připojení se program zeptá serveru na jeho čas (`date -u +%s`, jen tam, kde má server shell,
+  nejvýš 5 sekund). Když se hodiny serveru liší o víc než minutu, řekne to jednou řádek dole, ukáže to
+  bublina záložky a dialogy kopírování a přesunu varují pod „Přepsat jen starší“: soubory změněné na
+  tom serveru mají časy posunuté o stejně. Varování lze vypnout v **Nastavení → Připojení k
+  serverům**.
 - **Ctrl+L** přepne aktivní panel zpět na lokální disk.
 
 ## Prohlížení souborů (F3)
@@ -263,8 +276,16 @@ označená), tlačítka a dialogy své názvy.
 
 ## Nastavení
 
-- **Nastavení → Nastavení…** obsahuje jazyk, formát data, písmo (vestavěné nebo systémové), velikost
-  textu, hinting a kontrast, nástrojovou lištu, barvy typů souborů, miniatury a limity archivů.
+- **Nastavení → Nastavení…** (**Ctrl+,**) otevře nastavení ve vlastním okně. Vlevo je strom oddílů:
+  Vzhled (jazyk a datum, písmo, panely, barvy podle typu souboru, miniatury), Soubory (kopírování a
+  přesun, archivy), Nástroje (prohlížeč, externí editor) a Servery a zabezpečení (připojení k
+  serverům, uložená hesla).
+- Pole nahoře (**Ctrl+F**) najde nastavení ve všech oddílech najednou, anglicky i v jazyce okna, s
+  diakritikou i bez ní; **Esc** pole vymaže.
+- **Uložit** uloží a okno zavře, **Použít** uloží a nechá ho otevřené, **Zrušit** nebo zavření okna
+  změny zahodí. Uložení změní jen to, co jsi změnil v okně: co se mezitím změnilo v menu nebo v jiném
+  okně programu, zůstane. V menu zůstávají rychlé položky (omezení rychlosti, volby při konfliktu,
+  automatické obnovování, externí editor); jde o stejná nastavení.
 - Jazyk se standardně řídí systémem (`LC_ALL`, `LC_MESSAGES`, `LANG`). V Nastavení ho lze vybrat
   a přepne se hned. Vlastní překlad `~/.config/rolidscp/lang/<jazyk>.po` se použije místo
   vestavěného.

@@ -100,12 +100,17 @@ pub struct Pane {
     /// Showing search results instead of a directory listing.
     pub search: Option<SearchView>,
     scroll_offset: f32,
-    scroll_to_cursor: bool,
+    pub scroll_to_cursor: bool,
     viewport_h: f32,
     /// Screen readers (only while one is on): the list as a focusable node
     /// whose active row is the cursor row (see `App::handle_keys`).
     pub a11y_list: Option<egui::Id>,
     a11y_cursor: Option<egui::Id>,
+    /// Shift+F10 / the Menu key: open the context menu of the cursor row
+    /// within this many frames (it may first have to be scrolled to).
+    pub menu_request: u8,
+    /// ... and when the cursor row did not show up: the folder's own menu.
+    menu_bg: bool,
     /// Folder rows on screen in the last frame (for dropping files onto them).
     pub drop_dirs: Vec<(Rect, String)>,
     /// Listing style of this tab.
@@ -361,6 +366,8 @@ impl Pane {
             scroll_to_cursor: true,
             a11y_list: None,
             a11y_cursor: None,
+            menu_request: 0,
+            menu_bg: false,
             viewport_h: 400.0,
             drop_dirs: Vec::new(),
             style: ViewStyle::Full,
@@ -1725,11 +1732,22 @@ impl Pane {
         self.a11y_list = ui.ctx().accesskit_node_builder(list.id, |_| ()).map(|()| list.id);
         self.a11y_cursor = None;
         let bg = ui.interact(list_rect, ui.scope_id().with("list-bg"), Sense::click());
-        self.folder_menu(&bg, &mut events);
+        let bg_kb = std::mem::take(&mut self.menu_bg).then(|| list_rect.left_top() + Vec2::new(24.0, 24.0));
+        self.folder_menu(&bg, &mut events, bg_kb);
         match self.style {
             ViewStyle::Full => self.show_full(ui, list_rect, &colors, &mut events, &mut drop_dirs),
             ViewStyle::Brief => self.show_brief(ui, list_rect, &colors, &mut events, &mut drop_dirs),
             ViewStyle::Thumbs => self.show_thumbs(ui, list_rect, &colors, view, &mut events, &mut drop_dirs),
+        }
+        if self.menu_request > 0 {
+            // The cursor row was not drawn (being scrolled to, or no rows):
+            // try again in the next frame, at last the folder's menu.
+            self.menu_request -= 1;
+            if self.menu_request == 0 || self.view.is_empty() {
+                self.menu_request = 0;
+                self.menu_bg = true;
+            }
+            ui.ctx().request_repaint();
         }
         if let (Some(list), Some(row)) = (self.a11y_list, self.a11y_cursor) {
             ui.ctx().accesskit_node_builder(list, |n| n.set_active_descendant(row.accesskit_id()));
