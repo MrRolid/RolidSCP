@@ -329,12 +329,17 @@ impl App {
     /// "Upload" for a crash leftover: continue it as a normal edit on its server
     /// (conflict check and production confirmation as usual).
     fn adopt_orphan(&mut self, o: Orphan) {
-        let target = RemoteTarget {
-            profile: o.meta.profile.clone(),
-            host: o.meta.host.clone(),
-            port: o.meta.port,
-            user: o.meta.user.clone(),
-            key_path: o.meta.key_path.clone(),
+        // The route of a saved server comes from its profile (the journal has no jump hosts).
+        let target = match o.meta.profile.as_deref().and_then(|id| self.profiles.get(id)) {
+            Some(p) if p.host == o.meta.host && p.port == o.meta.port && p.user == o.meta.user => self.profiles.target(p),
+            _ => RemoteTarget {
+                profile: o.meta.profile.clone(),
+                host: o.meta.host.clone(),
+                port: o.meta.port,
+                user: o.meta.user.clone(),
+                key_path: o.meta.key_path.clone(),
+                jump: None,
+            },
         };
         let key = target.key();
         let connected = self

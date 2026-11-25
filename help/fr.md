@@ -212,6 +212,14 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
 - Sur un serveur de production, la copie, l’envoi, le déplacement et la création d’un dossier ne se
   confirment pas non plus avec Entrée, et la copie ne commence jamais par Écraser (Ignorer les
   existants est présélectionné).
+- **Se connecter via** un autre serveur enregistré (un serveur de rebond, ProxyJump dans OpenSSH) :
+  le programme se connecte d'abord à ce serveur, avec sa propre clé ou son mot de passe enregistré,
+  puis de là au serveur cible. L'adresse du serveur cible est alors celle que voit le serveur de
+  rebond, par exemple une adresse de son réseau local. Les clés des deux serveurs sont vérifiées, et
+  une question sur une clé inconnue indique duquel il s'agit. Un serveur de rebond peut lui-même en
+  avoir un (au plus quatre à la suite). Après une coupure, la connexion est rétablie par le même
+  chemin, et le terminal (**Ctrl+P**) passe aussi par là. Un serveur enregistré par lequel passent
+  d'autres serveurs ne peut pas être supprimé tant qu'ils n'ont pas un autre chemin.
 - La clé du serveur est vérifiée dans deux listes : la liste des serveurs connus propre au
   programme (`~/.config/rolidscp/known_hosts`) et `~/.ssh/known_hosts`, que le programme lit seulement
   et ne modifie jamais. Une nouvelle clé n'est ajoutée à la liste du programme qu'après confirmation

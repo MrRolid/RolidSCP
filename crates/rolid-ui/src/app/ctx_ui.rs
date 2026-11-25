@@ -672,7 +672,7 @@ mod tests {
     }
 
     fn target(host: &str) -> RemoteTarget {
-        RemoteTarget { profile: Some("p".into()), host: host.into(), port: 2222, user: "jan novák".into(), key_path: None }
+        RemoteTarget { profile: Some("p".into()), host: host.into(), port: 2222, user: "jan novák".into(), key_path: None, jump: None }
     }
 
     #[test]

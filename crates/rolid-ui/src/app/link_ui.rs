@@ -27,6 +27,8 @@ pub struct LinkEntry {
     seen_gen: u64,
     /// Saved password for reconnecting (only while the vault is unlocked).
     password: Arc<Mutex<Option<Zeroizing<String>>>>,
+    /// The same for the jump hosts, the nearest to the server first.
+    hops: Arc<Mutex<Vec<Option<Zeroizing<String>>>>>,
     /// The server's clock against this computer's (read after connecting).
     pub clock: Option<rolid_ssh::clock::ClockOffset>,
     /// The line at the bottom already said that the clock is off.
@@ -50,6 +52,10 @@ impl LinksState {
         let mut n = 0;
         for e in self.map.values() {
             if let Some(mut p) = e.password.lock().unwrap().take() {
+                crate::secret::wipe(&mut p);
+                n += 1;
+            }
+            for mut p in e.hops.lock().unwrap().drain(..).flatten() {
                 crate::secret::wipe(&mut p);
                 n += 1;
             }
@@ -109,7 +115,7 @@ impl App {
                 let seen_gen = link.generation();
                 self.links.map.insert(
                     key,
-                    LinkEntry { link: link.clone(), target: target.clone(), seen_gen, password: Arc::default(), clock: None, clock_warned: false },
+                    LinkEntry { link: link.clone(), target: target.clone(), seen_gen, password: Arc::default(), hops: Arc::default(), clock: None, clock_warned: false },
                 );
                 link
             }
@@ -182,7 +188,7 @@ impl App {
     /// Run the reconnection loop for `key` on the runtime.
     fn start_reconnect(&mut self, key: &str) {
         let Some(e) = self.links.map.get(key) else { return };
-        let (link, target, slot) = (e.link.clone(), e.target.clone(), e.password.clone());
+        let (link, target, slot, hops) = (e.link.clone(), e.target.clone(), e.password.clone(), e.hops.clone());
         let prof = target.profile.as_ref().and_then(|id| self.profiles.get(id)).cloned();
         let needs_vault = prof.as_ref().is_some_and(|p| p.save_password && p.password_in_vault());
         let keyring = prof.as_ref().is_some_and(|p| p.save_password && p.password_in_keyring());
@@ -191,11 +197,27 @@ impl App {
                 *slot.lock().unwrap() = Some(pw);
             }
         }
+        let (hop_pw, hop_needs) = self.hop_passwords(&target);
+        *hops.lock().unwrap() = hop_pw;
         tracing::info!("reconnecting {key}");
         self.rt.spawn(drive_reconnect(link, move |_attempt| {
-            let (target, slot) = (target.clone(), slot.clone());
-            async move { reconnect_once(target, slot, needs_vault, keyring).await }
+            let (target, slot, hops, hop_needs) = (target.clone(), slot.clone(), hops.clone(), hop_needs.clone());
+            async move { reconnect_once(target, slot, needs_vault, keyring, hops, hop_needs).await }
         }));
+    }
+
+    /// The saved passwords of the jump hosts of `target` (nearest first) and
+    /// which of them need the vault. A locked vault gives `None`.
+    pub(super) fn hop_passwords(&self, target: &RemoteTarget) -> (Vec<Option<Zeroizing<String>>>, Vec<bool>) {
+        target
+            .jumps()
+            .iter()
+            .map(|j| {
+                let p = j.profile.as_deref().and_then(|id| self.profiles.get(id));
+                let needs = p.is_some_and(|p| p.password_in_vault());
+                (p.filter(|_| needs).and_then(|p| self.vault_password(&p.id)), needs)
+            })
+            .unzip()
     }
 
     /// The connection is back: reload panels (keeping cursor, marks and scroll
@@ -438,6 +460,8 @@ async fn reconnect_once(
     slot: Arc<Mutex<Option<Zeroizing<String>>>>,
     needs_vault: bool,
     keyring: bool,
+    hops: Arc<Mutex<Vec<Option<Zeroizing<String>>>>>,
+    hop_needs: Vec<bool>,
 ) -> Attempt {
     let mut password = slot.lock().unwrap().clone();
     if password.is_none() && keyring {
@@ -448,27 +472,18 @@ async fn reconnect_once(
         }
     }
     let locked = needs_vault && password.is_none();
+    let hop_pw = hops.lock().unwrap().clone();
+    let hop_locked = hop_needs.iter().enumerate().any(|(i, n)| *n && hop_pw.get(i).is_none_or(|p| p.is_none()));
     let asked = Arc::new(AtomicBool::new(false));
-    let params = ConnectParams {
-        host: target.host.clone(),
-        port: target.port,
-        user: target.user.clone(),
-        password: password.as_ref().map(|p| p.to_string()),
-        key_path: target.key_path.clone().map(Into::into),
-        prompter: Some(Arc::new(NoPrompt { asked: asked.clone() })),
-        known_hosts: Some(crate::terminal::own_known_hosts()),
-        known_hosts_read: crate::terminal::ssh_known_hosts().into_iter().collect(),
-        ..Default::default()
-    };
+    let mut params = params_for(&target, password.as_deref().map(|p| p.as_str()), None, None, &hop_pw, Some(Arc::new(NoPrompt { asked: asked.clone() })));
+    drop(hop_pw);
     let r = SshConnection::connect(&params).await;
-    let ConnectParams { password: mut pw, .. } = params;
-    {
-        use zeroize::Zeroize;
-        pw.zeroize();
-    }
+    params.wipe();
     match r {
         Ok(c) => Attempt::Connected(c),
         Err(SshError::AuthFailed(m)) if locked => Attempt::NeedsUser(NeedUser::Unlock, m),
+        Err(e @ SshError::JumpAuthFailed { .. }) if hop_locked => Attempt::NeedsUser(NeedUser::Unlock, e.text()),
+        Err(e @ SshError::JumpAuthFailed { .. }) => Attempt::NeedsUser(NeedUser::Credentials, e.text()),
         Err(SshError::AuthFailed(m)) => {
             let m = if asked.load(Ordering::SeqCst) {
                 rolid_i18n::rolid_text::txt!("{error} (the server asks for more information)", error = m)
@@ -487,6 +502,42 @@ async fn reconnect_once(
         }
         Err(SshError::Other(m)) => Attempt::Retry(m),
     }
+}
+
+/// Connection parameters for `target` and its jump hosts. `hops[i]` is the
+/// password of the i-th jump host, the nearest to the server first.
+/// `accept`: a server key the user trusted, for the server (of the route)
+/// with that address and port.
+pub(super) fn params_for(
+    target: &RemoteTarget,
+    password: Option<&str>,
+    passphrase: Option<&str>,
+    accept: Option<&(String, u16, String)>,
+    hops: &[Option<Zeroizing<String>>],
+    prompter: Option<Arc<dyn rolid_ssh::KbdPrompter>>,
+) -> ConnectParams {
+    let one = |t: &RemoteTarget, pw: Option<&str>| ConnectParams {
+        host: t.host.clone(),
+        port: t.port,
+        user: t.user.clone(),
+        password: pw.map(Into::into),
+        key_path: t.key_path.clone().map(Into::into),
+        accept_fingerprint: accept.filter(|(h, p, _)| *h == t.host && *p == t.port).map(|a| a.2.clone()),
+        known_hosts: Some(crate::terminal::own_known_hosts()),
+        known_hosts_read: crate::terminal::ssh_known_hosts().into_iter().collect(),
+        prompter: prompter.clone(),
+        ..Default::default()
+    };
+    let mut p = one(target, password);
+    p.key_passphrase = passphrase.map(Into::into);
+    let mut via: Option<Box<ConnectParams>> = None;
+    for (i, j) in target.jumps().iter().enumerate().rev() {
+        let mut jp = one(j, hops.get(i).and_then(|x| x.as_deref()).map(|s| s.as_str()));
+        jp.via = via.take();
+        via = Some(Box::new(jp));
+    }
+    p.via = via;
+    p
 }
 
 /// How far a clock is off, in words: "5 min 12 s", "2 h 3 min", "3 days".
@@ -535,13 +586,13 @@ mod tests {
     #[test]
     fn locking_wipes_the_reconnect_passwords() {
         let mut st = LinksState::default();
-        let target = RemoteTarget { profile: Some("p".into()), host: "h".into(), port: 22, user: "u".into(), key_path: None };
+        let target = RemoteTarget { profile: Some("p".into()), host: "h".into(), port: 22, user: "u".into(), key_path: None, jump: None };
         for (key, pw) in [("a", Some("secret")), ("b", None)] {
             let slot = Arc::new(Mutex::new(pw.map(|p| Zeroizing::new(p.to_string()))));
-            st.map.insert(key.into(), LinkEntry { link: Link::new_lost(key, "lost"), target: target.clone(), seen_gen: 0, password: slot, clock: None, clock_warned: false });
+            st.map.insert(key.into(), LinkEntry { link: Link::new_lost(key, "lost"), target: target.clone(), seen_gen: 0, password: slot, hops: Arc::new(Mutex::new(vec![Some(Zeroizing::new("hop".into())), None])), clock: None, clock_warned: false });
         }
-        assert_eq!(st.wipe_passwords(), 1);
-        assert!(st.map.values().all(|e| e.password.lock().unwrap().is_none()));
+        assert_eq!(st.wipe_passwords(), 3);
+        assert!(st.map.values().all(|e| e.password.lock().unwrap().is_none() && e.hops.lock().unwrap().is_empty()));
         assert_eq!(st.wipe_passwords(), 0);
     }
 }

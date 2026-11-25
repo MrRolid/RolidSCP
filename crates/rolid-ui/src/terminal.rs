@@ -112,6 +112,47 @@ pub struct SshTarget {
     pub key: Option<String>,
     /// The folder to start in.
     pub path: String,
+    /// The jump hosts, the nearest to the server first.
+    pub jumps: Vec<SshHop>,
+}
+
+/// A jump host on the way to the server.
+#[derive(Clone, Debug)]
+pub struct SshHop {
+    pub host: String,
+    pub port: u16,
+    pub user: String,
+    pub key: Option<String>,
+}
+
+/// `host:port` for `ssh -W` (an IPv6 address in brackets).
+fn host_port(host: &str, port: u16) -> String {
+    if host.contains(':') {
+        format!("[{host}]:{port}")
+    } else {
+        format!("{host}:{port}")
+    }
+}
+
+/// The `ProxyCommand` that reaches `dest` through `hops[0]` (which is itself
+/// reached through `hops[1..]`): `ssh -W` with the same strict key check.
+/// ssh runs it with `sh -c` and expands `%` in it first, so the words are
+/// quoted for sh and every `%` is doubled (once more for each level).
+fn proxy_command(hops: &[SshHop], dest: (&str, u16), known_hosts: &[PathBuf]) -> String {
+    let j = &hops[0];
+    let mut argv: Vec<String> = vec!["ssh".into(), "-p".into(), j.port.to_string(), "-l".into(), j.user.clone()];
+    argv.extend(["-o".into(), "StrictHostKeyChecking=yes".into()]);
+    argv.extend(["-o".into(), known_hosts_option(known_hosts)]);
+    argv.extend(["-o".into(), "GlobalKnownHostsFile=/dev/null".into()]);
+    if let Some(k) = &j.key {
+        argv.extend(["-i".into(), k.clone()]);
+    }
+    if hops.len() > 1 {
+        argv.extend(["-o".into(), format!("ProxyCommand={}", proxy_command(&hops[1..], (&j.host, j.port), known_hosts))]);
+    }
+    argv.extend(["-W".into(), host_port(dest.0, dest.1), "--".into(), j.host.clone()]);
+    let line: Vec<String> = argv.iter().map(|a| rolid_search::remote::sh_quote(a)).collect();
+    line.join(" ").replace('%', "%%")
 }
 
 /// OpenSSH's list of known servers: read, never written by the program.
@@ -163,6 +204,9 @@ pub fn ssh_command(t: &SshTarget, known_hosts: &[PathBuf], askpass: Option<(&Pat
     if let Some(k) = &t.key {
         c.extend(["-i".into(), k.clone()]);
     }
+    if !t.jumps.is_empty() {
+        c.extend(["-o".into(), format!("ProxyCommand={}", proxy_command(&t.jumps, (&t.host, t.port), known_hosts))]);
+    }
     c.push("--".into());
     c.push(t.host.clone());
     // Run by the user's login shell (sh, bash, fish, csh…): only plain quoting.
@@ -170,6 +214,10 @@ pub fn ssh_command(t: &SshTarget, known_hosts: &[PathBuf], askpass: Option<(&Pat
     c.push(format!("exec sh -c 'cd \"$1\" 2>/dev/null; exec \"${{SHELL:-/bin/sh}}\" -l' sh {q}"));
     c
 }
+
+#[cfg(test)]
+#[path = "../../rolid-ssh/tests/sshd/mod.rs"]
+mod sshd_for_tests;
 
 // ------------------------------------------------------------ the password question
 
@@ -201,9 +249,18 @@ fn random_hex(bytes: usize) -> std::io::Result<String> {
     Ok(b.iter().map(|x| format!("{x:02x}")).collect())
 }
 
-/// Offer `password` for the password question of `user`@`host`: once, for
-/// [`OFFER_FOR`]; then the socket and its folder are removed.
-pub fn offer(user: &str, host: &str, password: Zeroizing<String>) -> std::io::Result<Offer> {
+/// A password offered for the password question of `user`@`host`.
+pub struct Answer {
+    pub user: String,
+    pub host: String,
+    pub password: Zeroizing<String>,
+}
+
+/// Offer passwords for the password questions of their servers (the server
+/// and its jump hosts): each once, for [`OFFER_FOR`]; then the socket and its
+/// folder are removed. A question the program has no password for is asked
+/// in the terminal by the helper itself.
+pub fn offer(answers: Vec<Answer>) -> std::io::Result<Offer> {
     use std::os::unix::fs::DirBuilderExt;
     // A socket path has at most 107 bytes: a long $XDG_RUNTIME_DIR falls back
     // to the temporary folder (the private folder is 0700 there too).
@@ -221,9 +278,9 @@ pub fn offer(user: &str, host: &str, password: Zeroizing<String>) -> std::io::Re
     };
     listener.set_nonblocking(true)?;
     let token = random_hex(32)?;
-    let (user, host, tok) = (user.to_string(), host.to_string(), token.clone());
+    let tok = token.clone();
     std::thread::Builder::new().name("rolid-askpass".into()).spawn(move || {
-        serve(&listener, &tok, &user, &host, &password, Instant::now() + OFFER_FOR);
+        serve(&listener, &tok, answers, Instant::now() + OFFER_FOR);
         drop(listener);
         let _ = std::fs::remove_file(dir.join("s"));
         let _ = std::fs::remove_dir(&dir);
@@ -231,12 +288,12 @@ pub fn offer(user: &str, host: &str, password: Zeroizing<String>) -> std::io::Re
     Ok(Offer { socket, token })
 }
 
-fn serve(listener: &UnixListener, token: &str, user: &str, host: &str, password: &Zeroizing<String>, until: Instant) {
-    while Instant::now() < until {
+fn serve(listener: &UnixListener, token: &str, mut answers: Vec<Answer>, until: Instant) {
+    while Instant::now() < until && !answers.is_empty() {
         match listener.accept() {
             Ok((s, _)) => {
-                if answer(s, token, user, host, password) {
-                    return; // answered once: no more
+                if let Some(i) = answer(s, token, &answers) {
+                    answers.remove(i); // answered once: no more
                 }
             }
             Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => std::thread::sleep(Duration::from_millis(50)),
@@ -245,8 +302,8 @@ fn serve(listener: &UnixListener, token: &str, user: &str, host: &str, password:
     }
 }
 
-/// One question from the helper; `true` when the password was given.
-fn answer(mut s: UnixStream, token: &str, user: &str, host: &str, password: &Zeroizing<String>) -> bool {
+/// One question from the helper; which answer was given.
+fn answer(mut s: UnixStream, token: &str, answers: &[Answer]) -> Option<usize> {
     let _ = s.set_nonblocking(false);
     let _ = s.set_read_timeout(Some(Duration::from_secs(2)));
     // Only a process of this user.
@@ -255,16 +312,21 @@ fn answer(mut s: UnixStream, token: &str, user: &str, host: &str, password: &Zer
     let _ = (&mut s).take(8192).read_to_end(&mut buf);
     let text = String::from_utf8_lossy(&buf);
     let (got_token, prompt) = text.split_once('\n').unwrap_or((&text, ""));
-    let ok = same_user && constant_eq(got_token.as_bytes(), token.as_bytes()) && is_password_prompt(prompt, user, host);
-    if ok {
-        let mut reply = Zeroizing::new(Vec::with_capacity(password.len() + 1));
-        reply.push(b'P');
-        reply.extend_from_slice(password.as_bytes());
-        let _ = s.write_all(&reply);
-    } else {
-        let _ = s.write_all(b"N");
+    let ok = same_user && constant_eq(got_token.as_bytes(), token.as_bytes());
+    let found = answers.iter().position(|a| ok && is_password_prompt(prompt, &a.user, &a.host));
+    match found {
+        Some(i) => {
+            let password = &answers[i].password;
+            let mut reply = Zeroizing::new(Vec::with_capacity(password.len() + 1));
+            reply.push(b'P');
+            reply.extend_from_slice(password.as_bytes());
+            let _ = s.write_all(&reply);
+        }
+        None => {
+            let _ = s.write_all(b"N");
+        }
     }
-    ok
+    found
 }
 
 fn constant_eq(a: &[u8], b: &[u8]) -> bool {
@@ -367,8 +429,86 @@ mod tests {
     }
 
     #[test]
+    fn the_proxy_command_quotes_for_sh_and_doubles_percent() {
+        let hop = |h: &str, p: u16, k: Option<&str>| SshHop { host: h.into(), port: p, user: "it's me".into(), key: k.map(Into::into) };
+        let kh = [PathBuf::from("/c/50%/kh")];
+        let one = proxy_command(&[hop("jump.example", 2200, Some("/k/my key"))], ("10.0.0.5", 22), &kh);
+        assert_eq!(
+            one,
+            r#"'ssh' '-p' '2200' '-l' 'it'\''s me' '-o' 'StrictHostKeyChecking=yes' '-o' 'UserKnownHostsFile="/c/50%%%%/kh"' '-o' 'GlobalKnownHostsFile=/dev/null' '-i' '/k/my key' '-W' '10.0.0.5:22' '--' 'jump.example'"#
+        );
+        let two = proxy_command(&[hop("inner", 22, None), hop("outer", 22, None)], ("fe80::1", 2222), &kh);
+        assert!(two.contains("'-W' '[fe80::1]:2222' '--' 'inner'"), "{two}");
+        // The inner command is quoted inside the outer one, its % doubled twice.
+        assert!(two.contains("ProxyCommand="), "{two}");
+        assert!(two.contains("%%%%%%%%"), "{two}");
+    }
+
+    /// The command is run for real: two and three OpenSSH servers on this
+    /// computer, the server reached through one and two jump hosts, with the
+    /// lists of known servers in a folder whose name has a space and a `%`.
+    #[test]
+    fn ssh_goes_through_the_jump_hosts() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let _g = rt.enter();
+        let (Some(a), Some(b), Some(c)) = (
+            sshd_for_tests::Sshd::start("term-a"),
+            sshd_for_tests::Sshd::start("term-b"),
+            sshd_for_tests::Sshd::start("term-c"),
+        ) else {
+            return;
+        };
+        if find_program("ssh").is_none() {
+            eprintln!("SKIP: no ssh");
+            return;
+        }
+        let dir = b.dir.join("lists 50%");
+        std::fs::create_dir_all(&dir).unwrap();
+        let kh = dir.join("known_hosts");
+        let text: String = [&a, &b, &c].iter().map(|s| std::fs::read_to_string(&s.known_hosts).unwrap()).collect();
+        std::fs::write(&kh, text).unwrap();
+        let hop = |s: &sshd_for_tests::Sshd| SshHop {
+            host: "127.0.0.1".into(),
+            port: s.port,
+            user: s.user.clone(),
+            key: Some(s.client_key.display().to_string()),
+        };
+        for jumps in [vec![hop(&b)], vec![hop(&b), hop(&c)]] {
+            let t = SshTarget {
+                host: "127.0.0.1".into(),
+                port: a.port,
+                user: a.user.clone(),
+                key: Some(a.client_key.display().to_string()),
+                path: "/".into(),
+                jumps,
+            };
+            let mut cmd = ssh_command(&t, std::slice::from_ref(&kh), None);
+            // Instead of the login shell: say where we are.
+            *cmd.last_mut().unwrap() = "echo arrived-$((40+2))".into();
+            cmd.retain(|x| x != "-t");
+            let out = std::process::Command::new(&cmd[0])
+                .args(&cmd[1..])
+                .env("SSH_AUTH_SOCK", "")
+                .stdin(std::process::Stdio::null())
+                .output()
+                .unwrap();
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            assert!(stdout.contains("arrived-42"), "{} hops: {stdout} {}", t.jumps.len(), String::from_utf8_lossy(&out.stderr));
+        }
+        // A jump host whose key is not known: refused, never asked.
+        std::fs::write(&kh, std::fs::read_to_string(&a.known_hosts).unwrap()).unwrap();
+        let t = SshTarget { host: "127.0.0.1".into(), port: a.port, user: a.user.clone(), key: Some(a.client_key.display().to_string()), path: "/".into(), jumps: vec![hop(&b)] };
+        let mut cmd = ssh_command(&t, std::slice::from_ref(&kh), None);
+        *cmd.last_mut().unwrap() = "echo arrived".into();
+        cmd.retain(|x| x != "-t");
+        let out = std::process::Command::new(&cmd[0]).args(&cmd[1..]).stdin(std::process::Stdio::null()).output().unwrap();
+        assert!(!String::from_utf8_lossy(&out.stdout).contains("arrived"));
+        assert!(String::from_utf8_lossy(&out.stderr).contains("verification failed"), "{}", String::from_utf8_lossy(&out.stderr));
+    }
+
+    #[test]
     fn ssh_command_has_no_password() {
-        let t = SshTarget { host: "srv".into(), port: 2222, user: "u".into(), key: Some("/k/id".into()), path: "/var/www/it's".into() };
+        let t = SshTarget { host: "srv".into(), port: 2222, user: "u".into(), key: Some("/k/id".into()), path: "/var/www/it's".into(), jumps: Vec::new() };
         let kh = [PathBuf::from("/c/rolid scp/known_hosts"), PathBuf::from("/h/.ssh/known_hosts")];
         let c = ssh_command(&t, &kh, Some((Path::new("/usr/bin/rolidscp"), Path::new("/run/x/s"), "tok")));
         let joined = c.join(" ");
@@ -397,12 +537,16 @@ mod tests {
 
     #[test]
     fn answers_once_and_only_the_right_question() {
-        let o = offer("user", "127.0.0.1", Zeroizing::new("secret password".into())).unwrap();
+        let a = |user: &str, host: &str, pw: &str| Answer { user: user.into(), host: host.into(), password: Zeroizing::new(pw.into()) };
+        let o = offer(vec![a("user", "127.0.0.1", "secret password"), a("hop", "jump.example", "jump password")]).unwrap();
         let sock = o.socket.clone();
         // A wrong token, another question: nothing.
         assert!(ask_application(&sock, "bad", "user@127.0.0.1's password: ").is_none());
         assert!(ask_application(&sock, &o.token, "Enter passphrase for key 'x': ").is_none());
-        // The password question: the password, once.
+        assert!(ask_application(&sock, &o.token, "other@jump.example's password: ").is_none());
+        // The password questions: each password, once.
+        assert_eq!(ask_application(&sock, &o.token, "hop@jump.example's password: ").as_deref().map(|s| s.as_str()), Some("jump password"));
+        assert!(ask_application(&sock, &o.token, "hop@jump.example's password: ").is_none());
         assert_eq!(ask_application(&sock, &o.token, "user@127.0.0.1's password: ").as_deref().map(|s| s.as_str()), Some("secret password"));
         assert!(ask_application(&sock, &o.token, "user@127.0.0.1's password: ").is_none());
         // The socket and its folder are gone.

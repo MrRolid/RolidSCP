@@ -202,6 +202,14 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
 - En un servidor de producción tampoco se pueden confirmar con Enter la copia, la subida, el
   movimiento ni la creación de una carpeta, y la copia nunca empieza con Sobrescribir (está
   preseleccionado Omitir existentes).
+- **Conectar a través de** otro servidor guardado (un servidor de salto, ProxyJump en OpenSSH): el
+  programa se conecta primero a ese servidor, con su propia clave o contraseña guardada, y desde allí
+  al servidor de destino. La dirección del servidor de destino es entonces la que ve el servidor de
+  salto, por ejemplo una dirección de su red local. Se comprueban las claves de ambos servidores, y
+  una pregunta sobre una clave desconocida dice de cuál de ellos se trata. Un servidor de salto puede
+  tener su propio servidor de salto (como máximo cuatro seguidos). Tras un corte, la conexión se
+  restablece por el mismo camino, y el terminal (**Ctrl+P**) va por el mismo camino. Un servidor
+  guardado por el que pasan otros no se puede borrar hasta que tengan otro camino.
 - La clave del servidor se comprueba con dos listas: la lista propia de servidores conocidos del
   programa (`~/.config/rolidscp/known_hosts`) y `~/.ssh/known_hosts`, que el programa solo lee y nunca
   cambia. Una clave nueva solo se añade a la lista del programa después de que usted confirme su

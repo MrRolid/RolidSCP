@@ -202,6 +202,15 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
 - Auf einem Produktionsserver lassen sich auch Kopieren, Hochladen, Verschieben und das Anlegen
   eines Ordners nicht mit Enter bestätigen, und Kopieren beginnt nie mit Überschreiben (vorgewählt
   ist Vorhandene überspringen).
+- **Verbinden über** einen anderen gespeicherten Server (ein Sprungserver, ProxyJump in OpenSSH):
+  Das Programm verbindet sich zuerst mit diesem Server, mit dessen eigenem Schlüssel oder
+  gespeichertem Passwort, und von dort mit dem Zielserver. Die Adresse des Zielservers ist dann die,
+  die der Sprungserver sieht, zum Beispiel eine Adresse in seinem lokalen Netz. Die Schlüssel beider
+  Server werden geprüft, und eine Frage zu einem unbekannten Schlüssel sagt, zu welchem der beiden er
+  gehört. Ein Sprungserver kann selbst einen Sprungserver haben (höchstens vier hintereinander). Nach
+  einem Ausfall wird die Verbindung auf demselben Weg wiederhergestellt, und das Terminal
+  (**Ctrl+P**) geht denselben Weg. Ein gespeicherter Server, über den andere gehen, lässt sich erst
+  löschen, wenn diese einen anderen Weg haben.
 - Der Serverschlüssel wird mit zwei Listen abgeglichen: der eigenen Liste bekannter Server des
   Programms (`~/.config/rolidscp/known_hosts`) und `~/.ssh/known_hosts`, die das Programm nur liest
   und nie ändert. Ein neuer Schlüssel kommt erst in die eigene Liste, nachdem sein Fingerabdruck

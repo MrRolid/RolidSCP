@@ -188,6 +188,14 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
 - Na serwerze produkcyjnym również kopiowania, wysyłania, przenoszenia i tworzenia folderu nie da
   się potwierdzić klawiszem Enter, a kopiowanie nigdy nie zaczyna się od opcji Nadpisz (wstępnie
   wybrane jest Pomiń istniejące).
+- **Połącz przez** inny zapisany serwer (serwer pośredniczący, ProxyJump w OpenSSH): program
+  najpierw łączy się z tym serwerem, jego własnym kluczem lub zapisanym hasłem, a stamtąd z serwerem
+  docelowym. Adres serwera docelowego to wtedy adres widziany przez serwer pośredniczący, na przykład
+  adres w jego sieci lokalnej. Sprawdzane są klucze obu serwerów, a pytanie o nieznany klucz mówi,
+  którego z nich dotyczy. Serwer pośredniczący może mieć własny serwer pośredniczący (najwyżej
+  cztery po kolei). Po zerwaniu połączenie jest odtwarzane tą samą drogą i tak samo prowadzi terminal
+  (**Ctrl+P**). Zapisanego serwera, przez który prowadzą inne, nie można usunąć, dopóki nie dostaną
+  innej drogi.
 - Klucz serwera jest sprawdzany na dwóch listach: własnej liście znanych serwerów programu
   (`~/.config/rolidscp/known_hosts`) i w `~/.ssh/known_hosts`, który program tylko czyta i nigdy nie
   zmienia. Nowy klucz trafia na listę programu dopiero po potwierdzeniu jego odcisku; zmieniony klucz

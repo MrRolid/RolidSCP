@@ -164,63 +164,63 @@ msgstr "pevný odkaz míří mimo cílovou složku"
 msgid "the archive is damaged: {error}"
 msgstr "archiv je poškozený: {error}"
 
-#: crates/rolid-config/src/lib.rs:185
+#: crates/rolid-config/src/lib.rs:287
 msgctxt "thumbnail"
 msgid "small"
 msgstr "malé"
 
-#: crates/rolid-config/src/lib.rs:186
+#: crates/rolid-config/src/lib.rs:288
 msgctxt "thumbnail"
 msgid "medium"
 msgstr "střední"
 
-#: crates/rolid-config/src/lib.rs:187
+#: crates/rolid-config/src/lib.rs:289
 msgctxt "thumbnail"
 msgid "large"
 msgstr "velké"
 
-#: crates/rolid-config/src/lib.rs:571
+#: crates/rolid-config/src/lib.rs:673
 msgctxt "hinting"
 msgid "Strong"
 msgstr "Silný"
 
-#: crates/rolid-config/src/lib.rs:572
+#: crates/rolid-config/src/lib.rs:674
 msgctxt "hinting"
 msgid "Medium"
 msgstr "Střední"
 
-#: crates/rolid-config/src/lib.rs:573
+#: crates/rolid-config/src/lib.rs:675
 msgctxt "hinting"
 msgid "Off"
 msgstr "Vypnutý"
 
-#: crates/rolid-config/src/lib.rs:598
+#: crates/rolid-config/src/lib.rs:700
 msgctxt "contrast"
 msgid "Normal"
 msgstr "Běžný"
 
-#: crates/rolid-config/src/lib.rs:599
+#: crates/rolid-config/src/lib.rs:701
 msgctxt "contrast"
 msgid "Higher"
 msgstr "Vyšší"
 
-#: crates/rolid-config/src/lib.rs:600
+#: crates/rolid-config/src/lib.rs:702
 msgctxt "contrast"
 msgid "Highest"
 msgstr "Nejvyšší"
 
-#: crates/rolid-config/src/lib.rs:628
+#: crates/rolid-config/src/lib.rs:730
 #: crates/rolid-ui/src/app/unpack_ui.rs:541
 #: crates/rolid-ui/src/app.rs:3066
 msgid "Skip existing"
 msgstr "Přeskočit existující"
 
-#: crates/rolid-config/src/lib.rs:629
+#: crates/rolid-config/src/lib.rs:731
 #: crates/rolid-ui/src/app/settings_ui.rs:165
 msgid "Overwrite only older"
 msgstr "Přepsat jen starší"
 
-#: crates/rolid-config/src/lib.rs:630
+#: crates/rolid-config/src/lib.rs:732
 #: crates/rolid-ui/src/app/archive_ui.rs:348
 #: crates/rolid-ui/src/app/checksum_ui.rs:289
 #: crates/rolid-ui/src/app/rename_ui.rs:226
@@ -229,7 +229,7 @@ msgstr "Přepsat jen starší"
 msgid "Overwrite"
 msgstr "Přepsat"
 
-#: crates/rolid-config/src/lib.rs:631
+#: crates/rolid-config/src/lib.rs:733
 msgid "No preset (choose manually)"
 msgstr "Bez předvolby (vybrat ručně)"
 
@@ -899,45 +899,58 @@ msgstr "keyboard-interactive s odpovědí uživatele"
 msgid "too many rounds of prompts"
 msgstr "příliš mnoho kol výzev"
 
-#: crates/rolid-ssh/src/lib.rs:109
+#: crates/rolid-ssh/src/lib.rs:140
 msgid "unknown server key {host}:{port} ({algorithm}) {fingerprint}"
 msgstr "neznámý klíč serveru {host}:{port} ({algorithm}) {fingerprint}"
 
-#: crates/rolid-ssh/src/lib.rs:116
+#: crates/rolid-ssh/src/lib.rs:147
 msgid "WARNING: the key of server {host}:{port} has changed compared to {file}, line {line}! It may be a man-in-the-middle attack. Connection refused."
 msgstr "VAROVÁNÍ: klíč serveru {host}:{port} se změnil oproti {file}, řádek {line}! Může jít o útok typu man-in-the-middle. Spojení odmítnuto."
 
-#: crates/rolid-ssh/src/lib.rs:123
+#: crates/rolid-ssh/src/lib.rs:154
 msgid "The key of server {host}:{port} is marked as revoked in {file}, line {line}. Connection refused."
 msgstr "Klíč serveru {host}:{port} je v {file}, řádek {line}, označený jako zneplatněný. Spojení odmítnuto."
 
-#: crates/rolid-ssh/src/lib.rs:130
+#: crates/rolid-ssh/src/lib.rs:161
 msgid "The lists of known servers disagree about server {host}:{port}: {knows}, line {knows_line}, has the key the server sent, but {other}, line {other_line}, has a different key of the same type. Connection refused. Find out from the server's administrator which key is right and delete the wrong line."
 msgstr "Seznamy známých serverů se u serveru {host}:{port} neshodují: {knows}, řádek {knows_line}, má klíč, který server poslal, ale {other}, řádek {other_line}, má jiný klíč stejného typu. Spojení odmítnuto. Zjistěte u správce serveru, který klíč je správný, a špatný řádek smažte."
 
-#: crates/rolid-ssh/src/lib.rs:139
+#: crates/rolid-ssh/src/lib.rs:170
 msgid "login failed. {report}"
 msgstr "přihlášení selhalo. {report}"
 
-#: crates/rolid-ssh/src/lib.rs:239
+#: crates/rolid-ssh/src/lib.rs:172
+msgid "login to the jump host {server} failed. {report}"
+msgstr "přihlášení k přestupnímu serveru {server} selhalo. {report}"
+
+#: crates/rolid-ssh/src/lib.rs:273
 msgid "cannot read the list of known servers {file}: {error}. Connection refused."
 msgstr "nelze přečíst seznam známých serverů {file}: {error}. Spojení odmítnuto."
 
-#: crates/rolid-ssh/src/lib.rs:361
-#: crates/rolid-ssh/src/lib.rs:593
+#: crates/rolid-ssh/src/lib.rs:333
+#: crates/rolid-ssh/src/lib.rs:456
+#: crates/rolid-ssh/src/lib.rs:685
 msgid "the connection timed out"
 msgstr "časový limit připojení vypršel"
 
-#: crates/rolid-ssh/src/lib.rs:375
-#: crates/rolid-ssh/src/lib.rs:592
+#: crates/rolid-ssh/src/lib.rs:343
+#: crates/rolid-ssh/src/lib.rs:684
 msgid "connection failed: {error}"
 msgstr "připojení selhalo: {error}"
 
-#: crates/rolid-ssh/src/lib.rs:487
+#: crates/rolid-ssh/src/lib.rs:354
+msgid "jump host {server}: {error}"
+msgstr "přestupní server {server}: {error}"
+
+#: crates/rolid-ssh/src/lib.rs:449
+msgid "the jump host {jump} could not connect to {server}: {error}"
+msgstr "přestupní server {jump} se nemohl spojit s {server}: {error}"
+
+#: crates/rolid-ssh/src/lib.rs:579
 msgid "the command on the server did not answer within {n} s"
 msgstr "příkaz na serveru neodpověděl do {n} s"
 
-#: crates/rolid-ssh/src/lib.rs:792
+#: crates/rolid-ssh/src/lib.rs:884
 msgid "{name}: unexpected answer from the server"
 msgstr "{name}: neočekávaná odpověď serveru"
 
@@ -1074,7 +1087,7 @@ msgid "The file is encrypted in the archive."
 msgstr "Soubor je v archivu zašifrovaný."
 
 #: crates/rolid-ui/src/app/archdir_ui.rs:381
-#: crates/rolid-ui/src/app/session.rs:1052
+#: crates/rolid-ui/src/app/session.rs:1123
 #: crates/rolid-ui/src/app/unpack_ui.rs:432
 #: crates/rolid-ui/src/app/unpack_ui.rs:840
 msgid "Password:"
@@ -1277,7 +1290,7 @@ msgid "Calculate checksums"
 msgstr "Spočítat kontrolní součty"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:151
-#: crates/rolid-ui/src/app/session.rs:1137
+#: crates/rolid-ui/src/app/session.rs:1219
 msgid "Options"
 msgstr "Volby"
 
@@ -1363,7 +1376,7 @@ msgstr "Uložit do souboru"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:248
 #: crates/rolid-ui/src/app/newfile_ui.rs:78
-#: crates/rolid-ui/src/app/session.rs:1028
+#: crates/rolid-ui/src/app/session.rs:1099
 #: crates/rolid-ui/src/app.rs:2887
 msgid "Name:"
 msgstr "Název:"
@@ -1479,7 +1492,7 @@ msgid "Permissions are not available here (the system does not report them)."
 msgstr "Práva tu nejsou k dispozici (systém je neuvádí)."
 
 #: crates/rolid-ui/src/app/ctx_ui.rs:215
-#: crates/rolid-ui/src/app/edit_ui.rs:1640
+#: crates/rolid-ui/src/app/edit_ui.rs:1645
 #: crates/rolid-ui/src/app/unpack_ui.rs:364
 #: crates/rolid-ui/src/pane.rs:196
 msgid "“{name}”"
@@ -1579,7 +1592,7 @@ msgstr "Soubory .{ext} otvírat vždy takto („Otevřít“, Enter)"
 
 #: crates/rolid-ui/src/app/ctx_ui.rs:490
 #: crates/rolid-ui/src/app/menu.rs:96
-#: crates/rolid-ui/src/app/places.rs:620
+#: crates/rolid-ui/src/app/places.rs:614
 #: crates/rolid-ui/src/pane/views.rs:309
 msgctxt "verb"
 msgid "Open"
@@ -2227,8 +2240,8 @@ msgstr[1] "Nahrát sem: {n} položky"
 msgstr[2] "Nahrát sem: {n} položek"
 
 #: crates/rolid-ui/src/app/drop_ui.rs:571
-#: crates/rolid-ui/src/app/edit_ui.rs:1618
-#: crates/rolid-ui/src/app/edit_ui.rs:1695
+#: crates/rolid-ui/src/app/edit_ui.rs:1623
+#: crates/rolid-ui/src/app/edit_ui.rs:1700
 msgid "Upload"
 msgstr "Nahrát"
 
@@ -2363,66 +2376,66 @@ msgstr "nenahráno: {reason}"
 msgid "{error} (Settings → External editor…)"
 msgstr "{error} (Nastavení → Externí editor…)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:396
+#: crates/rolid-ui/src/app/edit_ui.rs:401
 msgid "recovered after a crash"
 msgstr "obnoveno po pádu"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:424
+#: crates/rolid-ui/src/app/edit_ui.rs:429
 msgid "A file in an archive cannot be edited (it can be opened with Enter)"
 msgstr "Soubor v archivu nelze upravit (otevřít ho jde Enter)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:434
+#: crates/rolid-ui/src/app/edit_ui.rs:439
 msgid "F4 edits files – it does nothing on a folder."
 msgstr "F4 upravuje soubory – na složce nic nedělá."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:479
+#: crates/rolid-ui/src/app/edit_ui.rs:484
 msgid "{path}: cannot be started: {error}"
 msgstr "{path}: nejde spustit: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:490
+#: crates/rolid-ui/src/app/edit_ui.rs:495
 msgid "application “{id}” is not in the system"
 msgstr "aplikace „{id}“ v systému není"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:518
+#: crates/rolid-ui/src/app/edit_ui.rs:523
 msgid "A file in an archive cannot be edited"
 msgstr "Soubor v archivu nelze upravit"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:560
-#: crates/rolid-ui/src/app/edit_ui.rs:566
-#: crates/rolid-ui/src/app/edit_ui.rs:634
+#: crates/rolid-ui/src/app/edit_ui.rs:565
+#: crates/rolid-ui/src/app/edit_ui.rs:571
 #: crates/rolid-ui/src/app/edit_ui.rs:639
+#: crates/rolid-ui/src/app/edit_ui.rs:644
 msgid "Cannot start editing: {error}"
 msgstr "Úpravu nejde začít: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:768
+#: crates/rolid-ui/src/app/edit_ui.rs:773
 msgid "Cannot download the file for editing: {error}"
 msgstr "Soubor nejde stáhnout k úpravě: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:787
+#: crates/rolid-ui/src/app/edit_ui.rs:792
 msgid "a file of the same name was created on the server in the meantime"
 msgstr "na serveru mezitím vznikl soubor stejného jména"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:789
+#: crates/rolid-ui/src/app/edit_ui.rs:794
 msgid "the file has changed on the server in the meantime"
 msgstr "soubor se na serveru mezitím změnil"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:794
+#: crates/rolid-ui/src/app/edit_ui.rs:799
 msgid "waiting for confirmation (production server)"
 msgstr "čeká na potvrzení (produkční server)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:800
+#: crates/rolid-ui/src/app/edit_ui.rs:805
 msgid "Cannot find out the state of the file on the server: {error}"
 msgstr "Stav souboru na serveru nejde zjistit: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:849
+#: crates/rolid-ui/src/app/edit_ui.rs:854
 msgid "Upload failed: {error} – trying again ({n} of {max})"
 msgstr "Nahrání selhalo: {error} – zkouším znovu ({n} z {max})"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:862
+#: crates/rolid-ui/src/app/edit_ui.rs:867
 msgid "Upload failed: {error}"
 msgstr "Nahrání selhalo: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:864
+#: crates/rolid-ui/src/app/edit_ui.rs:869
 msgid ""
 "The edited file “{name}” could not be uploaded to the server: {error}\n"
 "The changes are kept in the local copy. Try “Upload again” in Edited files."
@@ -2430,250 +2443,250 @@ msgstr ""
 "Upravený soubor „{name}“ se nepodařilo nahrát na server: {error}\n"
 "Změny zůstávají v místní kopii. Zkus „Nahrát znovu“ v Upravovaných souborech."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:899
+#: crates/rolid-ui/src/app/edit_ui.rs:904
 msgid "Cannot watch the file for changes: {error}"
 msgstr "Změny souboru nejde sledovat: {error}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:924
+#: crates/rolid-ui/src/app/edit_ui.rs:929
 msgid "The edited file “{name}” was just being uploaded to its original location. The next save will go to {path}; check that the newest content is there."
 msgstr "Upravovaný soubor „{name}“ se právě nahrával do původního umístění. Další uložení půjde do {path}; zkontroluj, že tam je nejnovější obsah."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1034
+#: crates/rolid-ui/src/app/edit_ui.rs:1039
 msgid "changed – waiting for the decision about uploading"
 msgstr "změněno – čeká na rozhodnutí o nahrání"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1136
+#: crates/rolid-ui/src/app/edit_ui.rs:1141
 msgid "The upload did not succeed even after {n} restored connection – try “Upload again”"
 msgid_plural "The upload did not succeed even after {n} restored connections – try “Upload again”"
 msgstr[0] "Nahrání se ani po {n} obnovení spojení nepovedlo – zkus „Nahrát znovu“"
 msgstr[1] "Nahrání se ani po {n} obnoveních spojení nepovedlo – zkus „Nahrát znovu“"
 msgstr[2] "Nahrání se ani po {n} obnoveních spojení nepovedlo – zkus „Nahrát znovu“"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1240
+#: crates/rolid-ui/src/app/edit_ui.rs:1245
 msgid "Quitting canceled: the edit could not be uploaded (see Edited files)."
 msgstr "Ukončení zrušeno: úpravu se nepodařilo nahrát (viz Upravované soubory)."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1295
+#: crates/rolid-ui/src/app/edit_ui.rs:1300
 msgid "⏫ Uploading…"
 msgstr "⏫ Nahrávám…"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1297
+#: crates/rolid-ui/src/app/edit_ui.rs:1302
 msgid "⚠ Edits: {n} file – not uploaded"
 msgid_plural "⚠ Edits: {n} files – not uploaded"
 msgstr[0] "⚠ Úpravy: {n} soubor – nenahráno"
 msgstr[1] "⚠ Úpravy: {n} soubory – nenahráno"
 msgstr[2] "⚠ Úpravy: {n} souborů – nenahráno"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1304
+#: crates/rolid-ui/src/app/edit_ui.rs:1309
 msgid "✎ Editing: {n} file · uploaded at {time}"
 msgid_plural "✎ Editing: {n} files · uploaded at {time}"
 msgstr[0] "✎ Upravuje se: {n} soubor · nahráno v {time}"
 msgstr[1] "✎ Upravuje se: {n} soubory · nahráno v {time}"
 msgstr[2] "✎ Upravuje se: {n} souborů · nahráno v {time}"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1310
+#: crates/rolid-ui/src/app/edit_ui.rs:1315
 msgid "✎ Editing: {n} file"
 msgid_plural "✎ Editing: {n} files"
 msgstr[0] "✎ Upravuje se: {n} soubor"
 msgstr[1] "✎ Upravuje se: {n} soubory"
 msgstr[2] "✎ Upravuje se: {n} souborů"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1317
+#: crates/rolid-ui/src/app/edit_ui.rs:1322
 msgid "Edited files (F4) – list, upload again, end"
 msgstr "Upravované soubory (F4) – seznam, nahrát znovu, ukončit"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1326
+#: crates/rolid-ui/src/app/edit_ui.rs:1331
 msgid "Edited files"
 msgstr "Upravované soubory"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1333
+#: crates/rolid-ui/src/app/edit_ui.rs:1338
 msgid "No file is being edited. Select a file and press F4."
 msgstr "Žádný soubor se neupravuje. Vyber soubor a stiskni F4."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1347
-#: crates/rolid-ui/src/app/edit_ui.rs:1426
-#: crates/rolid-ui/src/app/edit_ui.rs:1505
+#: crates/rolid-ui/src/app/edit_ui.rs:1352
+#: crates/rolid-ui/src/app/edit_ui.rs:1431
+#: crates/rolid-ui/src/app/edit_ui.rs:1510
 msgid "Open in editor"
 msgstr "Otevřít v editoru"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1350
+#: crates/rolid-ui/src/app/edit_ui.rs:1355
 msgid "Upload again"
 msgstr "Nahrát znovu"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1353
+#: crates/rolid-ui/src/app/edit_ui.rs:1358
 msgid "End editing"
 msgstr "Ukončit úpravu"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1361
+#: crates/rolid-ui/src/app/edit_ui.rs:1366
 msgid "Every save in the editor is uploaded to the server automatically. Ending deletes the temporary copy."
 msgstr "Každé uložení v editoru se samo nahraje na server. Ukončení smaže dočasnou kopii."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1393
+#: crates/rolid-ui/src/app/edit_ui.rs:1398
 msgid "Large file"
 msgstr "Velký soubor"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1396
+#: crates/rolid-ui/src/app/edit_ui.rs:1401
 msgid "“{name}” is {size}. Editing a large file in the editor may be slow and the download will take a while."
 msgstr "„{name}“ má {size}. Úprava velkého souboru v editoru může být pomalá a stahování potrvá."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1402
+#: crates/rolid-ui/src/app/edit_ui.rs:1407
 msgid "“{name}” is {size}. Editing a large file in the editor may be slow."
 msgstr "„{name}“ má {size}. Úprava velkého souboru v editoru může být pomalá."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1404
+#: crates/rolid-ui/src/app/edit_ui.rs:1409
 msgid "Edit anyway"
 msgstr "Přesto upravit"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1416
+#: crates/rolid-ui/src/app/edit_ui.rs:1421
 msgid "Run the program?"
 msgstr "Spustit program?"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1420
+#: crates/rolid-ui/src/app/edit_ui.rs:1425
 msgid "“{name}” {reason}. Enter does not run it by itself."
 msgstr "„{name}“ {reason}. Enter ho nespouští sám od sebe."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1422
+#: crates/rolid-ui/src/app/edit_ui.rs:1427
 msgid "Run it only if you know what it does. You can look at it safely in the text editor."
 msgstr "Spusť ho jen tehdy, když víš, co dělá. Prohlédnout si ho jde bezpečně v textovém editoru."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1424
+#: crates/rolid-ui/src/app/edit_ui.rs:1429
 msgid "Run"
 msgstr "Spustit"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1424
+#: crates/rolid-ui/src/app/edit_ui.rs:1429
 msgid "Open with the default application"
 msgstr "Otevřít výchozí aplikací"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1447
-#: crates/rolid-ui/src/app/edit_ui.rs:1468
+#: crates/rolid-ui/src/app/edit_ui.rs:1452
+#: crates/rolid-ui/src/app/edit_ui.rs:1473
 msgid "Binary file"
 msgstr "Binární soubor"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1450
+#: crates/rolid-ui/src/app/edit_ui.rs:1455
 msgid "“{name}” looks like a binary file (it contains zero bytes). The text editor may damage it."
 msgstr "„{name}“ vypadá jako binární soubor (obsahuje nulové bajty). Textový editor ho může poškodit."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1452
-#: crates/rolid-ui/src/app/edit_ui.rs:1477
+#: crates/rolid-ui/src/app/edit_ui.rs:1457
+#: crates/rolid-ui/src/app/edit_ui.rs:1482
 msgid "Open anyway"
 msgstr "Přesto otevřít"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1471
+#: crates/rolid-ui/src/app/edit_ui.rs:1476
 msgid "“{name}” looks like a binary file (it contains zero bytes). The text editor may damage it and saving would upload it to the server."
 msgstr "„{name}“ vypadá jako binární soubor (obsahuje nulové bajty). Textový editor ho může poškodit a uložení by se nahrálo na server."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1491
+#: crates/rolid-ui/src/app/edit_ui.rs:1496
 msgid "⚠ A file from the server can run something"
 msgstr "⚠ Soubor ze serveru může něco spustit"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1494
+#: crates/rolid-ui/src/app/edit_ui.rs:1499
 msgid "“{name}” ({location}) {reason}."
 msgstr "„{name}“ ({location}) {reason}."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1498
+#: crates/rolid-ui/src/app/edit_ui.rs:1503
 msgid "Opening it with an application other than the text editor may run its content on this computer. It is safe to look at it in the text editor."
 msgstr "Otevřít ho jinou aplikací než textovým editorem může spustit jeho obsah na tomto počítači. Bezpečné je prohlédnout si ho v textovém editoru."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1506
+#: crates/rolid-ui/src/app/edit_ui.rs:1511
 msgid "Open anyway ({app})"
 msgstr "Přesto otevřít ({app})"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1530
+#: crates/rolid-ui/src/app/edit_ui.rs:1535
 msgid "The file has changed"
 msgstr "Soubor se změnil"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1534
+#: crates/rolid-ui/src/app/edit_ui.rs:1539
 msgid "“{name}” opened from {location} has changed in the application. Upload the change to the server?"
 msgstr "„{name}“ otevřený z {location} se v aplikaci změnil. Nahrát změnu na server?"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1540
+#: crates/rolid-ui/src/app/edit_ui.rs:1545
 msgid "Before uploading, it is checked whether the file has changed on the server in the meantime."
 msgstr "Před nahráním se zkontroluje, jestli se soubor na serveru mezitím nezměnil."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1543
+#: crates/rolid-ui/src/app/edit_ui.rs:1548
 msgid "⚠ Production server – it will be confirmed once more."
 msgstr "⚠ Produkční server – bude se ještě potvrzovat."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1546
+#: crates/rolid-ui/src/app/edit_ui.rs:1551
 msgid "Upload to server"
 msgstr "Nahrát na server"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1547
-#: crates/rolid-ui/src/app/edit_ui.rs:1618
+#: crates/rolid-ui/src/app/edit_ui.rs:1552
+#: crates/rolid-ui/src/app/edit_ui.rs:1623
 #: crates/rolid-ui/src/app/vault_ui.rs:820
 msgid "Not now"
 msgstr "Teď ne"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1555
+#: crates/rolid-ui/src/app/edit_ui.rs:1560
 msgid "change not uploaded (can be uploaded from the list of edits)"
 msgstr "změna nenahrána (lze nahrát ze seznamu úprav)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1567
+#: crates/rolid-ui/src/app/edit_ui.rs:1572
 msgid "The file has changed on the server"
 msgstr "Soubor se na serveru změnil"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1569
+#: crates/rolid-ui/src/app/edit_ui.rs:1574
 msgid "A file “{name}” ({location}) was created on the server in the meantime (it is {size}). Your new file has not been uploaded yet."
 msgstr "Na serveru mezitím vznikl soubor „{name}“ ({location}) o velikosti {size}. Váš nový soubor zatím nahraný není."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1577
+#: crates/rolid-ui/src/app/edit_ui.rs:1582
 msgid "“{name}” ({location}) has changed on the server since you opened it (it is now {size}). Your edit has not been uploaded yet."
 msgstr "„{name}“ ({location}) se na serveru změnil od chvíle, kdy jsi ho otevřel(a) (teď má {size}). Tvoje úprava zatím nahraná není."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1587
-#: crates/rolid-ui/src/app/edit_ui.rs:1678
+#: crates/rolid-ui/src/app/edit_ui.rs:1592
+#: crates/rolid-ui/src/app/edit_ui.rs:1683
 msgid "⚠ Production server."
 msgstr "⚠ Produkční server."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1590
+#: crates/rolid-ui/src/app/edit_ui.rs:1595
 msgid "Overwrite the version on the server"
 msgstr "Přepsat verzi na serveru"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1591
+#: crates/rolid-ui/src/app/edit_ui.rs:1596
 msgid "Save alongside under another name"
 msgstr "Uložit vedle pod jiným názvem"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1616
+#: crates/rolid-ui/src/app/edit_ui.rs:1621
 msgid "⚠ Upload to the production server?"
 msgstr "⚠ Nahrát na produkční server?"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1617
+#: crates/rolid-ui/src/app/edit_ui.rs:1622
 msgid "The saved edit of “{name}” will be uploaded to {location}."
 msgstr "Uložená úprava „{name}“ se nahraje na {location}."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1635
+#: crates/rolid-ui/src/app/edit_ui.rs:1640
 msgid "Changes not uploaded"
 msgstr "Nenahrané změny"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1638
+#: crates/rolid-ui/src/app/edit_ui.rs:1643
 msgid "These edited files are not on the server yet: {names}."
 msgstr "Tyto upravené soubory ještě nejsou na serveru: {names}."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1644
+#: crates/rolid-ui/src/app/edit_ui.rs:1649
 msgid "Upload and close the tab"
 msgstr "Nahrát a zavřít záložku"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1644
+#: crates/rolid-ui/src/app/edit_ui.rs:1649
 msgid "Discard changes and close"
 msgstr "Zahodit změny a zavřít"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1645
+#: crates/rolid-ui/src/app/edit_ui.rs:1650
 msgid "Upload and quit"
 msgstr "Nahrát a ukončit"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1645
+#: crates/rolid-ui/src/app/edit_ui.rs:1650
 msgid "Quit without uploading"
 msgstr "Ukončit bez nahrání"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1646
+#: crates/rolid-ui/src/app/edit_ui.rs:1651
 msgid "Upload and end editing"
 msgstr "Nahrát a ukončit úpravu"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1646
+#: crates/rolid-ui/src/app/edit_ui.rs:1651
 msgid "Discard changes"
 msgstr "Zahodit změny"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1651
+#: crates/rolid-ui/src/app/edit_ui.rs:1656
 #: crates/rolid-ui/src/app/menu.rs:293
 #: crates/rolid-ui/src/app/places.rs:150
 #: crates/rolid-ui/src/app/places.rs:166
@@ -2682,27 +2695,27 @@ msgstr "Zahodit změny"
 msgid "Back"
 msgstr "Zpět"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1665
+#: crates/rolid-ui/src/app/edit_ui.rs:1670
 msgid "Unsaved edits were left after a crash"
 msgstr "Po pádu zůstaly neuložené úpravy"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1668
+#: crates/rolid-ui/src/app/edit_ui.rs:1673
 msgid "“{name}” ({user}@{host}:{path}) was edited in an application that did not end properly. This version is not on the server."
 msgstr "„{name}“ ({user}@{host}:{path}) byl upravený v aplikaci, která neskončila správně. Tahle verze na serveru není."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1681
+#: crates/rolid-ui/src/app/edit_ui.rs:1686
 msgid "Open folder"
 msgstr "Otevřít složku"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1693
+#: crates/rolid-ui/src/app/edit_ui.rs:1698
 msgid "Esc = decide later (it asks again at the next start)."
 msgstr "Esc = rozhodnout později (při příštím spuštění se zeptá znovu)."
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1695
+#: crates/rolid-ui/src/app/edit_ui.rs:1700
 msgid "Connects to the server and uploads (with a conflict check)"
 msgstr "Připojí se k serveru a nahraje (s kontrolou konfliktu)"
 
-#: crates/rolid-ui/src/app/edit_ui.rs:1696
+#: crates/rolid-ui/src/app/edit_ui.rs:1701
 msgid "Discard"
 msgstr "Zahodit"
 
@@ -2740,15 +2753,15 @@ msgstr "Dvojklik nebo → otevře složku, Backspace jde o úroveň výš."
 msgid "Select"
 msgstr "Vybrat"
 
-#: crates/rolid-ui/src/app/link_ui.rs:280
+#: crates/rolid-ui/src/app/link_ui.rs:302
 msgid "⚠ The clock of {server} is {diff} ahead: files changed on it look newer than they are."
 msgstr "⚠ Hodiny serveru {server} jdou o {diff} napřed: soubory na něm změněné vypadají novější, než jsou."
 
-#: crates/rolid-ui/src/app/link_ui.rs:282
+#: crates/rolid-ui/src/app/link_ui.rs:304
 msgid "⚠ The clock of {server} is {diff} behind: files changed on it look older than they are."
 msgstr "⚠ Hodiny serveru {server} jdou o {diff} pozadu: soubory na něm změněné vypadají starší, než jsou."
 
-#: crates/rolid-ui/src/app/link_ui.rs:314
+#: crates/rolid-ui/src/app/link_ui.rs:336
 msgid ""
 "Replacing a file on {server} was cut off (lost connection or crash). The original file was put back under its name; the new version did not arrive, copy or save it again:\n"
 "{files}"
@@ -2756,7 +2769,7 @@ msgstr ""
 "Výměna souboru na {server} byla přerušena (ztráta spojení nebo pád). Původní soubor byl vrácen pod svůj název; nová verze nedorazila, zkopíruj nebo ulož ji znovu:\n"
 "{files}"
 
-#: crates/rolid-ui/src/app/link_ui.rs:322
+#: crates/rolid-ui/src/app/link_ui.rs:344
 msgid ""
 "Replacing a file on {server} was cut off (lost connection or crash). The new version had arrived complete and is now in place:\n"
 "{files}"
@@ -2764,25 +2777,25 @@ msgstr ""
 "Výměna souboru na {server} byla přerušena (ztráta spojení nebo pád). Nová verze dorazila celá a je teď na místě:\n"
 "{files}"
 
-#: crates/rolid-ui/src/app/link_ui.rs:375
+#: crates/rolid-ui/src/app/link_ui.rs:397
 msgid "Connect now"
 msgstr "Připojit teď"
 
-#: crates/rolid-ui/src/app/link_ui.rs:383
+#: crates/rolid-ui/src/app/link_ui.rs:405
 #: crates/rolid-ui/src/app/menu.rs:247
 msgid "Unlock…"
 msgstr "Odemknout…"
 
-#: crates/rolid-ui/src/app/link_ui.rs:388
+#: crates/rolid-ui/src/app/link_ui.rs:410
 msgid "The saved password is needed to restore the connection."
 msgstr "Pro obnovení spojení je potřeba uložené heslo."
 
-#: crates/rolid-ui/src/app/link_ui.rs:398
+#: crates/rolid-ui/src/app/link_ui.rs:420
 msgid "Enter credentials…"
 msgstr "Zadat údaje…"
 
-#: crates/rolid-ui/src/app/link_ui.rs:404
-#: crates/rolid-ui/src/app/session.rs:1004
+#: crates/rolid-ui/src/app/link_ui.rs:426
+#: crates/rolid-ui/src/app/session.rs:1075
 #: crates/rolid-ui/src/app/viewer/text/find.rs:241
 #: crates/rolid-ui/src/app/viewer/text.rs:479
 #: crates/rolid-ui/src/app.rs:2536
@@ -2790,30 +2803,30 @@ msgstr "Zadat údaje…"
 msgid "Cancel"
 msgstr "Zrušit"
 
-#: crates/rolid-ui/src/app/link_ui.rs:474
+#: crates/rolid-ui/src/app/link_ui.rs:489
 msgid "{error} (the server asks for more information)"
 msgstr "{error} (server se ptá na další údaje)"
 
-#: crates/rolid-ui/src/app/link_ui.rs:495
+#: crates/rolid-ui/src/app/link_ui.rs:546
 msgid "{m} min {s} s"
 msgstr "{m} min {s} s"
 
-#: crates/rolid-ui/src/app/link_ui.rs:497
+#: crates/rolid-ui/src/app/link_ui.rs:548
 msgid "{h} h {m} min"
 msgstr "{h} h {m} min"
 
-#: crates/rolid-ui/src/app/link_ui.rs:499
+#: crates/rolid-ui/src/app/link_ui.rs:550
 msgid "{n} day"
 msgid_plural "{n} days"
 msgstr[0] "{n} den"
 msgstr[1] "{n} dny"
 msgstr[2] "{n} dní"
 
-#: crates/rolid-ui/src/app/link_ui.rs:507
+#: crates/rolid-ui/src/app/link_ui.rs:558
 msgid "The clock of server {server} is {diff} ahead of this computer. Times of files changed on it are off by as much, and \"Overwrite only older\" may decide wrongly."
 msgstr "Hodiny serveru {server} jdou o {diff} napřed oproti tomuto počítači. Časy souborů na něm změněných jsou posunuté o tolik a volba „Přepsat jen starší“ může rozhodnout špatně."
 
-#: crates/rolid-ui/src/app/link_ui.rs:513
+#: crates/rolid-ui/src/app/link_ui.rs:564
 msgid "The clock of server {server} is {diff} behind this computer. Times of files changed on it are off by as much, and \"Overwrite only older\" may decide wrongly."
 msgstr "Hodiny serveru {server} jdou o {diff} pozadu oproti tomuto počítači. Časy souborů na něm změněných jsou posunuté o tolik a volba „Přepsat jen starší“ může rozhodnout špatně."
 
@@ -2828,7 +2841,7 @@ msgid "New tab…"
 msgstr "Nová záložka…"
 
 #: crates/rolid-ui/src/app/menu.rs:72
-#: crates/rolid-ui/src/app/places.rs:763
+#: crates/rolid-ui/src/app/places.rs:757
 msgid "Duplicate tab"
 msgstr "Duplikovat záložku"
 
@@ -2906,7 +2919,7 @@ msgid "New folder"
 msgstr "Nová složka"
 
 #: crates/rolid-ui/src/app/menu.rs:135
-#: crates/rolid-ui/src/app/session.rs:1018
+#: crates/rolid-ui/src/app/session.rs:1089
 #: crates/rolid-ui/src/pane/views.rs:335
 msgid "Delete"
 msgstr "Smazat"
@@ -2982,7 +2995,7 @@ msgid "Server manager…"
 msgstr "Správce serverů…"
 
 #: crates/rolid-ui/src/app/menu.rs:188
-#: crates/rolid-ui/src/app/places.rs:771
+#: crates/rolid-ui/src/app/places.rs:765
 msgid "Rename tab"
 msgstr "Přejmenovat záložku"
 
@@ -3927,7 +3940,7 @@ msgid "type to search…"
 msgstr "piš pro hledání…"
 
 #: crates/rolid-ui/src/app/places.rs:142
-#: crates/rolid-ui/src/app/places.rs:598
+#: crates/rolid-ui/src/app/places.rs:592
 msgid "(name)"
 msgstr "(jméno)"
 
@@ -3945,7 +3958,7 @@ msgid "Remove"
 msgstr "Odebrat"
 
 #: crates/rolid-ui/src/app/places.rs:193
-#: crates/rolid-ui/src/app/places.rs:617
+#: crates/rolid-ui/src/app/places.rs:611
 #: crates/rolid-ui/src/pane/navbar.rs:560
 msgid "Remove from favorites"
 msgstr "Odebrat z oblíbených"
@@ -3967,7 +3980,7 @@ msgid "🖧 Server manager…"
 msgstr "🖧 Správce serverů…"
 
 #: crates/rolid-ui/src/app/places.rs:345
-#: crates/rolid-ui/src/app/places.rs:588
+#: crates/rolid-ui/src/app/places.rs:582
 #: crates/rolid-ui/src/pane/navbar.rs:535
 msgid "Favorite folders"
 msgstr "Oblíbené složky"
@@ -4000,119 +4013,119 @@ msgstr "◨ vpravo: {title}"
 msgid "Switch to a tab or open a saved server"
 msgstr "Přepnout na záložku nebo otevřít uložený server"
 
-#: crates/rolid-ui/src/app/places.rs:523
-#: crates/rolid-ui/src/app/places.rs:541
+#: crates/rolid-ui/src/app/places.rs:517
+#: crates/rolid-ui/src/app/places.rs:535
 msgid "Search results cannot be a favorite folder."
 msgstr "Výsledky hledání nemohou být oblíbenou složkou."
 
-#: crates/rolid-ui/src/app/places.rs:529
-#: crates/rolid-ui/src/app/places.rs:547
+#: crates/rolid-ui/src/app/places.rs:523
+#: crates/rolid-ui/src/app/places.rs:541
 msgid "Added to the favorite folders: {place}"
 msgstr "Přidáno do oblíbených složek: {place}"
 
-#: crates/rolid-ui/src/app/places.rs:531
+#: crates/rolid-ui/src/app/places.rs:525
 msgid "Removed from the favorite folders: {place}"
 msgstr "Odebráno z oblíbených složek: {place}"
 
-#: crates/rolid-ui/src/app/places.rs:549
+#: crates/rolid-ui/src/app/places.rs:543
 msgid "Already among the favorite folders: {place}"
 msgstr "Už je mezi oblíbenými složkami: {place}"
 
-#: crates/rolid-ui/src/app/places.rs:589
+#: crates/rolid-ui/src/app/places.rs:583
 msgid "Ctrl+D adds or removes the folder of the active panel. An empty name shows the path."
 msgstr "Ctrl+D přidá nebo odebere složku aktivního panelu. Bez jména se zobrazí cesta."
 
-#: crates/rolid-ui/src/app/places.rs:591
+#: crates/rolid-ui/src/app/places.rs:585
 msgid "No favorite folders yet."
 msgstr "Zatím žádné oblíbené složky."
 
-#: crates/rolid-ui/src/app/places.rs:611
+#: crates/rolid-ui/src/app/places.rs:605
 msgid "Move up"
 msgstr "Posunout nahoru"
 
-#: crates/rolid-ui/src/app/places.rs:614
+#: crates/rolid-ui/src/app/places.rs:608
 msgid "Move down"
 msgstr "Posunout dolů"
 
-#: crates/rolid-ui/src/app/places.rs:620
+#: crates/rolid-ui/src/app/places.rs:614
 msgid "Open in a new tab"
 msgstr "Otevřít v nové záložce"
 
-#: crates/rolid-ui/src/app/places.rs:712
+#: crates/rolid-ui/src/app/places.rs:706
 msgid "Right button: menu · double-click: rename · middle button: close"
 msgstr "Pravé tlačítko: nabídka · dvojklik: přejmenovat · prostřední tlačítko: zavřít"
 
-#: crates/rolid-ui/src/app/places.rs:725
+#: crates/rolid-ui/src/app/places.rs:719
 msgid "{host}:{port} (not connected)"
 msgstr "{host}:{port} (nepřipojeno)"
 
-#: crates/rolid-ui/src/app/places.rs:729
+#: crates/rolid-ui/src/app/places.rs:723
 #: crates/rolid-ui/src/pane.rs:1534
 msgid "connecting…"
 msgstr "připojuji…"
 
-#: crates/rolid-ui/src/app/places.rs:731
-#: crates/rolid-ui/src/app/places.rs:735
+#: crates/rolid-ui/src/app/places.rs:725
+#: crates/rolid-ui/src/app/places.rs:729
 #: crates/rolid-ui/src/app/session.rs:29
 #: crates/rolid-ui/src/pane.rs:1536
 msgid "not connected"
 msgstr "nepřipojeno"
 
-#: crates/rolid-ui/src/app/places.rs:739
+#: crates/rolid-ui/src/app/places.rs:733
 msgid "Server: {name}"
 msgstr "Server: {name}"
 
-#: crates/rolid-ui/src/app/places.rs:740
+#: crates/rolid-ui/src/app/places.rs:734
 msgid "User: {user}"
 msgstr "Uživatel: {user}"
 
-#: crates/rolid-ui/src/app/places.rs:741
+#: crates/rolid-ui/src/app/places.rs:735
 msgid "Address: {address}"
 msgstr "Adresa: {address}"
 
-#: crates/rolid-ui/src/app/places.rs:742
+#: crates/rolid-ui/src/app/places.rs:736
 msgid "Path: {path}"
 msgstr "Cesta: {path}"
 
-#: crates/rolid-ui/src/app/places.rs:743
+#: crates/rolid-ui/src/app/places.rs:737
 msgid "State: {state}"
 msgstr "Stav: {state}"
 
-#: crates/rolid-ui/src/app/places.rs:746
+#: crates/rolid-ui/src/app/places.rs:740
 msgid "Production server"
 msgstr "Produkční server"
 
-#: crates/rolid-ui/src/app/places.rs:751
+#: crates/rolid-ui/src/app/places.rs:745
 msgid "⚠ The server's clock is {diff} ahead"
 msgstr "⚠ Hodiny serveru jdou o {diff} napřed"
 
-#: crates/rolid-ui/src/app/places.rs:753
+#: crates/rolid-ui/src/app/places.rs:747
 msgid "⚠ The server's clock is {diff} behind"
 msgstr "⚠ Hodiny serveru jdou o {diff} pozadu"
 
-#: crates/rolid-ui/src/app/places.rs:775
+#: crates/rolid-ui/src/app/places.rs:769
 msgid "Automatic name"
 msgstr "Automatický název"
 
-#: crates/rolid-ui/src/app/places.rs:779
+#: crates/rolid-ui/src/app/places.rs:773
 msgid "Change color"
 msgstr "Změnit barvu"
 
-#: crates/rolid-ui/src/app/places.rs:781
+#: crates/rolid-ui/src/app/places.rs:775
 #: crates/rolid-ui/src/app/viewer/mod.rs:497
 #: crates/rolid-ui/src/dialog.rs:345
 msgid "Close"
 msgstr "Zavřít"
 
-#: crates/rolid-ui/src/app/places.rs:785
+#: crates/rolid-ui/src/app/places.rs:779
 msgid "Close other tabs"
 msgstr "Zavřít ostatní"
 
-#: crates/rolid-ui/src/app/places.rs:816
+#: crates/rolid-ui/src/app/places.rs:810
 msgid "Custom color (16M shades)"
 msgstr "Vlastní barva (16M odstínů)"
 
-#: crates/rolid-ui/src/app/places.rs:822
+#: crates/rolid-ui/src/app/places.rs:816
 msgid "Hex:"
 msgstr "Hex:"
 
@@ -4335,7 +4348,7 @@ msgid "Text in the file:"
 msgstr "Text v souboru:"
 
 #: crates/rolid-ui/src/app/search.rs:304
-#: crates/rolid-ui/src/app/session.rs:1056
+#: crates/rolid-ui/src/app/session.rs:1127
 msgid "optional"
 msgstr "nepovinné"
 
@@ -4427,261 +4440,307 @@ msgstr "Jen při hledání na lokálním disku"
 msgid "Search"
 msgstr "Hledat"
 
-#: crates/rolid-ui/src/app/session.rs:270
+#: crates/rolid-ui/src/app/session.rs:276
 msgid "Invalid port"
 msgstr "Neplatný port"
 
-#: crates/rolid-ui/src/app/session.rs:273
+#: crates/rolid-ui/src/app/session.rs:279
 msgid "Fill in the server and the user"
 msgstr "Vyplň server a uživatele"
 
+#: crates/rolid-ui/src/app/session.rs:296
+#: crates/rolid-ui/src/app/session.rs:303
+msgid "directly"
+msgstr "přímo"
+
+#: crates/rolid-ui/src/app/session.rs:299
+msgid "(deleted server)"
+msgstr "(smazaný server)"
+
+#: crates/rolid-ui/src/app/session.rs:311
+msgid "It goes through this server itself."
+msgstr "Vede přes tento server samotný."
+
 #: crates/rolid-ui/src/app/session.rs:312
+msgid "Too many jump hosts one after another (at most {n})."
+msgstr "Příliš mnoho přestupních serverů za sebou (nejvýš {n})."
+
+#: crates/rolid-ui/src/app/session.rs:352
+msgid "Not connected: the jump host of this server is no longer among the saved servers. Choose another in Connect through."
+msgstr "Nepřipojeno: přestupní server tohoto serveru už mezi uloženými servery není. Vyberte jiný v poli Připojit přes."
+
+#: crates/rolid-ui/src/app/session.rs:376
 msgid "The connection to “{name}” uses a saved password."
 msgstr "Připojení k „{name}“ používá uložené heslo."
 
-#: crates/rolid-ui/src/app/session.rs:317
+#: crates/rolid-ui/src/app/session.rs:381
+#: crates/rolid-ui/src/app/session.rs:409
 msgid "Not connected: the saved passwords are locked (Enter or Ctrl+R = try again)"
 msgstr "Nepřipojeno: uložená hesla jsou zamčená (Enter nebo Ctrl+R = zkusit znovu)"
 
 #: crates/rolid-ui/src/app/session.rs:404
+msgid "The connection goes through the jump host “{name}”, which uses a saved password."
+msgstr "Spojení vede přes přestupní server „{name}“, který používá uložené heslo."
+
+#: crates/rolid-ui/src/app/session.rs:477
 msgid "{report}; system keyring unavailable: {error}"
 msgstr "{report}; systémová klíčenka nedostupná: {error}"
 
-#: crates/rolid-ui/src/app/session.rs:509
+#: crates/rolid-ui/src/app/session.rs:582
 msgid "Not connected: {error}  (Enter or Ctrl+R = try again)"
 msgstr "Nepřipojeno: {error}  (Enter nebo Ctrl+R = zkusit znovu)"
 
-#: crates/rolid-ui/src/app/session.rs:668
+#: crates/rolid-ui/src/app/session.rs:739
 msgid "Profile saved."
 msgstr "Profil uložen."
 
-#: crates/rolid-ui/src/app/session.rs:671
-#: crates/rolid-ui/src/app/session.rs:738
-#: crates/rolid-ui/src/app/session.rs:792
+#: crates/rolid-ui/src/app/session.rs:742
+#: crates/rolid-ui/src/app/session.rs:809
+#: crates/rolid-ui/src/app/session.rs:875
 #: crates/rolid-ui/src/app/vault_ui.rs:479
 msgid "Cannot save the profiles: {error}"
 msgstr "Profily nelze uložit: {error}"
 
-#: crates/rolid-ui/src/app/session.rs:691
+#: crates/rolid-ui/src/app/session.rs:762
 msgid "Password saved (protected by the master password)."
 msgstr "Heslo uloženo (chráněno hlavním heslem)."
 
-#: crates/rolid-ui/src/app/session.rs:701
+#: crates/rolid-ui/src/app/session.rs:772
 msgid "Profile saved, the saved password did not change (the master password was not entered)."
 msgstr "Profil uložen, uložené heslo se nezměnilo (hlavní heslo nebylo zadáno)."
 
-#: crates/rolid-ui/src/app/session.rs:703
+#: crates/rolid-ui/src/app/session.rs:774
 msgid "Profile saved without a password (the master password was not entered)."
 msgstr "Profil uložen bez hesla (hlavní heslo nebylo zadáno)."
 
-#: crates/rolid-ui/src/app/session.rs:717
+#: crates/rolid-ui/src/app/session.rs:788
 msgid "The password did not change (the master password was not entered)."
 msgstr "Heslo se nezměnilo (hlavní heslo nebylo zadáno)."
 
-#: crates/rolid-ui/src/app/session.rs:719
+#: crates/rolid-ui/src/app/session.rs:790
 msgid "The password was not saved (the master password was not entered)."
 msgstr "Heslo nebylo uloženo (hlavní heslo nebylo zadáno)."
 
-#: crates/rolid-ui/src/app/session.rs:744
+#: crates/rolid-ui/src/app/session.rs:815
 msgid "Copy created: {name}"
 msgstr "Kopie vytvořena: {name}"
 
-#: crates/rolid-ui/src/app/session.rs:751
+#: crates/rolid-ui/src/app/session.rs:822
 msgid "The saved password of “{name}” will be copied to the new server."
 msgstr "Uložené heslo serveru „{name}“ se zkopíruje k novému serveru."
 
-#: crates/rolid-ui/src/app/session.rs:754
+#: crates/rolid-ui/src/app/session.rs:825
 msgid "Copy created without a password: the original has no saved password."
 msgstr "Kopie vytvořena bez hesla: původní server nemá uložené heslo."
 
-#: crates/rolid-ui/src/app/session.rs:760
+#: crates/rolid-ui/src/app/session.rs:831
 #: crates/rolid-ui/src/app/vault_ui.rs:243
 msgid "Cannot save the password: {error}"
 msgstr "Heslo nelze uložit: {error}"
 
-#: crates/rolid-ui/src/app/session.rs:769
+#: crates/rolid-ui/src/app/session.rs:840
 msgid "Copy created with the saved password."
 msgstr "Kopie vytvořena i s uloženým heslem."
 
-#: crates/rolid-ui/src/app/session.rs:772
+#: crates/rolid-ui/src/app/session.rs:843
 msgid "Copy created without the password (the master password was not entered)."
 msgstr "Kopie vytvořena bez hesla (hlavní heslo nebylo zadáno)."
 
-#: crates/rolid-ui/src/app/session.rs:800
+#: crates/rolid-ui/src/app/session.rs:865
+msgid "This server is the jump host of {servers}. Choose another way for them first (Connect through)."
+msgstr "Tento server je přestupním serverem pro {servers}. Nejdřív jim vyberte jinou cestu (Připojit přes)."
+
+#: crates/rolid-ui/src/app/session.rs:883
 msgid "Profile deleted."
 msgstr "Profil smazán."
 
-#: crates/rolid-ui/src/app/session.rs:875
+#: crates/rolid-ui/src/app/session.rs:946
 msgid "Login – {target}"
 msgstr "Přihlášení – {target}"
 
-#: crates/rolid-ui/src/app/session.rs:878
+#: crates/rolid-ui/src/app/session.rs:949
 msgid "The password was not accepted. Enter it again."
 msgstr "Heslo nebylo přijato. Zadej ho znovu."
 
-#: crates/rolid-ui/src/app/session.rs:886
+#: crates/rolid-ui/src/app/session.rs:957
 msgid "The server asks (keyboard-interactive):"
 msgstr "Server se ptá (keyboard-interactive):"
 
-#: crates/rolid-ui/src/app/session.rs:898
+#: crates/rolid-ui/src/app/session.rs:969
 msgid "Send"
 msgstr "Odeslat"
 
-#: crates/rolid-ui/src/app/session.rs:926
+#: crates/rolid-ui/src/app/session.rs:997
 msgid "Server manager"
 msgstr "Správce serverů"
 
-#: crates/rolid-ui/src/app/session.rs:932
+#: crates/rolid-ui/src/app/session.rs:1003
 msgid "＋ New / quick connect"
 msgstr "＋ Nový / rychlé připojení"
 
-#: crates/rolid-ui/src/app/session.rs:940
+#: crates/rolid-ui/src/app/session.rs:1011
 msgid "No saved servers yet."
 msgstr "Zatím žádné uložené servery."
 
-#: crates/rolid-ui/src/app/session.rs:977
+#: crates/rolid-ui/src/app/session.rs:1048
 msgid "Duplicate…"
 msgstr "Duplikovat…"
 
-#: crates/rolid-ui/src/app/session.rs:977
+#: crates/rolid-ui/src/app/session.rs:1048
 msgid "A copy of the saved server with all its settings, under a new name. Changes in the form that are not saved are not copied."
 msgstr "Kopie uloženého serveru se všemi jeho nastaveními pod novým názvem. Neuložené změny ve formuláři se nekopírují."
 
-#: crates/rolid-ui/src/app/session.rs:993
+#: crates/rolid-ui/src/app/session.rs:1064
 msgid "Copy the saved password too"
 msgstr "Zkopírovat i uložené heslo"
 
-#: crates/rolid-ui/src/app/session.rs:995
+#: crates/rolid-ui/src/app/session.rs:1066
 msgid "The password is still in the system keyring of an older version: move it first (Settings → Master password)."
 msgstr "Heslo je ještě v systémové klíčence ze starší verze: nejdřív ho přesuň (Nastavení → Hlavní heslo)."
 
-#: crates/rolid-ui/src/app/session.rs:997
+#: crates/rolid-ui/src/app/session.rs:1068
 msgid "Needs the master password."
 msgstr "Vyžaduje hlavní heslo."
 
-#: crates/rolid-ui/src/app/session.rs:1000
+#: crates/rolid-ui/src/app/session.rs:1071
 msgid "Create copy"
 msgstr "Vytvořit kopii"
 
-#: crates/rolid-ui/src/app/session.rs:1015
+#: crates/rolid-ui/src/app/session.rs:1086
 msgid "Really delete?"
 msgstr "Opravdu smazat?"
 
-#: crates/rolid-ui/src/app/session.rs:1031
+#: crates/rolid-ui/src/app/session.rs:1102
 msgid "e.g. Web production"
 msgstr "např. Web produkce"
 
-#: crates/rolid-ui/src/app/session.rs:1035
+#: crates/rolid-ui/src/app/session.rs:1106
 msgid "Server:"
 msgstr "Server:"
 
-#: crates/rolid-ui/src/app/session.rs:1038
+#: crates/rolid-ui/src/app/session.rs:1109
 msgid "host or user@host:port"
 msgstr "host nebo user@host:port"
 
-#: crates/rolid-ui/src/app/session.rs:1046
+#: crates/rolid-ui/src/app/session.rs:1117
 msgid "Port:"
 msgstr "Port:"
 
-#: crates/rolid-ui/src/app/session.rs:1049
+#: crates/rolid-ui/src/app/session.rs:1120
 msgid "User:"
 msgstr "Uživatel:"
 
-#: crates/rolid-ui/src/app/session.rs:1054
+#: crates/rolid-ui/src/app/session.rs:1125
 msgid "saved (protected by the master password)"
 msgstr "uloženo (chráněno hlavním heslem)"
 
-#: crates/rolid-ui/src/app/session.rs:1055
+#: crates/rolid-ui/src/app/session.rs:1126
 msgid "saved in the system keyring (older version)"
 msgstr "uloženo v systémové klíčence (starší verze)"
 
-#: crates/rolid-ui/src/app/session.rs:1060
+#: crates/rolid-ui/src/app/session.rs:1131
 msgid "Key:"
 msgstr "Klíč:"
 
-#: crates/rolid-ui/src/app/session.rs:1063
+#: crates/rolid-ui/src/app/session.rs:1134
 msgid "default: agent, ~/.ssh/id_*"
 msgstr "výchozí: agent, ~/.ssh/id_*"
 
-#: crates/rolid-ui/src/app/session.rs:1067
+#: crates/rolid-ui/src/app/session.rs:1138
 msgid "Key passphrase:"
 msgstr "Heslo ke klíči:"
 
-#: crates/rolid-ui/src/app/session.rs:1068
+#: crates/rolid-ui/src/app/session.rs:1139
 msgid "optional, not saved"
 msgstr "nepovinné, neukládá se"
 
-#: crates/rolid-ui/src/app/session.rs:1070
+#: crates/rolid-ui/src/app/session.rs:1141
+msgid "Connect through:"
+msgstr "Připojit přes:"
+
+#: crates/rolid-ui/src/app/session.rs:1146
+msgid "A jump host (ProxyJump in OpenSSH): the program first connects to this saved server, with its own key or saved password, and from there to the server above. The keys of both servers are checked. The server's address is then the one the jump host sees, for example an address in its local network."
+msgstr "Přestupní server (ProxyJump v OpenSSH): program se nejdřív připojí k tomuto uloženému serveru, jeho vlastním klíčem nebo uloženým heslem, a odtud k serveru výše. Kontrolují se klíče obou serverů. Adresa serveru je pak ta, kterou vidí přestupní server, například adresa v jeho místní síti."
+
+#: crates/rolid-ui/src/app/session.rs:1152
 msgid "Start folder:"
 msgstr "Výchozí složka:"
 
-#: crates/rolid-ui/src/app/session.rs:1073
+#: crates/rolid-ui/src/app/session.rs:1155
 msgid "home"
 msgstr "domovská"
 
-#: crates/rolid-ui/src/app/session.rs:1077
+#: crates/rolid-ui/src/app/session.rs:1159
 msgid "Tab color:"
 msgstr "Barva záložky:"
 
-#: crates/rolid-ui/src/app/session.rs:1107
+#: crates/rolid-ui/src/app/session.rs:1189
 msgid "Do not change the tab color"
 msgstr "Neměnit barvu záložky"
 
-#: crates/rolid-ui/src/app/session.rs:1121
+#: crates/rolid-ui/src/app/session.rs:1203
 msgid "Any color (16M shades)"
 msgstr "Libovolná barva (16M odstínů)"
 
-#: crates/rolid-ui/src/app/session.rs:1140
+#: crates/rolid-ui/src/app/session.rs:1222
 msgid "Save password (protected by the master password)"
 msgstr "Uložit heslo (chráněno hlavním heslem)"
 
-#: crates/rolid-ui/src/app/session.rs:1143
+#: crates/rolid-ui/src/app/session.rs:1225
 msgid "The password is saved in an encrypted file. The first time you create a master password; after the application starts, you enter it once when a saved password is first used."
 msgstr "Heslo se uloží do šifrovaného souboru. Poprvé vytvoříš hlavní heslo, po startu aplikace ho zadáš jednou při prvním použití uloženého hesla."
 
-#: crates/rolid-ui/src/app/session.rs:1150
+#: crates/rolid-ui/src/app/session.rs:1232
 msgid "⚠ Production server (red stripe, stricter confirmations)"
 msgstr "⚠ Produkční server (červený pruh, přísnější potvrzování)"
 
-#: crates/rolid-ui/src/app/session.rs:1155
+#: crates/rolid-ui/src/app/session.rs:1237
 msgid "Unknown server: its key is neither in the program's list of known servers nor in ~/.ssh/known_hosts."
 msgstr "Neznámý server: jeho klíč není ve vlastním seznamu známých serverů programu ani v ~/.ssh/known_hosts."
 
-#: crates/rolid-ui/src/app/session.rs:1156
+#: crates/rolid-ui/src/app/session.rs:1245
+msgid "Jump host: {server}"
+msgstr "Přestupní server: {server}"
+
+#: crates/rolid-ui/src/app/session.rs:1247
+msgid "Server: {server}"
+msgstr "Server: {server}"
+
+#: crates/rolid-ui/src/app/session.rs:1249
 msgid "Key type: {algorithm}"
 msgstr "Typ klíče: {algorithm}"
 
-#: crates/rolid-ui/src/app/session.rs:1160
+#: crates/rolid-ui/src/app/session.rs:1253
 msgid "Trust and connect"
 msgstr "Důvěřovat a připojit"
 
-#: crates/rolid-ui/src/app/session.rs:1163
+#: crates/rolid-ui/src/app/session.rs:1256
 msgid "Check the fingerprint with the server administrator. Once confirmed, it is saved to the program's list of known servers ({file}); ~/.ssh/known_hosts is not changed."
 msgstr "Ověřte otisk u správce serveru. Po potvrzení se uloží do seznamu známých serverů programu ({file}); ~/.ssh/known_hosts se nemění."
 
-#: crates/rolid-ui/src/app/session.rs:1186
+#: crates/rolid-ui/src/app/session.rs:1279
 msgid "Connecting…"
 msgstr "Připojuji…"
 
-#: crates/rolid-ui/src/app/session.rs:1190
+#: crates/rolid-ui/src/app/session.rs:1283
 msgid "Connect"
 msgstr "Připojit"
 
-#: crates/rolid-ui/src/app/session.rs:1191
+#: crates/rolid-ui/src/app/session.rs:1284
 msgid "Save profile"
 msgstr "Uložit profil"
 
-#: crates/rolid-ui/src/app/session.rs:1249
+#: crates/rolid-ui/src/app/session.rs:1342
 msgid "Cannot save the workspace: {error}"
 msgstr "Pracovní prostor nelze uložit: {error}"
 
-#: crates/rolid-ui/src/app/session.rs:1297
-#: crates/rolid-ui/src/app/session.rs:1310
+#: crates/rolid-ui/src/app/session.rs:1390
+#: crates/rolid-ui/src/app/session.rs:1403
 msgid "{name} (copy)"
 msgstr "{name} (kopie)"
 
-#: crates/rolid-ui/src/app/session.rs:1302
-#: crates/rolid-ui/src/app/session.rs:1316
+#: crates/rolid-ui/src/app/session.rs:1395
+#: crates/rolid-ui/src/app/session.rs:1409
 msgid "{name} (copy {n})"
 msgstr "{name} (kopie {n})"
 
@@ -5049,31 +5108,31 @@ msgstr "Není vybraná žádná složka (odkazy na složky se nepočítají)."
 msgid "Folder sizes ({count}): {place}"
 msgstr "Velikost složek ({count}): {place}"
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:68
+#: crates/rolid-ui/src/app/terminal_ui.rs:83
 msgid "The saved password for “{name}” will be passed to the terminal."
 msgstr "Uložené heslo k „{name}“ se předá terminálu."
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:81
+#: crates/rolid-ui/src/app/terminal_ui.rs:106
 msgid "Cannot open a terminal on the server: the ssh program is not installed."
 msgstr "Terminál na serveru nelze otevřít: program ssh není nainstalovaný."
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:106
+#: crates/rolid-ui/src/app/terminal_ui.rs:132
 msgid "Cannot open a terminal: {error}"
 msgstr "Terminál nelze otevřít: {error}"
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:112
+#: crates/rolid-ui/src/app/terminal_ui.rs:138
 msgid "No terminal program found. Set the TERMINAL environment variable or install one (e.g. xterm)."
 msgstr "Nenašel se žádný terminál. Nastavte proměnnou prostředí TERMINAL nebo nějaký nainstalujte (např. xterm)."
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:134
+#: crates/rolid-ui/src/app/terminal_ui.rs:160
 msgid "Terminal on a production server"
 msgstr "Terminál na produkčním serveru"
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:135
+#: crates/rolid-ui/src/app/terminal_ui.rs:161
 msgid "“{name}” is a production server. Commands typed in the terminal take effect immediately."
 msgstr "„{name}“ je produkční server. Příkazy zadané v terminálu se projeví okamžitě."
 
-#: crates/rolid-ui/src/app/terminal_ui.rs:136
+#: crates/rolid-ui/src/app/terminal_ui.rs:162
 msgid "Open terminal"
 msgstr "Otevřít terminál"
 

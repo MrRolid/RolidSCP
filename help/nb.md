@@ -183,6 +183,13 @@ om det er merket), knappene og dialogene sine navn.
 - På en produksjonsserver kan heller ikke kopiering, opplasting, flytting og oppretting av en mappe
   bekreftes med Enter, og kopiering starter aldri med Overskriv (Hopp over eksisterende er
   forhåndsvalgt).
+- **Koble til via** en annen lagret server (en hoppserver, ProxyJump i OpenSSH): programmet kobler
+  først til den serveren, med dens egen nøkkel eller lagrede passord, og derfra til målserveren.
+  Adressen til målserveren er da den hoppserveren ser, for eksempel en adresse i dens lokale
+  nettverk. Nøklene til begge serverne kontrolleres, og et spørsmål om en ukjent nøkkel sier hvilken
+  av dem det gjelder. En hoppserver kan ha sin egen hoppserver (høyst fire etter hverandre). Etter et
+  brudd gjenopprettes tilkoblingen samme vei, og terminalen (**Ctrl+P**) går samme vei. En lagret
+  server som andre går gjennom, kan ikke slettes før de har fått en annen vei.
 - Servernøkkelen kontrolleres mot to lister: programmets egen liste over kjente servere
   (`~/.config/rolidscp/known_hosts`) og `~/.ssh/known_hosts`, som programmet bare leser og aldri
   endrer. En ny nøkkel legges i programmets egen liste først når du har bekreftet fingeravtrykket; en

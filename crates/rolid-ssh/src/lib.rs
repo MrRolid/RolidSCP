@@ -55,6 +55,34 @@ pub struct ConnectParams {
     /// How long one SFTP request may wait for its answer; default
     /// [`SFTP_REQUEST_TIMEOUT`].
     pub request_timeout: Option<Duration>,
+    /// Connect through this server (a jump host, like OpenSSH's ProxyJump):
+    /// the connection to it is opened first, with its own credentials and key
+    /// check, and this server is reached by a channel through it. It may have
+    /// a jump host of its own.
+    pub via: Option<Box<ConnectParams>>,
+}
+
+impl ConnectParams {
+    /// Wipe the passwords (of the jump hosts too).
+    pub fn wipe(&mut self) {
+        use zeroize::Zeroize;
+        self.password.zeroize();
+        self.key_passphrase.zeroize();
+        if let Some(v) = &mut self.via {
+            v.wipe();
+        }
+    }
+
+    /// `user@host:port`, with ` via …` for each jump host; the same as
+    /// `RemoteTarget::key` in the UI.
+    pub fn key(&self) -> String {
+        let mut k = format!("{}@{}:{}", self.user, self.host, self.port);
+        if let Some(v) = &self.via {
+            k.push_str(" via ");
+            k.push_str(&v.key());
+        }
+        k
+    }
 }
 
 impl std::fmt::Debug for ConnectParams {
@@ -65,6 +93,7 @@ impl std::fmt::Debug for ConnectParams {
             .field("port", &self.port)
             .field("user", &self.user)
             .field("key_path", &self.key_path)
+            .field("via", &self.via)
             .finish_non_exhaustive()
     }
 }
@@ -99,6 +128,8 @@ pub enum SshError {
     },
     /// The authentication report (see [`auth::Report::text`]).
     AuthFailed(Text),
+    /// Login to a jump host failed (`user@host` of it, its report).
+    JumpAuthFailed { label: String, report: Text },
     Other(Text),
 }
 
@@ -137,6 +168,9 @@ impl SshError {
                 other_line = other.1.to_string()
             ),
             SshError::AuthFailed(report) => txt!("login failed. {report}", report = report),
+            SshError::JumpAuthFailed { label, report } => {
+                txt!("login to the jump host {server} failed. {report}", server = label, report = report)
+            }
             SshError::Other(t) => t.clone(),
         }
     }
@@ -283,6 +317,45 @@ impl client::Handler for ClientHandler {
     }
 }
 
+/// The SSH handshake over `stream`, with the verdict of the key check as the error.
+async fn handshake<R>(
+    config: Arc<client::Config>,
+    stream: R,
+    handler: ClientHandler,
+    deadline: tokio::time::Instant,
+    p: &ConnectParams,
+    verdict: &Mutex<Option<HostKeyVerdict>>,
+) -> Result<client::Handle<ClientHandler>, SshError>
+where
+    R: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin + Send + 'static,
+{
+    match tokio::time::timeout_at(deadline, client::connect_stream(config, stream, handler)).await {
+        Err(_) => Err(SshError::Other(txt!("the connection timed out"))),
+        Ok(Ok(h)) => Ok(h),
+        Ok(Err(e)) => Err(match verdict.lock().unwrap().take() {
+            Some(HostKeyVerdict::Unknown { algorithm, fingerprint }) => SshError::UnknownHostKey {
+                host: p.host.clone(),
+                port: p.port,
+                algorithm,
+                fingerprint,
+            },
+            Some(HostKeyVerdict::Refused(e)) => e,
+            None => SshError::Other(txt!("connection failed: {error}", error = e.to_string())),
+        }),
+    }
+}
+
+/// An error of the jump host `j`, said as such. Key errors name their server
+/// already and stay as they are.
+fn jump_error(j: &ConnectParams, e: SshError) -> SshError {
+    let label = format!("{}@{}", j.user, j.host);
+    match e {
+        SshError::AuthFailed(report) => SshError::JumpAuthFailed { label, report },
+        SshError::Other(t) => SshError::Other(txt!("jump host {server}: {error}", server = label, error = t)),
+        e => e,
+    }
+}
+
 /// The key types the lists of known servers have for the server of `p`.
 fn known_types(p: &ConnectParams) -> Vec<keys::Algorithm> {
     let name = hostkeys::host_port(&p.host, p.port);
@@ -314,9 +387,13 @@ pub struct SshConnection {
     /// `user@host:port`: names the server in the local journal of unfinished
     /// replacements ([`rolid_core::replace`]).
     pub key: String,
-    /// The address actually connected to (after the DNS lookup).
+    /// The address actually connected to (after the DNS lookup); `None`
+    /// through a jump host.
     pub peer: Option<std::net::SocketAddr>,
     alive: Arc<Alive>,
+    /// The connection to the jump host this one goes through (kept open as
+    /// long as this one).
+    via: Option<Arc<SshConnection>>,
 }
 
 impl SshConnection {
@@ -347,33 +424,39 @@ impl SshConnection {
             verdict: verdict.clone(),
             alive: alive.clone(),
         };
-        // The TCP connection is opened here (not by russh) to learn which of
-        // the addresses of the name it went to.
-        let addr = (p.host.as_str(), p.port);
         let deadline = tokio::time::Instant::now() + Duration::from_secs(20);
-        let stream = tcp_connect(addr, deadline).await?;
-        if let Err(e) = stream.set_nodelay(true) {
-            tracing::warn!("set_nodelay failed: {e}");
-        }
-        let peer = stream.peer_addr().ok();
-        let connect = tokio::time::timeout_at(deadline, client::connect_stream(config, stream, handler));
-        let mut handle = match connect.await {
-            Err(_) => return Err(SshError::Other(txt!("the connection timed out"))),
-            Ok(Ok(h)) => h,
-            Ok(Err(e)) => {
-                return Err(match verdict.lock().unwrap().take() {
-                    Some(HostKeyVerdict::Unknown {
-                        algorithm,
-                        fingerprint,
-                    }) => SshError::UnknownHostKey {
-                        host: p.host.clone(),
-                        port: p.port,
-                        algorithm,
-                        fingerprint,
-                    },
-                    Some(HostKeyVerdict::Refused(e)) => e,
-                    None => SshError::Other(txt!("connection failed: {error}", error = e.to_string())),
-                });
+        let (mut handle, peer, via) = match &p.via {
+            None => {
+                // The TCP connection is opened here (not by russh) to learn which of
+                // the addresses of the name it went to.
+                let stream = tcp_connect((p.host.as_str(), p.port), deadline).await?;
+                if let Err(e) = stream.set_nodelay(true) {
+                    tracing::warn!("set_nodelay failed: {e}");
+                }
+                let peer = stream.peer_addr().ok();
+                (handshake(config, stream, handler, deadline, p, &verdict).await?, peer, None)
+            }
+            Some(j) => {
+                let jump = Box::pin(Self::connect(j)).await.map_err(|e| jump_error(j, e))?;
+                let channel = tokio::time::timeout_at(
+                    deadline,
+                    jump.handle.channel_open_direct_tcpip(p.host.clone(), u32::from(p.port), "127.0.0.1", 0),
+                )
+                .await;
+                let channel = match channel {
+                    Ok(Ok(c)) => c,
+                    Ok(Err(e)) => {
+                        return Err(SshError::Other(txt!(
+                            "the jump host {jump} could not connect to {server}: {error}",
+                            jump = jump.label.clone(),
+                            server = format!("{}:{}", p.host, p.port),
+                            error = e.to_string()
+                        )))
+                    }
+                    Err(_) => return Err(SshError::Other(txt!("the connection timed out"))),
+                };
+                let h = handshake(config, channel.into_stream(), handler, deadline, p, &verdict).await?;
+                (h, None, Some(Arc::new(jump)))
             }
         };
 
@@ -382,9 +465,10 @@ impl SshConnection {
         Ok(Self {
             handle: Arc::new(handle),
             label: format!("{}@{}", p.user, p.host),
-            key: format!("{}@{}:{}", p.user, p.host, p.port),
+            key: p.key(),
             peer,
             alive,
+            via,
         })
     }
 
@@ -419,6 +503,9 @@ impl SshConnection {
     /// Give up this connection (it is replaced by a new one): close it in the
     /// background, so everything still waiting on it ends at once.
     pub fn abandon(&self) {
+        if let Some(v) = &self.via {
+            v.abandon();
+        }
         let handle = self.handle.clone();
         tokio::spawn(async move {
             let _ = tokio::time::timeout(
@@ -436,7 +523,12 @@ impl SshConnection {
 
     /// The SSH session has ended (keepalive unanswered, server gone, closed).
     pub fn is_closed(&self) -> bool {
-        self.handle.is_closed()
+        self.handle.is_closed() || self.via.as_ref().is_some_and(|v| v.is_closed())
+    }
+
+    /// The jump host this connection goes through.
+    pub fn via(&self) -> Option<&SshConnection> {
+        self.via.as_deref()
     }
 
     /// Resolves once the connection is closed (checked every [`CLOSED_POLL`]).

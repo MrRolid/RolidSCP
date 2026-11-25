@@ -173,8 +173,15 @@ o beta verzi.
   podporované nejsou.
 - Přihlášení přes ssh-agent, soubor s klíčem (formát OpenSSH; PuTTY `.ppk` načte knihovna SSH, ale naše
   testy ho zatím nepokrývají), výchozí klíče `~/.ssh/id_ed25519`, `id_ecdsa`, `id_rsa`, heslo nebo
-  keyboard-interactive. `~/.ssh/config`, skoky přes jiný server (ProxyJump, ProxyCommand) ani import
-  relací z WinSCP nebo FileZilly zatím podporované nejsou.
+  keyboard-interactive.
+- **Přestupní servery** (ProxyJump): uložený server se dá připojit přes jiný uložený server, polem
+  „Připojit přes“ ve správci serverů. Přestupní server se přihlásí vlastním klíčem nebo uloženým
+  heslem, kontrolují se klíče obou serverů (dotaz na neznámý klíč řekne, kterého serveru se týká),
+  přestupní server může mít vlastní (nejvýš čtyři za sebou), po výpadku se spojení obnoví stejnou
+  cestou a terminál (Ctrl+P) spouští `ssh` s `ProxyCommand` přes `ssh -W` a stejně přísnou kontrolou
+  klíčů. Uložený server, přes který vedou jiné, nejde smazat, dokud jim nevyberete jinou cestu.
+- `~/.ssh/config`, vlastní `ProxyCommand`, proxy SOCKS a HTTP (plán 0.9.2) ani import relací z WinSCP
+  nebo FileZilly zatím podporované nejsou.
 - Uložená hesla jsou v šifrovaném trezoru (`vault.bin`, Argon2id + XChaCha20-Poly1305) za hlavním heslem.
   Zamčení trezoru (ručně nebo po nastavené době) nezavře spojení ani nezastaví přenosy; zapomene hesla
   držená pro znovupřipojení. Znovupřipojení pak zkusí nejdřív ssh-agent a klíče, a když server chce

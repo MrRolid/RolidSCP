@@ -186,6 +186,13 @@ det er markeret), knapperne og dialogerne deres navne.
 - På en produktionsserver kan kopiering, upload, flytning og oprettelse af en mappe heller ikke
   bekræftes med Enter, og kopiering starter aldrig med Overskriv (Spring eksisterende over er valgt
   på forhånd).
+- **Forbind via** en anden gemt server (en springserver, ProxyJump i OpenSSH): programmet forbinder
+  først til den server med dens egen nøgle eller gemte adgangskode og derfra til målserveren.
+  Målserverens adresse er så den, springserveren ser, for eksempel en adresse i dens lokale netværk.
+  Begge serveres nøgler kontrolleres, og et spørgsmål om en ukendt nøgle siger, hvilken af dem det
+  gælder. En springserver kan have sin egen springserver (højst fire efter hinanden). Efter et
+  udfald genoprettes forbindelsen ad samme vej, og terminalen (**Ctrl+P**) går samme vej. En gemt
+  server, som andre går igennem, kan ikke slettes, før de har fået en anden vej.
 - Serverens nøgle kontrolleres mod to lister: programmets egen liste over kendte servere
   (`~/.config/rolidscp/known_hosts`) og `~/.ssh/known_hosts`, som programmet kun læser og aldrig
   ændrer. En ny nøgle tilføjes først til programmets egen liste, når du har bekræftet dens

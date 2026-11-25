@@ -42,7 +42,14 @@ pub struct Profile {
     /// key and mean the system keyring.
     #[serde(default = "PasswordStore::legacy")]
     pub password_store: PasswordStore,
+    /// Connect through this saved server (its id), a jump host (0.9.1).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub jump: Option<String>,
 }
+
+/// The most jump hosts one after another (OpenSSH has no limit; more than a
+/// few is a mistake, most often a loop).
+pub const MAX_JUMPS: usize = 4;
 
 impl Profile {
     /// Password saved in the system keyring by an older version (to be migrated).
@@ -95,6 +102,79 @@ impl Profiles {
     pub fn remove(&mut self, id: &str) {
         self.list.retain(|p| p.id != id);
     }
+
+    /// Where a panel connects for saved server `p`, with its jump hosts.
+    /// A missing jump host, a loop or more than [`MAX_JUMPS`] end the route
+    /// there; [`Profiles::route_problem`] says why.
+    pub fn target(&self, p: &Profile) -> RemoteTarget {
+        let mut seen = vec![p.id.clone()];
+        self.target_inner(p, &mut seen)
+    }
+
+    fn target_inner(&self, p: &Profile, seen: &mut Vec<String>) -> RemoteTarget {
+        let jump = p
+            .jump
+            .as_deref()
+            .filter(|id| !seen.iter().any(|s| s == id) && seen.len() <= MAX_JUMPS)
+            .and_then(|id| self.get(id))
+            .map(|j| {
+                seen.push(j.id.clone());
+                Box::new(self.target_inner(j, seen))
+            });
+        RemoteTarget {
+            profile: Some(p.id.clone()),
+            host: p.host.clone(),
+            port: p.port,
+            user: p.user.clone(),
+            key_path: p.key_path.clone(),
+            jump,
+        }
+    }
+
+    /// What is wrong with connecting server `id` through `jump`: the jump host
+    /// is missing, it is the server itself, it goes through the server (a
+    /// loop), or the chain is longer than [`MAX_JUMPS`].
+    pub fn route_problem(&self, id: &str, jump: &str) -> Option<RouteProblem> {
+        let mut seen = vec![id.to_string()];
+        let mut next = Some(jump.to_string());
+        while let Some(j) = next {
+            if seen.contains(&j) {
+                return Some(RouteProblem::Loop);
+            }
+            let Some(p) = self.get(&j) else { return Some(RouteProblem::Missing) };
+            seen.push(j);
+            if seen.len() > MAX_JUMPS + 1 {
+                return Some(RouteProblem::TooLong);
+            }
+            next = p.jump.clone();
+        }
+        None
+    }
+
+    /// The servers whose route goes through `id` (to warn before it is deleted).
+    pub fn used_as_jump(&self, id: &str) -> Vec<&Profile> {
+        self.list
+            .iter()
+            .filter(|p| p.id != id && {
+                let t = self.target(p);
+                let mut j = t.jump.as_deref();
+                let mut hit = false;
+                while let Some(x) = j {
+                    hit |= x.profile.as_deref() == Some(id);
+                    j = x.jump.as_deref();
+                }
+                hit
+            })
+            .collect()
+    }
+}
+
+/// Why a jump host cannot be used (see [`Profiles::route_problem`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RouteProblem {
+    Missing,
+    Loop,
+    TooLong,
 }
 
 /// Remote endpoint of a panel (no secrets).
@@ -107,11 +187,33 @@ pub struct RemoteTarget {
     pub user: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub key_path: Option<String>,
+    /// The jump host this server is reached through (0.9.1).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub jump: Option<Box<RemoteTarget>>,
 }
 
 impl RemoteTarget {
+    /// Names the connection: `user@host:port`, with ` via …` for each jump
+    /// host (the same server reached another way is another connection: an
+    /// address behind a jump host may mean another machine than here).
     pub fn key(&self) -> String {
-        format!("{}@{}:{}", self.user, self.host, self.port)
+        let mut k = format!("{}@{}:{}", self.user, self.host, self.port);
+        if let Some(j) = &self.jump {
+            k.push_str(" via ");
+            k.push_str(&j.key());
+        }
+        k
+    }
+
+    /// The jump hosts, the nearest to the server first.
+    pub fn jumps(&self) -> Vec<&RemoteTarget> {
+        let mut v = Vec::new();
+        let mut j = self.jump.as_deref();
+        while let Some(x) = j {
+            v.push(x);
+            j = x.jump.as_deref();
+        }
+        v
     }
 }
 
@@ -1436,7 +1538,7 @@ path = "/srv"
 
     fn remote(profile: Option<&str>, host: &str, path: &str) -> Location {
         Location::Remote {
-            target: RemoteTarget { profile: profile.map(Into::into), host: host.into(), port: 22, user: "u".into(), key_path: None },
+            target: RemoteTarget { profile: profile.map(Into::into), host: host.into(), port: 22, user: "u".into(), key_path: None, jump: None },
             path: path.into(),
         }
     }
@@ -1582,6 +1684,65 @@ path = "/srv"
 
     /// "On Wayland, use X11" of 0.9.1: off in settings of older versions, and
     /// the key is written only when it is turned on.
+    fn route_profiles() -> Profiles {
+        let mut ps = Profiles::default();
+        for (id, host, jump) in [("a", "a.lan", Some("b")), ("b", "b.example", Some("c")), ("c", "c.example", None), ("d", "d.lan", None)] {
+            ps.upsert(Profile { id: id.into(), name: id.into(), host: host.into(), port: 22, user: "u".into(), jump: jump.map(Into::into), ..Default::default() });
+        }
+        ps
+    }
+
+    #[test]
+    fn a_route_goes_through_the_jump_hosts_and_names_them_in_its_key() {
+        let ps = route_profiles();
+        let t = ps.target(ps.get("a").unwrap());
+        assert_eq!(t.key(), "u@a.lan:22 via u@b.example:22 via u@c.example:22");
+        let hops: Vec<&str> = t.jumps().iter().map(|j| j.host.as_str()).collect();
+        assert_eq!(hops, ["b.example", "c.example"]);
+        assert_eq!(ps.target(ps.get("d").unwrap()).key(), "u@d.lan:22");
+        // Who goes through whom.
+        let names = |id: &str| ps.used_as_jump(id).iter().map(|p| p.id.clone()).collect::<Vec<_>>();
+        assert_eq!(names("c"), ["a", "b"]);
+        assert_eq!(names("b"), ["a"]);
+        assert!(names("a").is_empty());
+    }
+
+    #[test]
+    fn loops_and_long_chains_are_refused() {
+        let mut ps = route_profiles();
+        assert_eq!(ps.route_problem("c", "a"), Some(RouteProblem::Loop));
+        assert_eq!(ps.route_problem("a", "a"), Some(RouteProblem::Loop));
+        assert_eq!(ps.route_problem("d", "a"), None);
+        assert_eq!(ps.route_problem("d", "gone"), Some(RouteProblem::Missing));
+        // A loop saved anyway (by an older copy, by hand) ends the route instead of hanging.
+        let mut c = ps.get("c").unwrap().clone();
+        c.jump = Some("a".into());
+        ps.upsert(c);
+        let t = ps.target(ps.get("a").unwrap());
+        assert_eq!(t.jumps().len(), 2);
+        // At most MAX_JUMPS one after another.
+        let mut ps = Profiles::default();
+        for i in 0..7 {
+            let jump = (i < 6).then(|| format!("p{}", i + 1));
+            ps.upsert(Profile { id: format!("p{i}"), name: format!("p{i}"), host: format!("h{i}"), port: 22, jump, ..Default::default() });
+        }
+        // p3 → p4 → p5 → p6: four jump hosts.
+        assert_eq!(ps.route_problem("x", "p3"), None);
+        assert_eq!(ps.route_problem("x", "p2"), Some(RouteProblem::TooLong));
+        assert!(ps.target(ps.get("p0").unwrap()).jumps().len() <= MAX_JUMPS);
+    }
+
+    #[test]
+    fn profiles_and_tabs_without_a_jump_host_stay_as_they_were() {
+        let ps: Profiles = toml::from_str("[[profile]]\nid = \"x\"\nname = \"X\"\nhost = \"h\"\nport = 22\nuser = \"u\"\n").unwrap();
+        assert_eq!(ps.list[0].jump, None);
+        let out = toml::to_string(&ps).unwrap();
+        assert!(!out.contains("jump"), "{out}");
+        let t: RemoteTarget = toml::from_str("host = \"h\"\nport = 22\nuser = \"u\"\n").unwrap();
+        assert!(t.jump.is_none());
+        assert_eq!(t.key(), "u@h:22");
+    }
+
     #[test]
     fn x11_on_wayland_is_off_in_older_settings() {
         let old: Settings = toml::from_str("speed_limit_kib = 4096\nclock_warning_off = true\n").unwrap();
@@ -1633,6 +1794,7 @@ path = "/srv"
                             port: 22,
                             user: "deploy".into(),
                             key_path: None,
+                            jump: None,
                         },
                         path: "/var/www".into(),
                     },

@@ -5,7 +5,7 @@
 use std::sync::Arc;
 
 use eframe::egui::{self, Color32, Key, Modifiers, Stroke, Vec2};
-use rolid_config::{Location, Places, Profiles, RemoteTarget};
+use rolid_config::{Location, Places, Profiles};
 use rolid_core::color::Rgb;
 use rolid_core::filter;
 use rolid_local::LocalFs;
@@ -482,13 +482,7 @@ impl App {
             Location::Remote { mut target, path } => {
                 let prof = target.profile.as_deref().and_then(|id| self.profiles.get(id)).cloned();
                 if let Some(p) = &prof {
-                    target = RemoteTarget {
-                        profile: Some(p.id.clone()),
-                        host: p.host.clone(),
-                        port: p.port,
-                        user: p.user.clone(),
-                        key_path: p.key_path.clone(),
-                    };
+                    target = self.profiles.target(p);
                 }
                 let color = prof.as_ref().and_then(|p| p.color.as_deref()).and_then(Rgb::from_hex);
                 let pane = offline_pane(target, prof.as_ref().map(|p| p.name.clone()), prof.as_ref().is_some_and(|p| p.production), path);
@@ -841,7 +835,7 @@ fn color_menu(ui: &mut egui::Ui, tab: &mut Tab) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rolid_config::{Favorite, Profile};
+    use rolid_config::{Favorite, Profile, RemoteTarget};
 
     fn profiles() -> Profiles {
         let mut p = Profiles::default();
@@ -859,7 +853,7 @@ mod tests {
 
     fn remote(path: &str) -> Location {
         Location::Remote {
-            target: RemoteTarget { profile: Some("p1".into()), host: "web.example".into(), port: 22, user: "deploy".into(), key_path: None },
+            target: RemoteTarget { profile: Some("p1".into()), host: "web.example".into(), port: 22, user: "deploy".into(), key_path: None, jump: None },
             path: path.into(),
         }
     }

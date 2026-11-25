@@ -176,6 +176,13 @@ označená), tlačítka a dialogy své názvy.
   ptají ještě jednou (mazání nejde potvrdit Enterem).
 - Na produkčním serveru nejde Enterem potvrdit ani kopírování, nahrávání, přesun a vytvoření složky
   a kopírování nikdy nezačíná volbou Přepsat (předvybrané je Přeskočit existující).
+- **Připojit přes** jiný uložený server (přestupní server, v OpenSSH ProxyJump): program se nejdřív
+  připojí k tomuto serveru, jeho vlastním klíčem nebo uloženým heslem, a odtud k cílovému. Adresa
+  cílového serveru je pak ta, kterou vidí přestupní server, například adresa v jeho místní síti.
+  Kontrolují se klíče obou serverů a dotaz na neznámý klíč řekne, kterého z nich se týká. Přestupní
+  server může mít vlastní přestupní server (nejvýš čtyři za sebou). Po výpadku se spojení obnoví
+  stejnou cestou a stejně vede i terminál (**Ctrl+P**). Uložený server, přes který vedou jiné, nejde
+  smazat, dokud jim nevyberete jinou cestu.
 - Klíč serveru se kontroluje proti dvěma seznamům: vlastnímu seznamu známých serverů programu
   (`~/.config/rolidscp/known_hosts`) a `~/.ssh/known_hosts`, který program jen čte a nikdy nemění.
   Nový klíč se přidá do vlastního seznamu programu jen po potvrzení otisku; změněný klíč se odmítne,

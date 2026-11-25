@@ -12,7 +12,7 @@ use rolid_core::vfs::{Reader, Writer};
 use rolid_core::{Entry, Vfs, VfsError, VfsResult};
 use rolid_i18n::rolid_text::txt;
 use rolid_local::LocalFs;
-use rolid_ssh::{ConnectParams, KbdPrompter, KbdRequest, SftpFs, SshConnection, SshError};
+use rolid_ssh::{KbdPrompter, KbdRequest, SftpFs, SshConnection, SshError};
 use zeroize::Zeroizing;
 
 use super::{rgb32, Action, App, Dialog, Msg, PaneRef};
@@ -141,7 +141,9 @@ pub struct ConnectRequest {
     pub path: Option<String>,
     pub password: Option<Zeroizing<String>>,
     pub passphrase: Option<Zeroizing<String>>,
-    pub accept_fingerprint: Option<String>,
+    /// A server key the user trusted: (address, port, SHA256 fingerprint) of
+    /// the server of the route it belongs to.
+    pub accept_fingerprint: Option<(String, u16, String)>,
     /// Use the profile's saved password (vault, or the keyring for 0.3/0.4 profiles).
     pub use_saved: bool,
     /// After success, save `password` for the profile (in the vault).
@@ -186,8 +188,11 @@ pub struct ConnectForm {
     pub busy: bool,
     pub error: Option<String>,
     pub info: Option<String>,
-    pub unknown_host: Option<(String, String)>,
-    pub accept_fingerprint: Option<String>,
+    /// A server of the route sent an unknown key: (address, port, type, fingerprint).
+    pub unknown_host: Option<(String, u16, String, String)>,
+    pub accept_fingerprint: Option<(String, u16, String)>,
+    /// Connect through this saved server (a jump host).
+    pub jump: Option<String>,
     pub focus: bool,
     pub confirm_delete: bool,
     /// "Duplicate" was pressed: the choice whether to copy the password shows.
@@ -228,6 +233,7 @@ impl ConnectForm {
         self.start_path = p.start_path.clone().unwrap_or_default();
         self.color = p.color.as_deref().and_then(Rgb::from_hex);
         self.production = p.production;
+        self.jump = p.jump.clone();
         self.error = None;
         self.info = None;
         self.unknown_host = None;
@@ -281,6 +287,38 @@ impl ConnectForm {
     }
 }
 
+/// The choice of a jump host in the connection form: directly, or another
+/// saved server (not one whose route comes back to this one).
+fn jump_choice(ui: &mut egui::Ui, f: &mut ConnectForm, profiles: &rolid_config::Profiles) {
+    let own = f.selected.clone().unwrap_or_default();
+    let label = |p: &Profile| format!("{}  ({}@{}:{})", p.name, p.user, p.host, p.port);
+    let current = match f.jump.as_deref() {
+        None => tr!("directly"),
+        Some(id) => match profiles.get(id) {
+            Some(p) => label(p),
+            None => tr!("(deleted server)"),
+        },
+    };
+    egui::ComboBox::from_id_salt("cf-jump").width(300.0).selected_text(current).show_ui(ui, |ui| {
+        ui.selectable_value(&mut f.jump, None, tr!("directly"));
+        for p in &profiles.list {
+            if p.id == own {
+                continue;
+            }
+            let problem = profiles.route_problem(&own, &p.id);
+            let r = ui.add_enabled(problem.is_none(), egui::Button::selectable(f.jump.as_deref() == Some(p.id.as_str()), label(p)));
+            let r = match problem {
+                Some(rolid_config::RouteProblem::Loop) => r.on_disabled_hover_text(tr!("It goes through this server itself.")),
+                Some(_) => r.on_disabled_hover_text(tr!("Too many jump hosts one after another (at most {n}).", n = rolid_config::MAX_JUMPS)),
+                None => r,
+            };
+            if r.clicked() {
+                f.jump = Some(p.id.clone());
+            }
+        }
+    });
+}
+
 pub fn default_user() -> String {
     std::env::var("USER")
         .or_else(|_| std::env::var("USERNAME"))
@@ -295,9 +333,35 @@ impl App {
         if let Some(p) = self.pane_mut(at) {
             p.connecting = true;
         }
+        // The route of a saved server is the one saved now (it may have changed
+        // since the tab was opened). The form gives its own (maybe not saved yet).
+        if let Some(p) = req.target.profile.as_deref().and_then(|id| self.profiles.get(id)).filter(|_| !req.interactive) {
+            let t = &req.target;
+            if p.host == t.host && p.port == t.port && p.user == t.user {
+                req.target.jump = self.profiles.target(p).jump;
+            }
+        }
         let key = req.target.key();
         let cached = self.live_connection(&key);
         let prof = req.target.profile.as_ref().and_then(|id| self.profiles.get(id)).cloned();
+        // A saved server whose jump host is gone (deleted in another window) is
+        // not connected directly instead.
+        if let Some(p) = prof.as_ref().filter(|_| req.target.jump.is_none()) {
+            if let Some(j) = &p.jump {
+                if self.profiles.route_problem(&p.id, j).is_some() {
+                    let msg = tr!("Not connected: the jump host of this server is no longer among the saved servers. Choose another in Connect through.");
+                    if let Some(pane) = self.pane_mut(at) {
+                        pane.connecting = false;
+                        pane.error = Some(msg.clone());
+                    }
+                    if let Dialog::Connect(f) = &mut self.dialog {
+                        f.busy = false;
+                        f.error = Some(msg);
+                    }
+                    return;
+                }
+            }
+        }
         let mut keyring_lookup = false;
         if req.password.is_none() && req.use_saved {
             match &prof {
@@ -325,6 +389,28 @@ impl App {
                 Some(p) if p.password_in_keyring() => keyring_lookup = true,
                 _ => {}
             }
+        }
+        // A jump host with a saved password: the vault has to be open too.
+        let (hops, hop_needs) = self.hop_passwords(&req.target);
+        if cached.is_none() && self.vault.open.is_none() && self.vault.exists() && hop_needs.iter().any(|n| *n) {
+            let jump = req.target.jumps().into_iter().zip(&hop_needs).find(|(_, n)| **n).map(|(j, _)| j.clone());
+            let name = jump
+                .as_ref()
+                .and_then(|j| j.profile.as_deref())
+                .and_then(|id| self.profiles.get(id))
+                .map(|p| p.name.clone())
+                .unwrap_or_default();
+            self.with_vault(
+                tr!("The connection goes through the jump host “{name}”, which uses a saved password.", name = name),
+                Box::new(move |a: &mut App| a.connect(at, req)),
+                Some(Box::new(move |a: &mut App| {
+                    if let Some(p) = a.pane_mut(at) {
+                        p.connecting = false;
+                        p.error = Some(tr!("Not connected: the saved passwords are locked (Enter or Ctrl+R = try again)"));
+                    }
+                })),
+            );
+            return;
         }
         let ConnectRequest {
             target,
@@ -374,31 +460,18 @@ impl App {
                                 }
                             }
                         }
-                        let params = ConnectParams {
-                            host: target.host.clone(),
-                            port: target.port,
-                            user: target.user.clone(),
-                            password: password.as_ref().map(|p| p.to_string()),
-                            key_path: target.key_path.clone().map(Into::into),
-                            key_passphrase: passphrase.as_ref().map(|p| p.to_string()),
-                            accept_fingerprint,
-                            known_hosts: Some(crate::terminal::own_known_hosts()),
-                            known_hosts_read: crate::terminal::ssh_known_hosts().into_iter().collect(),
-                            prompter: Some(prompter),
-                            ..Default::default()
-                        };
+                        let mut params = super::link_ui::params_for(
+                            &target,
+                            password.as_deref().map(|p| p.as_str()),
+                            passphrase.as_deref().map(|p| p.as_str()),
+                            accept_fingerprint.as_ref(),
+                            &hops,
+                            Some(prompter),
+                        );
+                        drop(hops);
                         let r = SshConnection::connect(&params).await;
                         // ConnectParams holds plain copies of the secrets: wipe them.
-                        let ConnectParams {
-                            password: mut pw,
-                            key_passphrase: mut kp,
-                            ..
-                        } = params;
-                        {
-                            use zeroize::Zeroize;
-                            pw.zeroize();
-                            kp.zeroize();
-                        }
+                        params.wipe();
                         match r {
                             Err(SshError::AuthFailed(m)) if keyring_note.is_some() => {
                                 return Err(SshError::AuthFailed(txt!(
@@ -526,12 +599,8 @@ impl App {
                     Dialog::Connect(f) if f.target == Some(at) => {
                         f.busy = false;
                         match e {
-                            SshError::UnknownHostKey {
-                                algorithm,
-                                fingerprint,
-                                ..
-                            } => {
-                                f.unknown_host = Some((algorithm, fingerprint));
+                            SshError::UnknownHostKey { host, port, algorithm, fingerprint } => {
+                                f.unknown_host = Some((host, port, algorithm, fingerprint));
                             }
                             other => f.error = Some(rolid_i18n::t(&other.text())),
                         }
@@ -600,6 +669,7 @@ impl App {
                 port,
                 user,
                 key_path: f.key_path_opt(),
+                jump: f.jump.as_deref().and_then(|id| self.profiles.get(id)).map(|j| Box::new(self.profiles.target(j))),
             },
             name: profile
                 .as_ref()
@@ -652,6 +722,7 @@ impl App {
             // an already saved password is kept.
             save_password: f.save_password && old.as_ref().is_some_and(|o| o.save_password),
             password_store: old.as_ref().map(|o| o.password_store).unwrap_or_default(),
+            jump: f.jump.clone().filter(|j| self.profiles.route_problem(&id, j).is_none()),
         };
         f.selected = Some(id.clone());
         f.error = None;
@@ -786,6 +857,18 @@ impl App {
     }
 
     fn delete_profile(&mut self, id: String) {
+        // A server others go through is not deleted: they would lose their way.
+        let users: Vec<String> = self.profiles.used_as_jump(&id).iter().map(|p| format!("“{}”", p.name)).collect();
+        if !users.is_empty() {
+            if let Dialog::Connect(f) = &mut self.dialog {
+                f.confirm_delete = false;
+                f.error = Some(tr!(
+                    "This server is the jump host of {servers}. Choose another way for them first (Connect through).",
+                    servers = users.join(", ")
+                ));
+            }
+            return;
+        }
         let in_keyring = self.profiles.get(&id).is_some_and(|p| p.password_in_keyring());
         self.profiles.remove(&id);
         if let Err(e) = rolid_config::save_profiles(&mut self.profiles) {
@@ -825,13 +908,7 @@ impl App {
         let Some(p) = self.profiles.get(id).cloned() else {
             return;
         };
-        let target = RemoteTarget {
-            profile: Some(p.id.clone()),
-            host: p.host.clone(),
-            port: p.port,
-            user: p.user.clone(),
-            key_path: p.key_path.clone(),
-        };
+        let target = self.profiles.target(&p);
         let pane = offline_pane(
             target,
             Some(p.name.clone()),
@@ -844,13 +921,7 @@ impl App {
         self.connect(
             at,
             ConnectRequest {
-                target: RemoteTarget {
-                    profile: Some(p.id.clone()),
-                    host: p.host.clone(),
-                    port: p.port,
-                    user: p.user.clone(),
-                    key_path: p.key_path.clone(),
-                },
+                target: self.profiles.target(&p),
                 name: Some(p.name.clone()),
                 production: p.production,
                 color: p.color.as_deref().and_then(Rgb::from_hex),
@@ -1067,6 +1138,17 @@ impl App {
                             ui.label(tr!("Key passphrase:"));
                             crate::secret::edit(ui, &mut f.passphrase, true, &tr!("optional, not saved"), 300.0);
                             ui.end_row();
+                            ui.label(tr!("Connect through:"));
+                            ui.horizontal(|ui| {
+                                jump_choice(ui, f, profiles);
+                                dialog::help(
+                                    ui,
+                                    tr!(
+                                        "A jump host (ProxyJump in OpenSSH): the program first connects to this saved server, with its own key or saved password, and from there to the server above. The keys of both servers are checked. The server's address is then the one the jump host sees, for example an address in its local network."
+                                    ),
+                                );
+                            });
+                            ui.end_row();
                             ui.label(tr!("Start folder:"));
                             ui.add(
                                 egui::TextEdit::singleline(&mut f.start_path)
@@ -1151,8 +1233,19 @@ impl App {
                 });
             });
 
-            if let Some((alg, fp)) = &f.unknown_host {
+            if let Some((host, port, alg, fp)) = &f.unknown_host {
                 dialog::warn(ui, tr!("Unknown server: its key is neither in the program's list of known servers nor in ~/.ssh/known_hosts."), false);
+                let server = if *port == 22 { host.clone() } else { format!("{host}:{port}") };
+                // Through a jump host the unknown server may be the jump host.
+                let route = f.jump.as_deref().and_then(|id| profiles.get(id)).map(|j| profiles.target(j));
+                let is_jump = route.as_ref().is_some_and(|r| {
+                    std::iter::once(r).chain(r.jumps()).any(|j| j.host == *host && j.port == *port)
+                });
+                if is_jump {
+                    ui.label(tr!("Jump host: {server}", server = server));
+                } else {
+                    ui.label(tr!("Server: {server}", server = server));
+                }
                 ui.label(tr!("Key type: {algorithm}", algorithm = alg));
                 ui.monospace(fp.as_str());
                 let trust = ui
@@ -1169,7 +1262,7 @@ impl App {
                     })
                     .inner;
                 if trust {
-                    f.accept_fingerprint = Some(fp.clone());
+                    f.accept_fingerprint = Some((host.clone(), *port, fp.clone()));
                     f.unknown_host = None;
                     act = Some(Box::new(|a: &mut App| a.submit_connect()));
                 }

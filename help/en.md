@@ -179,6 +179,13 @@ and whether it is selected), the buttons and dialogs their names.
   once more (deleting cannot be confirmed with Enter).
 - On a production server copying, uploading, moving and creating a folder cannot be confirmed with
   Enter either, and copying never starts with Overwrite (Skip existing is preselected instead).
+- **Connect through** another saved server (a jump host, ProxyJump in OpenSSH): the program first
+  connects to that server, with its own key or saved password, and from there to this one. The
+  address of this server is then the one the jump host sees, for example an address in its local
+  network. The keys of both servers are checked, and a question about an unknown key says which of
+  them it is. A jump host can have its own jump host (at most four in a row). After a drop-out the
+  connection is made again the same way, and the terminal (**Ctrl+P**) goes the same way too. A
+  saved server that others go through cannot be deleted until they get another way.
 - The server's key is checked against two lists: the program's own list of known servers
   (`~/.config/rolidscp/known_hosts`) and `~/.ssh/known_hosts`, which the program only reads and never
   changes. A new key is added to the program's own list only after you confirm its fingerprint; a

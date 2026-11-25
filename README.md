@@ -183,8 +183,15 @@ use it on data that matters: RolidSCP is beta software.
   not supported.
 - Login with ssh-agent, a key file (OpenSSH format; PuTTY `.ppk` is read by the SSH library, but not
   yet covered by our tests), the default keys `~/.ssh/id_ed25519`,
-  `id_ecdsa`, `id_rsa`, a password or keyboard-interactive. `~/.ssh/config`, jump hosts
-  (ProxyJump, ProxyCommand) and importing sessions from WinSCP or FileZilla are not supported yet.
+  `id_ecdsa`, `id_rsa`, a password or keyboard-interactive.
+- **Jump hosts** (ProxyJump): a saved server can be connected through another saved server, with
+  "Connect through" in the server manager. The jump host signs in with its own key or saved password,
+  the keys of both servers are checked (a question about an unknown key says which server it is), a
+  jump host can have its own (at most four in a row), a drop-out is restored the same way, and the
+  terminal (Ctrl+P) uses `ssh` with a `ProxyCommand` of `ssh -W` and the same strict key check. A
+  saved server others go through cannot be deleted until they get another way.
+- `~/.ssh/config`, `ProxyCommand` of your own, SOCKS and HTTP proxies (planned for 0.9.2) and
+  importing sessions from WinSCP or FileZilla are not supported yet.
 - Saved passwords are in an encrypted vault (`vault.bin`, Argon2id + XChaCha20-Poly1305) behind a
   master password. Locking the vault (by hand or after the set time) does not close connections or
   stop transfers; it forgets the passwords kept for reconnecting. A reconnect then tries ssh-agent
@@ -264,8 +271,8 @@ hung network mount) waits until you cancel it.
   [Production servers](#data-safety-and-error-handling) for what is covered).
 - SSH/SFTP via [russh](https://github.com/Eugeny/russh): strict check against the program's own list
   of known servers and `~/.ssh/known_hosts`,
-  ssh-agent, keys, password, keyboard-interactive. No `~/.ssh/config` and no
-  jump hosts yet.
+  ssh-agent, keys, password, keyboard-interactive, jump hosts (a saved server connected through
+  another one). No `~/.ssh/config` yet (planned for 0.9.2).
 - Saved passwords live in an encrypted vault (`vault.bin`, Argon2id + XChaCha20-Poly1305) protected
   by a master password, never in plain configuration files. The vault locks again a set time after
   its last use (60 s by default, with a countdown in the status bar) and then also forgets the

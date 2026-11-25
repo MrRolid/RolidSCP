@@ -3,19 +3,19 @@
 //! (see `crate::terminal`).
 
 use rolid_config::PasswordStore;
-use zeroize::Zeroizing;
 
 use super::{App, Dialog};
 use crate::dialog;
 use crate::look::Role;
-use crate::terminal::{self, SshTarget};
+use crate::terminal::{self, SshHop, SshTarget};
 
 /// A terminal to open on a server.
 #[derive(Clone)]
 pub struct TermRequest {
     target: SshTarget,
-    /// Saved profile (its password may be in the vault).
-    profile: Option<String>,
+    /// Saved profiles of the server and its jump hosts, in the order of
+    /// `target` then `target.jumps` (their passwords may be in the vault).
+    profiles: Vec<Option<String>>,
     /// For the dialogs.
     name: String,
 }
@@ -46,8 +46,20 @@ impl App {
         };
         let name = r.name.clone().unwrap_or_else(|| format!("{}@{}", r.target.user, r.target.host));
         let req = TermRequest {
-            target: SshTarget { host: r.target.host.clone(), port: r.target.port, user: r.target.user.clone(), key: r.target.key_path.clone(), path },
-            profile: r.target.profile.clone(),
+            target: SshTarget {
+                host: r.target.host.clone(),
+                port: r.target.port,
+                user: r.target.user.clone(),
+                key: r.target.key_path.clone(),
+                path,
+                jumps: r
+                    .target
+                    .jumps()
+                    .iter()
+                    .map(|j| SshHop { host: j.host.clone(), port: j.port, user: j.user.clone(), key: j.key_path.clone() })
+                    .collect(),
+            },
+            profiles: std::iter::once(r.target.profile.clone()).chain(r.target.jumps().iter().map(|j| j.profile.clone())).collect(),
             name,
         };
         if r.production {
@@ -57,41 +69,55 @@ impl App {
         }
     }
 
-    /// The saved password from the vault (unlocking it first); without it ssh asks itself.
+    /// The saved passwords (of the server and its jump hosts) from the vault,
+    /// unlocking it first; without them ssh asks itself.
     fn terminal_with_password(&mut self, req: TermRequest) {
-        let saved = req.profile.as_deref().and_then(|id| self.profiles.get(id)).is_some_and(|p| p.save_password && p.password_store == PasswordStore::Vault);
-        let Some(id) = req.profile.clone().filter(|_| saved) else {
-            self.launch_ssh(req, None);
-            return;
+        let saved = |a: &App, id: &Option<String>| {
+            id.as_deref().and_then(|id| a.profiles.get(id)).is_some_and(|p| p.save_password && p.password_store == PasswordStore::Vault)
         };
+        if !req.profiles.iter().any(|id| saved(self, id)) {
+            self.launch_ssh(req, Vec::new());
+            return;
+        }
         let (ok_req, cancel_req) = (req.clone(), req.clone());
         let reason = tr!("The saved password for “{name}” will be passed to the terminal.", name = req.name.as_str());
         self.with_vault(
             reason,
             Box::new(move |a: &mut App| {
-                let pw = a.vault_password(&id);
-                a.launch_ssh(ok_req, pw);
+                let hosts = std::iter::once((ok_req.target.user.clone(), ok_req.target.host.clone()))
+                    .chain(ok_req.target.jumps.iter().map(|j| (j.user.clone(), j.host.clone())));
+                let answers = ok_req
+                    .profiles
+                    .iter()
+                    .zip(hosts)
+                    .filter(|(id, _)| saved(a, id))
+                    .filter_map(|(id, (user, host))| {
+                        a.vault_password(id.as_deref()?).map(|password| terminal::Answer { user, host, password })
+                    })
+                    .collect();
+                a.launch_ssh(ok_req, answers);
             }),
-            Some(Box::new(move |a: &mut App| a.launch_ssh(cancel_req, None))),
+            Some(Box::new(move |a: &mut App| a.launch_ssh(cancel_req, Vec::new()))),
         );
     }
 
-    fn launch_ssh(&mut self, req: TermRequest, password: Option<Zeroizing<String>>) {
+    fn launch_ssh(&mut self, req: TermRequest, answers: Vec<terminal::Answer>) {
         if terminal::find_program("ssh").is_none() {
             self.last_error = Some(tr!("Cannot open a terminal on the server: the ssh program is not installed."));
             return;
         }
         let kh = terminal::known_hosts();
-        let offer = match password {
-            Some(pw) => match terminal::offer(&req.target.user, &req.target.host, pw) {
+        let offer = if answers.is_empty() {
+            None
+        } else {
+            match terminal::offer(answers) {
                 Ok(o) => Some(o),
                 Err(e) => {
                     // The terminal still opens; ssh asks for the password itself.
                     tracing::warn!("askpass: {e}");
                     None
                 }
-            },
-            None => None,
+            }
         };
         let exe = std::env::current_exe().ok();
         let askpass = match (&offer, &exe) {
