@@ -151,6 +151,14 @@ tests are run again.
     connection, with its own key or password; the keys of both servers are checked, the connection
     is restored after a drop-out, and the terminal (Ctrl+P) goes the same way.
   - Trash for local deleting.
+  - Drag and drop on Wayland (issue #1), the cheap part: winit 0.30, which eframe uses, has no drag
+    and drop on Wayland, so files cannot be dragged in or out there. A setting "On Wayland, use X11
+    (XWayland)" (off by default, takes effect after a restart, says what is lost: sharpness at
+    fractional scaling and the separation from other X11 programs, which can read the keyboard and
+    so the master password), Help → Drag and drop on Wayland, a note at the bottom the first time a
+    drag leaves the window on Wayland, and the help in all languages. Tested in nested GNOME (mutter
+    48): through XWayland dragging works both ways. Fixed with it: a drag out ended without a drop
+    when the desktop hid its target window at the release (KWin).
 - **0.9.2 SSH config and proxies:**
   - `~/.ssh/config`.
   - SOCKS5 and HTTP CONNECT proxies and `ProxyCommand`, also when they come from `~/.ssh/config`.
@@ -198,6 +206,10 @@ and "Open with" associations per file type.
 - A customizable toolbar.
 - A built-in editor.
 - Sharper text: letter positions on whole pixels.
+- Native drag and drop on Wayland, both ways. It waits for eframe on winit 0.31: winit has it there
+  (merged in July 2026, so far only in 0.31 betas), and the port of egui and eframe to winit 0.31 is
+  not done yet. Writing it ourselves on top of winit 0.30 (our own Wayland data device on winit's
+  connection) would be 1 200 to 2 000 lines, thrown away once eframe moves on: too large for 0.9.
 
 Then beta, release candidates and 1.0.
 

@@ -100,7 +100,16 @@ fn xds_conflict(p: rolid_config::ConflictPreset) -> Conflict {
 impl App {
     /// The dragged rows left the window: hand the drag to the X server.
     pub(super) fn start_drag_out(&mut self, ctx: &egui::Context) {
-        if self.drag_out.is_some() || !super::x11_drag::is_x11() {
+        if self.drag_out.is_some() {
+            return;
+        }
+        if !super::x11_drag::is_x11() {
+            // On Wayland nothing can take the files: say so, once in a run.
+            if super::x11_drag::backend() == super::x11_drag::Backend::Wayland && !self.wayland_note_shown {
+                self.wayland_note_shown = true;
+                self.wayland_note = true;
+                tracing::info!("drag out of the window on Wayland: not available, the note is shown");
+            }
             return;
         }
         let (Some(win), Some(d)) = (self.x11_win, self.inner_drag.as_ref()) else { return };

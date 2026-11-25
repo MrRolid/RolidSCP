@@ -150,8 +150,31 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
   folderu przez kolejkę transferów; w przeciwnym razie najpierw są pobierane do prywatnego folderu
   tymczasowego (powyżej 1 GiB z pytaniem), który jest usuwany, gdy nic go już nie używa, oraz przy
   zamknięciu. Niektóre aplikacje czekają na pliki tylko około 30 sekund, więc duże pobieranie może tą
-  drogą nie przejść. Po powrocie nad okno przeciąganie trwa dalej wewnątrz; **Esc** je anuluje. Niedostępne
-  w Waylandzie.
+  drogą nie przejść. Po powrocie nad okno przeciąganie trwa dalej wewnątrz; **Esc** je anuluje. W Waylandzie
+  zobacz **Przeciąganie w Waylandzie** niżej.
+
+## Przeciąganie w Waylandzie <!-- wayland -->
+
+- W Waylandzie nie można jeszcze przeciągać plików do innych programów ani z nich (do menedżera plików,
+  programu pocztowego, komunikatora), w żadną stronę. Biblioteka okien, na której zbudowany jest
+  program, nie ma w Waylandzie przeciągania; ma je jej następna wersja i program jej użyje, gdy będzie
+  gotowa. Przeciąganie między panelami i kartami działa.
+- **Rozwiązanie:** wyświetlać okno przez XWayland, jako okno X11. Przeciąganie działa wtedy wszędzie,
+  gdzie środowisko przekazuje je między programami X11 i Wayland. GNOME robi to w obie strony
+  (sprawdzone); w teście z KDE Plasma (KWin 6.3) pliki dało się przeciągnąć do programu, ale nie
+  z niego, tak samo jak z innych programów X11.
+- Włącz **Ustawienia → Przeciąganie i upuszczanie → W Waylandzie używaj X11 (XWayland)** i uruchom
+  program ponownie. Domyślnie jest wyłączone. Albo uruchom go raz tak z terminala:
+  `WAYLAND_DISPLAY= rolidscp` (deb i rpm) lub `WAYLAND_DISPLAY= ./RolidSCP-0.9.1-x86_64.AppImage`
+  z nazwą twojego AppImage.
+- **Co tracisz:** tekst jest mniej ostry przy skalowaniu ułamkowym (na przykład 125 % lub 150 %):
+  XWayland rysuje okno w skali 1, a środowisko je rozciąga; przy 100 % i 200 % pozostaje ostry. Przy
+  monitorach o różnym skalowaniu okno ma jedną skalę dla wszystkich. **Inne programy X11 mogą odczytać,
+  co wpisujesz w oknie, także hasło główne**; okno Wayland oddziela programy od siebie. Schowek i metody
+  wprowadzania działają przez XWayland.
+- Gdy pierwszy raz w Waylandzie przeciągniesz pliki poza okno, wiersz na dole okna poinformuje, że to
+  nie działa; **Co zrobić…** otwiera tę część pomocy. Pokazuje ją też **Pomoc → Przeciąganie
+  w Waylandzie…**, razem z tym, na czym okno teraz działa.
 
 ## Serwery
 
@@ -300,7 +323,7 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
 
 - **Ustawienia → Ustawienia…** (**Ctrl+,**) otwiera ustawienia we własnym oknie. Po lewej jest drzewo
   sekcji: Wygląd (język i daty, czcionka, panele, kolory wg typu pliku, miniatury), Pliki (kopiowanie
-  i przenoszenie, archiwa), Narzędzia (podgląd, edytor zewnętrzny) oraz Serwery i bezpieczeństwo
+  i przenoszenie, archiwa, przeciąganie i upuszczanie), Narzędzia (podgląd, edytor zewnętrzny) oraz Serwery i bezpieczeństwo
   (połączenia z serwerami, zapisane hasła).
 - Pole na górze (**Ctrl+F**) znajduje ustawienie we wszystkich sekcjach naraz, po angielsku lub w
   języku okna, ze znakami diakrytycznymi lub bez; **Esc** czyści pole.

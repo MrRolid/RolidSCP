@@ -28,7 +28,7 @@ mod size_ui;
 mod unpack_ui;
 mod vault_ui;
 mod view_ui;
-mod x11_drag;
+pub(crate) mod x11_drag;
 
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -339,6 +339,8 @@ enum Dialog {
     /// F1: the guide (`false`) or the keyboard shortcuts (`true`).
     Help(bool),
     About,
+    /// Help → Drag and drop on Wayland: that part of the help.
+    WaylandDrag,
     /// Confirm files dragged in from the system (production / large / existing).
     Drop(Box<drop_ui::DropAsk>),
     /// Files were dropped but where is unknown: let the user pick the panel.
@@ -387,6 +389,10 @@ pub struct App {
     last_error: Option<String>,
     /// A short confirmation in the status line (not an error); hides itself.
     notice: Option<(String, Instant)>,
+    /// The note that dragging out does not work on Wayland: shown now, and
+    /// whether it was shown in this run already (once per run).
+    wayland_note: bool,
+    wayland_note_shown: bool,
     last_title: String,
     profiles: Profiles,
     /// Limits concurrent transfers; further jobs wait in the queue.
@@ -475,7 +481,7 @@ impl FrameStats {
     }
 }
 
-const SETTINGS_FILE: &str = "settings.toml";
+pub(crate) const SETTINGS_FILE: &str = "settings.toml";
 /// How often the files another running copy may save are checked (only
 /// while frames are drawn: an idle window checks on its next event).
 const SHARED_CHECK: Duration = Duration::from_secs(3);
@@ -527,6 +533,8 @@ impl App {
             links: link_ui::LinksState::default(),
             last_error: None,
             notice: None,
+            wayland_note: false,
+            wayland_note_shown: false,
             last_title: String::new(),
             profiles: Profiles::default(),
             transfer_slots: Arc::new(tokio::sync::Semaphore::new(MAX_PARALLEL_TRANSFERS)),
@@ -2560,6 +2568,23 @@ impl App {
                 ui.ctx().request_repaint_after(left);
             }
         }
+        if self.wayland_note {
+            let (mut more, mut clear) = (false, false);
+            ui.horizontal(|ui| {
+                ui.colored_label(
+                    Color32::from_rgb(190, 20, 20),
+                    tr!("⚠ Dragging files to other programs does not work on Wayland yet."),
+                );
+                more = ui.small_button(tr!("What to do…")).clicked();
+                clear = ui.small_button("✖").clicked();
+            });
+            if more {
+                self.dialog = Dialog::WaylandDrag;
+            }
+            if more || clear {
+                self.wayland_note = false;
+            }
+        }
         if let Some(e) = &self.last_error {
             let mut clear = false;
             ui.horizontal(|ui| {
@@ -2932,6 +2957,14 @@ impl App {
                     next = Some(Dialog::None);
                 }
             }
+            Dialog::WaylandDrag => match menu::wayland_drag_ui(ctx) {
+                Some(true) => {
+                    next = Some(Dialog::None);
+                    act = Some(Box::new(|a: &mut Self| a.open_settings_at(settings_ui::Sec::Dragging)));
+                }
+                Some(false) => next = Some(Dialog::None),
+                None => {}
+            },
             Dialog::Connect(_) | Dialog::Search(_) | Dialog::Switcher { .. } | Dialog::NewTab { .. } | Dialog::Favorites(_) => {}
         }
         if let Some(d) = next {

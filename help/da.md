@@ -148,7 +148,30 @@ det er markeret), knapperne og dialogerne deres navne.
   mappe gennem overførselskøen; ellers downloades de først til en privat midlertidig mappe (over 1 GiB
   bliver du spurgt), som slettes, når intet bruger den længere, og ved afslutning. Nogle programmer venter
   kun cirka 30 sekunder på filerne, så store downloads kommer måske ikke igennem den vej. Tilbage over
-  vinduet fortsætter trækket indeni; **Esc** annullerer det. Ikke tilgængeligt på Wayland.
+  vinduet fortsætter trækket indeni; **Esc** annullerer det. På Wayland, se **Træk og slip på Wayland** nedenfor.
+
+## Træk og slip på Wayland <!-- wayland -->
+
+- På Wayland kan filer endnu ikke trækkes til eller fra andre programmer (en filhåndtering, et
+  mailprogram, en chat), i nogen retning. Vinduesbiblioteket, som programmet bygger på, har ikke træk
+  og slip på Wayland; den næste version har det, og programmet tager den i brug, når den er klar.
+  Træk mellem panelerne og fanerne virker.
+- **Løsningen:** vis vinduet gennem XWayland, som et X11-vindue. Træk virker så overalt, hvor
+  skrivebordet giver det videre mellem X11- og Wayland-programmer. GNOME gør det begge veje (testet);
+  i en test med KDE Plasma (KWin 6.3) kunne filer trækkes ind i programmet, men ikke ud af det, ligesom
+  fra andre X11-programmer.
+- Slå **Indstillinger → Træk og slip → Brug X11 på Wayland (XWayland)** til, og start programmet igen.
+  Det er slået fra som standard. Eller start det én gang sådan fra en terminal:
+  `WAYLAND_DISPLAY= rolidscp` (deb og rpm), eller `WAYLAND_DISPLAY= ./RolidSCP-0.9.1-x86_64.AppImage`
+  med navnet på din AppImage.
+- **Hvad du mister:** teksten er mindre skarp med brøkskalering (for eksempel 125 % eller 150 %):
+  XWayland tegner vinduet i skala 1, og skrivebordet strækker det; ved 100 % og 200 % forbliver den
+  skarp. Med skærme med forskellig skalering har vinduet én skala for dem alle. **Andre X11-programmer
+  kan læse, hvad du skriver i vinduet, også hovedadgangskoden**; et Wayland-vindue holder programmer
+  adskilt. Udklipsholderen og inputmetoder går gennem XWayland.
+- Første gang du trækker filer ud af vinduet på Wayland, siger linjen nederst i vinduet, at det ikke
+  virker; **Hvad gør jeg…** åbner denne del af hjælpen. **Hjælp → Træk og slip på Wayland…** viser den
+  også, sammen med hvad vinduet kører på nu.
 
 ## Servere
 
@@ -293,7 +316,7 @@ det er markeret), knapperne og dialogerne deres navne.
 
 - **Indstillinger → Indstillinger…** (**Ctrl+,**) åbner indstillingerne i et separat vindue. Til
   venstre er et træ med afsnit: Udseende (sprog og datoer, skrifttype, paneler, farver efter filtype,
-  miniaturer), Filer (kopiering og flytning, arkiver), Værktøjer (fremviser, ekstern editor) og
+  miniaturer), Filer (kopiering og flytning, arkiver, træk og slip), Værktøjer (fremviser, ekstern editor) og
   Servere og sikkerhed (serverforbindelser, gemte adgangskoder).
 - Feltet øverst (**Ctrl+F**) finder en indstilling i alle afsnit på én gang, på engelsk eller på
   vinduets sprog, med eller uden accenter; **Esc** rydder feltet.

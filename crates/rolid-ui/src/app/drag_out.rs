@@ -573,6 +573,19 @@ mod x11 {
         }
     }
 
+    /// What is under the pointer, as the drag sees it: `None` is our own
+    /// window, `Some(None)` no target. When the button is released where no
+    /// target is found, right after one was, the drop still goes to that
+    /// target: KWin, which passes drags from X11 programs on to Wayland ones,
+    /// hides its helper target window at the release, before the pointer
+    /// query sees the button up. GTK and Qt drop on the last target too.
+    pub(super) fn keep_at_release<T: Copy>(under: Option<Option<T>>, last: Option<T>, button: bool) -> Option<Option<T>> {
+        match under {
+            Some(None) if !button && last.is_some() => Some(last),
+            u => u,
+        }
+    }
+
     enum Phase {
         Tracking,
         /// Released; waiting for the target's status before dropping.
@@ -605,7 +618,19 @@ mod x11 {
         status: &Mutex<Status>,
         send: &dyn Fn(Event),
     ) -> Result<End, Err> {
-        let (c, screen) = RustConnection::connect(None).map_err(|e| (None, e2s(e)))?;
+        run_on(None, our, offer, cmds, status, send)
+    }
+
+    /// [`run`] on the X display `display` (`None`: from `DISPLAY`).
+    fn run_on(
+        display: Option<&str>,
+        our: u32,
+        offer: Offer,
+        cmds: &Receiver<Cmd>,
+        status: &Mutex<Status>,
+        send: &dyn Fn(Event),
+    ) -> Result<End, Err> {
+        let (c, screen) = RustConnection::connect(display).map_err(|e| (None, e2s(e)))?;
         let root = c.setup().roots[screen].root;
         let a = atoms(&c).map_err(|e| (None, e))?;
         let helper = c.generate_id().map_err(|e| (None, e2s(e)))?;
@@ -783,6 +808,7 @@ mod x11 {
                         let button = u16::from(q.mask) & 0x100 != 0;
                         let shift = u16::from(q.mask) & 0x1 != 0;
                         let under = self.under(q.child).map_err(|e| self.err(cur.as_ref(), e))?;
+                        let under = keep_at_release(under, cur.as_ref().map(|c| c.t), button);
                         let Some(found) = under else {
                             // Back over our window: the drag continues inside.
                             self.leave(&mut cur);
@@ -931,6 +957,142 @@ mod x11 {
             self.c.send_event(false, r.requestor, EventMask::NO_EVENT, ev).map_err(e2s)?;
             self.c.flush().map_err(e2s)
         }
+    }
+
+    #[test]
+    fn a_target_hidden_at_the_release_still_gets_the_drop() {
+        let t = Some(7u32);
+        // Released where nothing takes files, right after target 7: drop there.
+        assert_eq!(keep_at_release(Some(None), t, false), Some(t));
+        // While the button is held, leaving the target is leaving it.
+        assert_eq!(keep_at_release(Some(None), t, true), Some(None));
+        // Released over our own window, or over another target: as found.
+        assert_eq!(keep_at_release(None, t, false), None);
+        assert_eq!(keep_at_release(Some(Some(8)), t, false), Some(Some(8)));
+        // No target before: nothing to drop on.
+        assert_eq!(keep_at_release(Some(None), None::<u32>, false), Some(None));
+    }
+
+    /// A real X server (Xvfb) and a target that behaves like KWin's bridge to
+    /// Wayland programs: it accepts the drag and hides its window at the
+    /// release. The drop must still reach it, and it must get the files.
+    /// Without Xvfb on the system the test says so and passes.
+    #[test]
+    fn the_drop_reaches_a_target_hidden_at_the_release() {
+        use std::io::BufRead;
+        use x11rb::protocol::xtest::ConnectionExt as _;
+
+        // -displayfd: the server picks a free display and writes its number.
+        let Ok((rd, wr)) = std::io::pipe() else { return };
+        // Xvfb inherits the writing end.
+        rustix::io::fcntl_setfd(&wr, rustix::io::FdFlags::empty()).unwrap();
+        let fd = {
+            use std::os::fd::AsRawFd;
+            wr.as_raw_fd()
+        };
+        let child = std::process::Command::new("Xvfb")
+            .args(["-displayfd", &fd.to_string(), "-screen", "0", "800x600x24", "-nolisten", "tcp"])
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn();
+        let Ok(child) = child else {
+            eprintln!("Xvfb is not installed: the test with an X server is skipped");
+            return;
+        };
+        struct Kill(std::process::Child);
+        impl Drop for Kill {
+            fn drop(&mut self) {
+                let _ = self.0.kill();
+                let _ = self.0.wait();
+            }
+        }
+        let _server = Kill(child);
+        drop(wr);
+        // One line; other processes started meanwhile may hold the pipe open.
+        let mut num = String::new();
+        let _ = std::io::BufReader::new(rd).read_line(&mut num);
+        let display = format!(":{}", num.trim());
+        assert!(num.trim().parse::<u32>().is_ok(), "Xvfb gave no display: {num:?}");
+
+        let (c, screen) = RustConnection::connect(Some(&display)).unwrap();
+        let root = c.setup().roots[screen].root;
+        let a = atoms(&c).unwrap();
+        let intern = |n: &str| c.intern_atom(false, n.as_bytes()).unwrap().reply().unwrap().atom;
+        let got = intern("ROLIDSCP_TEST_DROP");
+        // Our window (where the drag started), away from the pointer.
+        let our = c.generate_id().unwrap();
+        c.create_window(0, our, root, 700, 500, 50, 50, 0, WindowClass::INPUT_OUTPUT, 0, &CreateWindowAux::new()).unwrap();
+        c.map_window(our).unwrap();
+        // The target: the whole screen, XDND version 5.
+        let target = c.generate_id().unwrap();
+        let aux = CreateWindowAux::new().event_mask(EventMask::PROPERTY_CHANGE);
+        c.create_window(0, target, root, 0, 0, 800, 600, 0, WindowClass::INPUT_OUTPUT, 0, &aux).unwrap();
+        c.change_property32(PropMode::REPLACE, target, a.aware, AtomEnum::ATOM, &[5]).unwrap();
+        c.map_window(target).unwrap();
+        // The button is held over the target.
+        c.xtest_fake_input(6, 0, 0, root, 100, 100, 0).unwrap(); // motion
+        c.xtest_fake_input(4, 1, 0, root, 0, 0, 0).unwrap(); // press
+        c.flush().unwrap();
+        c.sync().unwrap();
+
+        let path = std::path::PathBuf::from("/tmp/rolidscp drag test.txt");
+        let offer = Offer { uri_list: Some(super::uri_list(std::slice::from_ref(&path))), xds_name: None, allow_move: false };
+        let (_cmd_tx, cmd_rx) = mpsc::channel();
+        let shown = display.clone();
+        let source = std::thread::spawn(move || {
+            let status = Mutex::new(Status::default());
+            run_on(Some(&shown), our, offer, &cmd_rx, &status, &|_| {})
+        });
+
+        // The target's side of XDND.
+        let deadline = Instant::now() + Duration::from_secs(20);
+        let (mut released, mut data, mut src) = (false, None::<Vec<u8>>, 0);
+        let end = loop {
+            assert!(Instant::now() < deadline, "the drag did not end; data: {data:?}");
+            if source.is_finished() {
+                break source.join().unwrap();
+            }
+            let Some(ev) = c.poll_for_event().unwrap() else {
+                std::thread::sleep(Duration::from_millis(5));
+                continue;
+            };
+            match ev {
+                XEvent::ClientMessage(m) if m.type_ == a.position => {
+                    let d = m.data.as_data32();
+                    src = d[0];
+                    // Accepted, with the action asked for.
+                    let ev = ClientMessageEvent::new(32, src, a.status, [target, 1, 0, 0, d[4]]);
+                    c.send_event(false, src, EventMask::NO_EVENT, ev).unwrap();
+                    if !released {
+                        // Like KWin: the window goes away at the release (at
+                        // once for the source, which polls the pointer).
+                        released = true;
+                        c.grab_server().unwrap();
+                        c.unmap_window(target).unwrap();
+                        c.xtest_fake_input(5, 1, 0, root, 0, 0, 0).unwrap(); // release
+                        c.ungrab_server().unwrap();
+                    }
+                    c.flush().unwrap();
+                }
+                XEvent::ClientMessage(m) if m.type_ == a.drop => {
+                    let time = m.data.as_data32()[2];
+                    c.convert_selection(target, a.selection, a.uri_list, got, time).unwrap();
+                    c.flush().unwrap();
+                }
+                XEvent::SelectionNotify(n) if n.requestor == target && n.property == got => {
+                    let v = c.get_property(true, target, got, AtomEnum::ANY, 0, 4096).unwrap().reply().unwrap();
+                    data = Some(v.value);
+                    let ev = ClientMessageEvent::new(32, src, a.finished, [target, 1, a.copy, 0, 0]);
+                    c.send_event(false, src, EventMask::NO_EVENT, ev).unwrap();
+                    c.flush().unwrap();
+                }
+                _ => {}
+            }
+        };
+        let end = end.unwrap_or_else(|(_, e)| panic!("the source failed: {e}"));
+        assert_eq!(end.result, Outcome::Done(Action::Copy), "the target hidden at the release got no drop");
+        let uris = String::from_utf8(data.expect("the target got no data")).unwrap();
+        assert!(uris.contains("rolidscp%20drag%20test.txt"), "{uris}");
     }
 }
 

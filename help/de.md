@@ -163,7 +163,31 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
   werden sie zuerst in einen privaten temporären Ordner geladen (ab 1 GiB mit Rückfrage), der gelöscht
   wird, sobald ihn nichts mehr nutzt, und beim Beenden. Manche Anwendungen warten nur etwa 30 Sekunden
   auf die Dateien, große Downloads kommen auf diesem Weg daher eventuell nicht an. Zurück über dem
-  Fenster geht das Ziehen darin weiter; **Esc** bricht es ab. Unter Wayland nicht verfügbar.
+  Fenster geht das Ziehen darin weiter; **Esc** bricht es ab. Unter Wayland siehe **Ziehen und Ablegen unter Wayland** weiter unten.
+
+## Ziehen und Ablegen unter Wayland <!-- wayland -->
+
+- Unter Wayland lassen sich Dateien noch nicht in andere Programme ziehen oder aus ihnen holen (einen
+  Dateimanager, ein E-Mail-Programm, einen Chat), in keine Richtung. Die Fensterbibliothek, auf der das
+  Programm aufbaut, kann unter Wayland kein Ziehen und Ablegen; ihre nächste Version kann es, und das
+  Programm nutzt sie, sobald sie fertig ist. Ziehen zwischen den Panels und Tabs funktioniert.
+- **Abhilfe:** das Fenster über XWayland als X11-Fenster zeigen. Dann funktioniert das Ziehen überall,
+  wo die Arbeitsumgebung es zwischen X11- und Wayland-Programmen weitergibt. GNOME tut das in beide
+  Richtungen (getestet); in einem Test mit KDE Plasma (KWin 6.3) ließen sich Dateien in das Programm
+  ziehen, aber nicht heraus, genau wie bei anderen X11-Programmen.
+- Schalten Sie **Einstellungen → Ziehen und Ablegen → Unter Wayland X11 verwenden (XWayland)** ein und
+  starten Sie das Programm neu. Standardmäßig ist es aus. Oder starten Sie es einmal so im Terminal:
+  `WAYLAND_DISPLAY= rolidscp` (deb und rpm) oder `WAYLAND_DISPLAY= ./RolidSCP-0.9.1-x86_64.AppImage` mit
+  dem Namen Ihres AppImage.
+- **Was Sie verlieren:** Text ist bei gebrochener Skalierung (zum Beispiel 125 % oder 150 %) weniger
+  scharf: XWayland zeichnet das Fenster im Maßstab 1, und die Arbeitsumgebung streckt es; bei 100 % und
+  200 % bleibt er scharf. Bei Monitoren mit unterschiedlicher Skalierung hat das Fenster einen Maßstab
+  für alle. **Andere X11-Programme können mitlesen, was Sie in das Fenster tippen, auch das
+  Master-Passwort**; ein Wayland-Fenster hält Programme voneinander getrennt. Zwischenablage und
+  Eingabemethoden laufen über XWayland.
+- Wenn Sie unter Wayland zum ersten Mal Dateien aus dem Fenster ziehen, sagt die Zeile unten im
+  Fenster, dass es nicht geht; **Was tun…** öffnet diesen Teil der Hilfe. Auch **Hilfe → Ziehen und
+  Ablegen unter Wayland…** zeigt ihn, zusammen damit, worauf das Fenster gerade läuft.
 
 ## Server
 
@@ -318,7 +342,7 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
 
 - **Einstellungen → Einstellungen…** (**Ctrl+,**) öffnet die Einstellungen in einem eigenen Fenster.
   Links steht ein Baum der Abschnitte: Darstellung (Sprache und Datum, Schrift, Panels, Farben nach
-  Dateityp, Miniaturen), Dateien (Kopieren und Verschieben, Archive), Werkzeuge (Betrachter, externer
+  Dateityp, Miniaturen), Dateien (Kopieren und Verschieben, Archive, Ziehen und Ablegen), Werkzeuge (Betrachter, externer
   Editor) und Server und Sicherheit (Serververbindungen, gespeicherte Passwörter).
 - Das Feld oben (**Ctrl+F**) findet eine Einstellung in allen Abschnitten zugleich, auf Englisch oder
   in der Sprache des Fensters, mit oder ohne Akzente; **Esc** leert das Feld.

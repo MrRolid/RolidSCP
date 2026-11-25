@@ -146,7 +146,29 @@ om det er merket), knappene og dialogene sine navn.
   sin mappe gjennom overføringskøen; ellers lastes de først ned til en privat midlertidig mappe (over
   1 GiB blir du spurt), som slettes når ingenting bruker den lenger, og ved avslutning. Noen programmer
   venter bare omtrent 30 sekunder på filene, så store nedlastinger kommer kanskje ikke fram den veien.
-  Tilbake over vinduet fortsetter dragingen inne i det; **Esc** avbryter. Ikke tilgjengelig på Wayland.
+  Tilbake over vinduet fortsetter dragingen inne i det; **Esc** avbryter. På Wayland, se **Dra og slipp på Wayland** nedenfor.
+
+## Dra og slipp på Wayland <!-- wayland -->
+
+- På Wayland kan filer ennå ikke dras til eller fra andre programmer (en filbehandler, et
+  e-postprogram, en chat), i noen retning. Vindusbiblioteket programmet bygger på, har ikke dra og
+  slipp på Wayland; neste versjon har det, og programmet tar den i bruk når den er klar. Draging
+  mellom panelene og fanene fungerer.
+- **Løsningen:** vis vinduet gjennom XWayland, som et X11-vindu. Draging fungerer da overalt der
+  skrivebordet sender den videre mellom X11- og Wayland-programmer. GNOME gjør det begge veier
+  (testet); i en test med KDE Plasma (KWin 6.3) kunne filer dras inn i programmet, men ikke ut av det,
+  akkurat som fra andre X11-programmer.
+- Slå på **Innstillinger → Dra og slipp → Bruk X11 på Wayland (XWayland)** og start programmet på
+  nytt. Det er av som standard. Eller start det én gang slik fra en terminal: `WAYLAND_DISPLAY= rolidscp`
+  (deb og rpm), eller `WAYLAND_DISPLAY= ./RolidSCP-0.9.1-x86_64.AppImage` med navnet på din AppImage.
+- **Hva du mister:** teksten er mindre skarp med brøkskalering (for eksempel 125 % eller 150 %):
+  XWayland tegner vinduet i skala 1, og skrivebordet strekker det; ved 100 % og 200 % forblir den
+  skarp. Med skjermer med ulik skalering har vinduet én skala for alle. **Andre X11-programmer kan lese
+  det du skriver i vinduet, også hovedpassordet**; et Wayland-vindu holder programmer adskilt.
+  Utklippstavlen og inndatametoder går gjennom XWayland.
+- Første gang du drar filer ut av vinduet på Wayland, sier linjen nederst i vinduet at det ikke
+  fungerer; **Hva gjør jeg …** åpner denne delen av hjelpen. **Hjelp → Dra og slipp på Wayland …**
+  viser den også, sammen med hva vinduet kjører på nå.
 
 ## Servere
 
@@ -292,7 +314,7 @@ om det er merket), knappene og dialogene sine navn.
 
 - **Innstillinger → Innstillinger …** (**Ctrl+,**) åpner innstillingene i et eget vindu. Til venstre
   er et tre med deler: Utseende (språk og datoer, skrift, paneler, farger etter filtype,
-  miniatyrbilder), Filer (kopiering og flytting, arkiver), Verktøy (fremviser, eksternt
+  miniatyrbilder), Filer (kopiering og flytting, arkiver, dra og slipp), Verktøy (fremviser, eksternt
   redigeringsprogram) og Servere og sikkerhet (servertilkoblinger, lagrede passord).
 - Feltet øverst (**Ctrl+F**) finner en innstilling i alle delene på én gang, på engelsk eller på
   språket i vinduet, med eller uten aksenter; **Esc** tømmer feltet.

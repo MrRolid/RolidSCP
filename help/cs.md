@@ -140,7 +140,30 @@ označená), tlačítka a dialogy své názvy.
   přes frontu přenosů; jinak se nejdřív stáhnou do soukromé dočasné složky (nad 1 GiB se aplikace
   zeptá), která se smaže, až ji nic nepoužívá, a při ukončení. Některé aplikace na soubory čekají jen
   asi 30 sekund, velké stahování tudy proto nemusí projít. Po návratu nad okno tažení pokračuje uvnitř;
-  **Esc** ho zruší. Na Waylandu není k dispozici.
+  **Esc** ho zruší. Pod Waylandem viz **Přetahování pod Waylandem** níže.
+
+## Přetahování pod Waylandem <!-- wayland -->
+
+- Pod Waylandem zatím nejde přetahovat soubory do jiných programů ani z nich (do správce souborů,
+  poštovního programu, chatu), ani jedním směrem. Knihovna oken, na které je program postavený, pod
+  Waylandem přetahování nemá; má ho až její příští verze a program ji použije, až bude hotová.
+  Přetahování mezi panely a záložkami funguje.
+- **Řešení:** zobrazit okno přes XWayland jako okno X11. Přetahování pak funguje všude, kde ho
+  prostředí předává mezi programy pro X11 a pro Wayland. GNOME to dělá oběma směry (vyzkoušeno);
+  v testu s KDE Plasma (KWin 6.3) šly soubory do programu přetáhnout, ale ne z něj, stejně jako
+  z jiných programů pro X11.
+- Zapněte **Nastavení → Přetahování → Pod Waylandem používat X11 (XWayland)** a spusťte program znovu.
+  Ve výchozím stavu je volba vypnutá. Nebo program jednou spusťte z terminálu takto:
+  `WAYLAND_DISPLAY= rolidscp` (deb a rpm), nebo `WAYLAND_DISPLAY= ./RolidSCP-0.9.1-x86_64.AppImage` se
+  jménem vašeho AppImage.
+- **Co tím ztratíte:** písmo je méně ostré při zlomkovém škálování (například 125 % nebo 150 %):
+  XWayland kreslí okno v měřítku 1 a prostředí ho roztáhne; při 100 % a 200 % zůstává ostré. U monitorů
+  s různým škálováním má okno jedno měřítko pro všechny. **Jiné programy pro X11 mohou číst, co do okna
+  píšete, i hlavní heslo**; okno pro Wayland programy od sebe odděluje. Schránka a vstupní metody jdou
+  přes XWayland.
+- Když pod Waylandem poprvé přetáhnete soubory ven z okna, řádek dole v okně řekne, že to nefunguje;
+  **Co dělat…** otevře tuto část nápovědy. Ukáže ji i **Nápověda → Přetahování pod Waylandem…**, spolu
+  s tím, na čem okno právě běží.
 
 ## Servery
 
@@ -278,7 +301,7 @@ označená), tlačítka a dialogy své názvy.
 
 - **Nastavení → Nastavení…** (**Ctrl+,**) otevře nastavení ve vlastním okně. Vlevo je strom oddílů:
   Vzhled (jazyk a datum, písmo, panely, barvy podle typu souboru, miniatury), Soubory (kopírování a
-  přesun, archivy), Nástroje (prohlížeč, externí editor) a Servery a zabezpečení (připojení k
+  přesun, archivy, přetahování), Nástroje (prohlížeč, externí editor) a Servery a zabezpečení (připojení k
   serverům, uložená hesla).
 - Pole nahoře (**Ctrl+F**) najde nastavení ve všech oddílech najednou, anglicky i v jazyce okna, s
   diakritikou i bez ní; **Esc** pole vymaže.

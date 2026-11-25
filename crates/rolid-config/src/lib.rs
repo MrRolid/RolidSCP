@@ -517,6 +517,11 @@ pub struct Settings {
     /// No warning when a server's clock is off by more than a minute (0.9.0).
     #[serde(default, skip_serializing_if = "is_false")]
     pub clock_warning_off: bool,
+    /// In a Wayland session, show the window through XWayland (X11), where
+    /// dragging files to and from other programs works (0.9.1). Read at the
+    /// start of the program.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub x11_on_wayland: bool,
 }
 
 /// Widths of the listing columns set by dragging, in points at text size 1:1
@@ -1573,6 +1578,19 @@ path = "/srv"
         let text = toml::to_string(&off).unwrap();
         assert!(text.contains("clock_warning_off = true"), "{text}");
         assert!(toml::from_str::<Settings>(&text).unwrap().clock_warning_off);
+    }
+
+    /// "On Wayland, use X11" of 0.9.1: off in settings of older versions, and
+    /// the key is written only when it is turned on.
+    #[test]
+    fn x11_on_wayland_is_off_in_older_settings() {
+        let old: Settings = toml::from_str("speed_limit_kib = 4096\nclock_warning_off = true\n").unwrap();
+        assert!(!old.x11_on_wayland);
+        assert!(!toml::to_string(&old).unwrap().contains("x11_on_wayland"));
+        let on = Settings { x11_on_wayland: true, ..Default::default() };
+        let text = toml::to_string(&on).unwrap();
+        assert!(text.contains("x11_on_wayland = true"), "{text}");
+        assert!(toml::from_str::<Settings>(&text).unwrap().x11_on_wayland);
     }
 
     #[test]

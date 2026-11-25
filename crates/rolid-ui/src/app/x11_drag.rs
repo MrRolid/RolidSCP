@@ -9,6 +9,7 @@
 //! quietly and the panels are highlighted all together, as before.
 
 use std::sync::mpsc::{self, Receiver, Sender};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -38,10 +39,69 @@ pub fn to_points(p: RawPointer, pixels_per_point: f32) -> Pos2 {
     pos2((p.root.0 - p.origin.0) as f32 / ppp, (p.root.1 - p.origin.1) as f32 / ppp)
 }
 
-/// X11 session (not Wayland, where XWayland would give wrong positions).
+/// How the window is shown.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Backend {
+    /// An X11 session (or a Wayland one with `WAYLAND_DISPLAY` emptied).
+    X11,
+    /// A Wayland session, the window through XWayland: "On Wayland, use X11"
+    /// in the settings.
+    XWayland,
+    /// A Wayland session, the window a Wayland one: no dragging to and from
+    /// other programs (winit 0.30 has none on Wayland).
+    Wayland,
+    /// Neither display is set.
+    Unknown,
+}
+
+/// "On Wayland, use X11", as read at the start (it takes effect only then).
+static X11_ON_WAYLAND: AtomicBool = AtomicBool::new(false);
+
+/// The backend for the displays that are set and the setting.
+pub fn backend_for(display: bool, wayland: bool, x11_on_wayland: bool) -> Backend {
+    match (display, wayland) {
+        (true, false) => Backend::X11,
+        (true, true) if x11_on_wayland => Backend::XWayland,
+        (_, true) => Backend::Wayland,
+        (false, false) => Backend::Unknown,
+    }
+}
+
+fn env_set(v: &str) -> bool {
+    std::env::var_os(v).is_some_and(|s| !s.is_empty())
+}
+
+/// Is this a Wayland session where X11 (XWayland) can be chosen? (Both
+/// displays are set.)
+pub fn x11_can_be_chosen() -> bool {
+    env_set("DISPLAY") && env_set("WAYLAND_DISPLAY")
+}
+
+/// At the start, before the window: remember the setting and say which
+/// backend the window gets.
+pub fn choose(x11_on_wayland: bool) -> Backend {
+    X11_ON_WAYLAND.store(x11_on_wayland, Ordering::Relaxed);
+    let b = backend();
+    match b {
+        Backend::XWayland => tracing::info!("window system: X11 through XWayland in a Wayland session (Settings: On Wayland, use X11)"),
+        Backend::Wayland if x11_on_wayland => tracing::warn!("window system: Wayland; X11 was chosen in the settings, but no X display (XWayland) is set"),
+        Backend::Wayland => tracing::info!("window system: Wayland (dragging to and from other programs is not available)"),
+        Backend::X11 => tracing::info!("window system: X11"),
+        Backend::Unknown => {}
+    }
+    b
+}
+
+/// The backend of this run.
+pub fn backend() -> Backend {
+    backend_for(env_set("DISPLAY"), env_set("WAYLAND_DISPLAY"), X11_ON_WAYLAND.load(Ordering::Relaxed))
+}
+
+/// The window is an X11 one (also through XWayland when chosen in the
+/// settings): our XDND code works. Not a Wayland window, where XWayland
+/// would give wrong positions.
 pub fn is_x11() -> bool {
-    let set = |v: &str| std::env::var_os(v).is_some_and(|s| !s.is_empty());
-    set("DISPLAY") && !set("WAYLAND_DISPLAY")
+    matches!(backend(), Backend::X11 | Backend::XWayland)
 }
 
 #[derive(Default)]
@@ -159,6 +219,16 @@ pub fn window_id(frame: &eframe::Frame) -> Option<u32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_backend_follows_the_displays_and_the_setting() {
+        assert_eq!(backend_for(true, false, false), Backend::X11);
+        assert_eq!(backend_for(true, false, true), Backend::X11, "an X11 session stays X11");
+        assert_eq!(backend_for(true, true, false), Backend::Wayland);
+        assert_eq!(backend_for(true, true, true), Backend::XWayland);
+        assert_eq!(backend_for(false, true, true), Backend::Wayland, "no XWayland: Wayland");
+        assert_eq!(backend_for(false, false, true), Backend::Unknown);
+    }
 
     #[test]
     fn screen_to_window_points() {

@@ -163,7 +163,30 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
   descargan en una carpeta temporal privada (por encima de 1 GiB se pregunta), que se borra cuando ya nada
   la usa y al salir. Algunas aplicaciones esperan los archivos solo unos 30 segundos, así que una descarga
   grande puede no llegar por esta vía. De vuelta sobre la ventana, el arrastre continúa dentro; **Esc** lo
-  cancela. No disponible en Wayland.
+  cancela. En Wayland, vea **Arrastrar y soltar en Wayland** más abajo.
+
+## Arrastrar y soltar en Wayland <!-- wayland -->
+
+- En Wayland todavía no se pueden arrastrar archivos a otros programas ni desde ellos (un gestor de
+  archivos, un programa de correo, un chat), en ninguna dirección. La biblioteca de ventanas sobre la
+  que está hecho el programa no tiene arrastrar y soltar en Wayland; su próxima versión lo tiene, y el
+  programa la usará cuando esté lista. Arrastrar entre los paneles y las pestañas funciona.
+- **La solución:** mostrar la ventana a través de XWayland, como una ventana X11. Arrastrar funciona
+  entonces dondequiera que el escritorio pase el arrastre entre programas X11 y Wayland. GNOME lo hace
+  en ambas direcciones (probado); en una prueba con KDE Plasma (KWin 6.3) se podían arrastrar archivos
+  al programa, pero no fuera de él, igual que desde otros programas X11.
+- Active **Configuración → Arrastrar y soltar → En Wayland, usar X11 (XWayland)** y vuelva a iniciar
+  el programa. Está desactivado de forma predeterminada. O inícielo una vez así desde una terminal:
+  `WAYLAND_DISPLAY= rolidscp` (deb y rpm), o `WAYLAND_DISPLAY= ./RolidSCP-0.9.1-x86_64.AppImage` con el
+  nombre de su AppImage.
+- **Lo que pierde:** el texto es menos nítido con escalado fraccionario (por ejemplo 125 % o 150 %):
+  XWayland dibuja la ventana a escala 1 y el escritorio la estira; al 100 % y 200 % sigue nítido. Con
+  monitores a escalas distintas la ventana tiene una sola escala para todos. **Otros programas X11
+  pueden leer lo que escribe en la ventana, también la contraseña maestra**; una ventana Wayland
+  mantiene los programas separados. El portapapeles y los métodos de entrada pasan por XWayland.
+- La primera vez que arrastra archivos fuera de la ventana en Wayland, la línea de abajo de la ventana
+  dice que no funciona; **Qué hacer…** abre esta parte de la ayuda. **Ayuda → Arrastrar y soltar en
+  Wayland…** también la muestra, junto con lo que usa la ventana ahora.
 
 ## Servidores
 
@@ -315,7 +338,7 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
 
 - **Configuración → Configuración…** (**Ctrl+,**) abre la configuración en su propia ventana. A la
   izquierda hay un árbol de secciones: Apariencia (idioma y fechas, fuente, paneles, colores por tipo
-  de archivo, miniaturas), Archivos (copiar y mover, archivos comprimidos), Herramientas (visor,
+  de archivo, miniaturas), Archivos (copiar y mover, archivos comprimidos, arrastrar y soltar), Herramientas (visor,
   editor externo) y Servidores y seguridad (conexiones a servidores, contraseñas guardadas).
 - El campo de arriba (**Ctrl+F**) busca un ajuste en todas las secciones a la vez, en inglés o en el
   idioma de la ventana, con o sin tildes; **Esc** vacía el campo.

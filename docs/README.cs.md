@@ -71,7 +71,14 @@ který na něm stojí); stáhne jen změněné části nejnovějšího vydání,
   Verze 0.8.13 vyšla dřív než tyto balíčky: má jen `.deb` a ten potřebuje Debian 13 nebo Ubuntu
   24.04 a novější.
 - **Pracovní prostředí:** doporučené je X11. Na Waylandu program běží, ale tažení souborů mezi ním
-  a jinými aplikacemi (dovnitř ani ven) zatím nefunguje.
+  a jinými aplikacemi (dovnitř ani ven) zatím nefunguje: knihovna oken (winit 0.30, kterou používá
+  eframe) ho na Waylandu nemá. Řešením je spustit okno přes XWayland: **Nastavení → Přetahování →
+  Pod Waylandem používat X11 (XWayland)** a nové spuštění, nebo jednou z terminálu
+  `WAYLAND_DISPLAY= rolidscp` (AppImage: `WAYLAND_DISPLAY= ./RolidSCP-0.9.1-x86_64.AppImage`).
+  Přetahování pak v GNOME funguje oběma směry (vyzkoušeno ve vnořeném kompozitoru GNOME, mutter 48,
+  s waylandovým programem na druhé straně). Co tím ztratíte: písmo je méně ostré při zlomkovém
+  škálování (125 %, 150 %) a jiné programy pro X11 mohou číst, co do okna píšete, i hlavní heslo.
+  Ve výchozím stavu vypnuto. V programu to vysvětlí Nápověda → Přetahování pod Waylandem…
 - **Spuštění:** „RolidSCP“ v nabídce aplikací (`.deb`, `.rpm`), nebo `rolidscp` v terminálu.
 - Nastavení v `~/.config/rolidscp/` po odinstalaci zůstane.
 - Balíčky každé změny na `main` (nevydané, na zkoušku) jsou 90 dní k dispozici jako artefakty
@@ -437,7 +444,8 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   stavové liště). Stejně tak názvy, které nejdou přenést (ne-UTF-8, dvakrát stejný název, kopie složky
   do sebe sama).
 - Odpojený panel přetažení odmítne hláškou „Panel není připojený“; odkazy a text se tiše ignorují.
-- Na **Waylandu** přetažení zatím nefunguje (winit ho nepodporuje); pod X11 (i XWayland) ano.
+- Na **Waylandu** přetažení zatím nefunguje (winit ho nepodporuje); pod X11 (i XWayland) ano,
+  viz volbu Pod Waylandem používat X11 v části o požadavcích.
 
 ## Záložky a oblíbené složky
 
@@ -476,7 +484,8 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
   touto cestou proto nemusí projít.
 - Dočasné složky se smažou, když je po puštění 30 s žádný proces nemá otevřené, a vždy při ukončení;
   zbytky po pádu uklidí start aplikace stejně jako u F4.
-- Na Waylandu se tažení ven nenabízí. Log zapíše jednou za tažení cílovou aplikaci, způsob (uri-list,
+- Na Waylandu se tažení ven nenabízí; poprvé za běh programu to řekne řádek dole v okně s odkazem
+  na nápovědu. Přes XWayland (volba Pod Waylandem používat X11) funguje. Log zapíše jednou za tažení cílovou aplikaci, způsob (uri-list,
   XDS, dočasná složka) a výsledek, žádné názvy souborů.
 
 ## Kontextová nabídka: otevřít s, práva, schránka

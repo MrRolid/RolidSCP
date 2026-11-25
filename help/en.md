@@ -144,7 +144,29 @@ and whether it is selected), the buttons and dialogs their names.
   into its folder through the transfer queue; otherwise they are downloaded into a private temporary
   folder first (over 1 GiB you are asked), which is deleted when no longer used and at exit. Some
   applications wait only about 30 seconds for the files, so large downloads may not get through that
-  way. Back over the window the drag continues inside; **Esc** cancels it. Not available on Wayland.
+  way. Back over the window the drag continues inside; **Esc** cancels it. On Wayland see **Drag and drop on Wayland** below.
+
+## Drag and drop on Wayland <!-- wayland -->
+
+- On Wayland, files cannot be dragged to or from other programs yet (a file manager, a mail program,
+  a chat), in either direction. The window library the program is built on has no drag and drop on
+  Wayland; its next version has it, and the program will use it when it is ready. Dragging between
+  the panels and tabs works.
+- **The remedy:** show the window through XWayland, as an X11 window. Dragging then works wherever the
+  desktop passes drags on between X11 and Wayland programs. GNOME does it both ways (tested); in a
+  test with KDE Plasma (KWin 6.3) files could be dragged into the program, but not out of it, the same
+  as from other X11 programs.
+- Turn on **Settings → Drag and drop → On Wayland, use X11 (XWayland)** and start the program again.
+  It is off by default. Or start it once like this from a terminal: `WAYLAND_DISPLAY= rolidscp` (deb
+  and rpm), or `WAYLAND_DISPLAY= ./RolidSCP-0.9.1-x86_64.AppImage` with the name of your AppImage.
+- **What you lose:** text is less sharp with fractional scaling (for example 125 % or 150 %): XWayland
+  draws the window at scale 1 and the desktop stretches it; at 100 % and 200 % it stays sharp. With
+  monitors at different scales the window has one scale for all. **Other X11 programs can read what
+  you type in the window, the master password too**; a Wayland window keeps programs apart. The
+  clipboard and input methods go through XWayland.
+- The first time files are dragged out of the window on Wayland, the line at the bottom of the window
+  says that it does not work; **What to do…** opens this part of the help. **Help → Drag and drop on
+  Wayland…** shows it too, with what the window runs on now.
 
 ## Servers
 
@@ -287,7 +309,7 @@ and whether it is selected), the buttons and dialogs their names.
 
 - **Settings → Settings…** (**Ctrl+,**) opens the settings in a window of their own. On the left is a
   tree of sections: Appearance (language and dates, font, panels, colors by file type, thumbnails),
-  Files (copying and moving, archives), Tools (viewer, external editor) and Servers and security
+  Files (copying and moving, archives, drag and drop), Tools (viewer, external editor) and Servers and security
   (server connections, saved passwords).
 - Type into the field at the top (**Ctrl+F**) to find a setting in all the sections at once, in
   English or in the language of the window, with or without accents; **Esc** clears the field.

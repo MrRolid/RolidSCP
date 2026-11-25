@@ -170,7 +170,32 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
   de 1 Gio, une confirmation est demandée), supprimé quand plus rien ne l'utilise et à la fermeture.
   Certaines applications n'attendent les fichiers qu'environ 30 secondes : un gros téléchargement peut
   donc échouer par ce chemin. De retour au-dessus de la fenêtre, le glisser continue à l'intérieur ;
-  **Échap** l'annule. Non disponible sous Wayland.
+  **Échap** l'annule. Sous Wayland, voir **Glisser-déposer sous Wayland** plus bas.
+
+## Glisser-déposer sous Wayland <!-- wayland -->
+
+- Sous Wayland, on ne peut pas encore glisser des fichiers vers d'autres programmes ni depuis eux (un
+  gestionnaire de fichiers, un logiciel de courrier, une messagerie), dans aucun sens. La bibliothèque
+  de fenêtres sur laquelle repose le programme n'a pas de glisser-déposer sous Wayland ; sa prochaine
+  version l'a, et le programme l'utilisera quand elle sera prête. Le glissement entre les panneaux et
+  les onglets fonctionne.
+- **Le remède :** afficher la fenêtre par XWayland, comme une fenêtre X11. Le glissement fonctionne
+  alors partout où le bureau le transmet entre programmes X11 et Wayland. GNOME le fait dans les deux
+  sens (testé) ; dans un test avec KDE Plasma (KWin 6.3), on pouvait glisser des fichiers dans le
+  programme, mais pas en dehors, comme pour les autres programmes X11.
+- Activez **Paramètres → Glisser-déposer → Sous Wayland, utiliser X11 (XWayland)** et relancez le
+  programme. C'est désactivé par défaut. Ou lancez-le une fois ainsi depuis un terminal :
+  `WAYLAND_DISPLAY= rolidscp` (deb et rpm), ou `WAYLAND_DISPLAY= ./RolidSCP-0.9.1-x86_64.AppImage` avec
+  le nom de votre AppImage.
+- **Ce que vous perdez :** le texte est moins net avec une mise à l'échelle fractionnaire (par exemple
+  125 % ou 150 %) : XWayland dessine la fenêtre à l'échelle 1 et le bureau l'étire ; à 100 % et 200 %
+  il reste net. Avec des écrans à des échelles différentes, la fenêtre a une seule échelle pour tous.
+  **D'autres programmes X11 peuvent lire ce que vous tapez dans la fenêtre, le mot de passe principal
+  aussi** ; une fenêtre Wayland sépare les programmes. Le presse-papiers et les méthodes de saisie
+  passent par XWayland.
+- La première fois que vous glissez des fichiers hors de la fenêtre sous Wayland, la ligne en bas de
+  la fenêtre dit que cela ne fonctionne pas ; **Que faire…** ouvre cette partie de l'aide. **Aide →
+  Glisser-déposer sous Wayland…** l'affiche aussi, avec ce sur quoi la fenêtre tourne maintenant.
 
 ## Serveurs
 
@@ -327,7 +352,7 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
 
 - **Paramètres → Paramètres…** (**Ctrl+,**) ouvre les paramètres dans une fenêtre à part. À gauche, un
   arbre de sections : Apparence (langue et dates, police, panneaux, couleurs par type de fichier,
-  miniatures), Fichiers (copie et déplacement, archives), Outils (visionneuse, éditeur externe) et
+  miniatures), Fichiers (copie et déplacement, archives, glisser-déposer), Outils (visionneuse, éditeur externe) et
   Serveurs et sécurité (connexions aux serveurs, mots de passe enregistrés).
 - Le champ du haut (**Ctrl+F**) trouve un paramètre dans toutes les sections à la fois, en anglais ou
   dans la langue de la fenêtre, avec ou sans accents ; **Échap** vide le champ.

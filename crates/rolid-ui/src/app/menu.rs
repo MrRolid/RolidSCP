@@ -463,6 +463,9 @@ impl App {
                 if keyed(ui, tr!("Keyboard shortcuts"), "") {
                     set(Box::new(|a| a.dialog = Dialog::Help(true)));
                 }
+                if keyed(ui, tr!("Drag and drop on Wayland…"), "") {
+                    set(Box::new(|a| a.dialog = Dialog::WaylandDrag));
+                }
                 if keyed(ui, tr!("Open log (login diagnostics)"), "") {
                     set(Box::new(|a| {
                         let log = rolid_config::log_path();
@@ -686,6 +689,47 @@ pub fn help_ui(ctx: &egui::Context, keys: &mut bool) -> bool {
         close = b[0];
     });
     close
+}
+
+/// What the window shows now, for Help → Drag and drop on Wayland.
+fn backend_now() -> String {
+    use super::x11_drag::Backend;
+    match super::x11_drag::backend() {
+        Backend::Wayland => tr!("This window now runs on Wayland: dragging to and from other programs does not work."),
+        Backend::XWayland => tr!("This window now runs on X11 through XWayland (chosen in the settings): dragging works."),
+        Backend::X11 => tr!("This window now runs on X11: dragging works."),
+        Backend::Unknown => String::new(),
+    }
+}
+
+/// Help → Drag and drop on Wayland…: that part of the help, with what the
+/// window runs on now. `Some(true)`: open the setting; `Some(false)`: close.
+pub fn wayland_drag_ui(ctx: &egui::Context) -> Option<bool> {
+    let lang = rolid_i18n::current_language();
+    let page = crate::help::text(&lang);
+    let part = crate::help::section(page, crate::help::WAYLAND).or_else(|| crate::help::section(crate::help::text("en"), crate::help::WAYLAND));
+    let w = 640.0_f32.min(ctx.content_rect().width() - 60.0);
+    let max_h = (ctx.content_rect().height() - 240.0).clamp(160.0, 560.0);
+    let mut out = None;
+    crate::dialog::window("wayland-drag", tr!("Drag and drop on Wayland")).icon(crate::look::Role::Info).min_width(w).max_width(w).show(ctx, |ui| {
+        let now = backend_now();
+        if !now.is_empty() {
+            ui.label(RichText::new(now).strong());
+            ui.separator();
+        }
+        egui::ScrollArea::vertical().max_height(max_h).auto_shrink([false, true]).show(ui, |ui| {
+            if let Some(md) = &part {
+                crate::help::show(ui, md);
+            }
+        });
+        let b = crate::dialog::buttons(ui, [crate::dialog::btn(crate::look::Role::Open, tr!("Settings…")).default(true), crate::dialog::close()]);
+        if b[0] {
+            out = Some(true);
+        } else if b[1] {
+            out = Some(false);
+        }
+    });
+    out
 }
 
 /// Bitcoin donation addresses; one of them is picked at random on first start

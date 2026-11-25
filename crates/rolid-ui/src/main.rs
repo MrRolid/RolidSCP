@@ -104,6 +104,14 @@ fn main() -> eframe::Result {
     let rt = runtime();
     let handle = rt.handle().clone();
 
+    // "On Wayland, use X11": read before the window exists (it takes effect
+    // only at the start). The environment stays as it is, so programs started
+    // from here (the editor, a terminal) are not moved to X11.
+    let x11_on_wayland = match rolid_config::load_file::<rolid_config::Settings>(app::SETTINGS_FILE) {
+        Ok(s) => s.x11_on_wayland,
+        Err(e) => e.0.x11_on_wayland,
+    };
+    let backend = app::x11_drag::choose(x11_on_wayland);
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
             .with_title("RolidSCP")
@@ -113,6 +121,12 @@ fn main() -> eframe::Result {
         // Installed by the app with a guard instead (fonts::GuardedFontProvider):
         // eframe's own one ends the program on a system without fonts.
         system_font_fallback: false,
+        event_loop_builder: (backend == app::x11_drag::Backend::XWayland).then(|| -> eframe::EventLoopBuilderHook {
+            Box::new(|b| {
+                use winit::platform::x11::EventLoopBuilderExtX11;
+                b.with_x11();
+            })
+        }),
         ..Default::default()
     };
     let res = eframe::run_native(

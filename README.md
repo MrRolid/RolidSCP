@@ -80,7 +80,14 @@ which downloads only the changed parts of the newest release, pre-releases inclu
   Version 0.8.13 was released before these packages: it has only a `.deb`, which needs Debian 13 or
   Ubuntu 24.04 and newer.
 - **Desktop:** X11 is recommended. On Wayland the program runs, but drag and drop with other
-  applications (into and out of the window) does not work yet.
+  applications (into and out of the window) does not work yet: the window library (winit 0.30, used
+  by eframe) has none on Wayland. The remedy is to run the window through XWayland: **Settings →
+  Drag and drop → On Wayland, use X11 (XWayland)** and a restart, or once from a terminal
+  `WAYLAND_DISPLAY= rolidscp` (the AppImage: `WAYLAND_DISPLAY= ./RolidSCP-0.9.1-x86_64.AppImage`).
+  Dragging then works both ways in GNOME (tested in a nested GNOME Shell compositor, mutter 48,
+  with a Wayland program on the other side). What you lose: text is less sharp with fractional
+  scaling (125 %, 150 %), and other X11 programs can read what you type in the window, the master
+  password too. Off by default. Help → Drag and drop on Wayland… explains it in the program.
 - **Start:** "RolidSCP" in the application menu (`.deb`, `.rpm`), or `rolidscp` in a terminal.
 - Your settings in `~/.config/rolidscp/` stay when the program is removed.
 - Packages of every change on `main` (not released, for testing) are kept for 90 days as artifacts of
@@ -264,11 +271,12 @@ hung network mount) waits until you cancel it.
   same strict `known_hosts` check. A password saved in the vault is passed by a one-time
   `SSH_ASKPASS` helper over a private socket (answers only that server's password question, once;
   never on the command line, in the environment, a file or the log); production servers ask first.
-- Drag and drop from the system file manager (X11; on Wayland not yet supported by winit).
+- Drag and drop from the system file manager (X11, also XWayland; on Wayland not yet supported by
+  winit, see [Installation](#installation)).
 - Drag files inside the app: to the other panel, onto a folder, `..` or a tab (hold to switch to it);
   Shift moves, Esc cancels; the copy or move dialog always asks first. The target of copying and
   moving is an editable path with the recent targets and a Browse button (local and remote).
-- Drag files out of the window to other applications (X11): local files as `text/uri-list` (Shift
+- Drag files out of the window to other applications (X11, also XWayland): local files as `text/uri-list` (Shift
   moves); files from a server or an archive are downloaded first, into the target's folder through
   the transfer queue when the target supports XDS (direct save), otherwise into a private temporary
   folder that is deleted when no longer used and at exit. Targets wait only so long for the data

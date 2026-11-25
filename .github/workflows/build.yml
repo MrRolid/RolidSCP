@@ -67,10 +67,11 @@ jobs:
         run: |
           sudo apt-get update -q
           # rpm, squashfs-tools and zsync for the packages, openssh-server for the SFTP
-          # tests, and the libraries the AppImage carries (crates/rolid-ui/src/bundled_libs.rs).
+          # tests, Xvfb for the drag test with an X server, and the libraries the AppImage
+          # carries (crates/rolid-ui/src/bundled_libs.rs).
           sudo apt-get install -y -q --no-install-recommends rpm squashfs-tools zsync fakeroot openssh-server \
             libxkbcommon0 libxkbcommon-x11-0 libxcb-xkb1 libxcursor1 libxrender1 libxfixes3 libxi6 libxext6 \
-            libwayland-cursor0 libwayland-egl1
+            libwayland-cursor0 libwayland-egl1 xvfb
 
       - name: Rust toolchain
         run: |
@@ -334,7 +335,7 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y -q --no-install-recommends rpm squashfs-tools zsync fakeroot \
             libxkbcommon0 libxkbcommon-x11-0 libxcb-xkb1 libxcursor1 libxrender1 libxfixes3 libxi6 libxext6 \
-            libwayland-cursor0 libwayland-egl1
+            libwayland-cursor0 libwayland-egl1 xvfb
 
       - name: Rust toolchain
         run: |

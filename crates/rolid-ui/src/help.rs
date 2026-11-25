@@ -1,6 +1,8 @@
 //! The F1 help: `help/<lang>.md` built into the program (English when the
 //! language has none), drawn by a small Markdown subset: `#`/`##` headings,
-//! paragraphs, `- ` lists, `**bold**` and `` `code` ``.
+//! paragraphs, `- ` lists, `**bold**` and `` `code` ``. A heading can end
+//! with a name in a comment (`## Title <!-- name -->`, hidden on GitHub too):
+//! [`section`] takes that part out for a window of its own.
 
 use eframe::egui::{self, text::LayoutJob, TextFormat, TextStyle};
 
@@ -15,6 +17,9 @@ const PAGES: &[(&str, &str)] = &[
     ("nb", include_str!("../../../help/nb.md")),
     ("da", include_str!("../../../help/da.md")),
 ];
+
+/// The name of the help section about dragging on Wayland.
+pub const WAYLAND: &str = "wayland";
 
 /// The help text for `lang` (English when there is none).
 pub fn text(lang: &str) -> &'static str {
@@ -40,7 +45,7 @@ pub fn parse(md: &str) -> Vec<Block> {
         if l.is_empty() {
             open = false;
         } else if let Some(h) = l.strip_prefix("## ") {
-            out.push(Block::Heading(h.trim().to_string()));
+            out.push(Block::Heading(without_name(h).to_string()));
             open = false;
         } else if let Some(h) = l.strip_prefix("# ") {
             out.push(Block::Title(h.trim().to_string()));
@@ -59,6 +64,22 @@ pub fn parse(md: &str) -> Vec<Block> {
         }
     }
     out
+}
+
+/// A heading without its name comment.
+fn without_name(h: &str) -> &str {
+    h.split_once("<!--").map_or(h, |(t, _)| t).trim()
+}
+
+/// The part of the page under the heading named `name` (`<!-- name -->`),
+/// with that heading, up to the next one.
+pub fn section(md: &str, name: &str) -> Option<String> {
+    let mark = format!("<!-- {name} -->");
+    let mut lines = md.lines().skip_while(|l| !(l.trim_start().starts_with("## ") && l.contains(&mark)));
+    let head = lines.next()?;
+    let mut out = vec![head];
+    out.extend(lines.take_while(|l| !l.trim_start().starts_with("## ") && !l.trim_start().starts_with("# ")));
+    Some(out.join("\n"))
 }
 
 /// Inline spans: (text, bold, code).
@@ -158,6 +179,27 @@ mod tests {
             spans("a **b** `c*` d"),
             vec![("a ".into(), false, false), ("b".into(), true, false), (" ".into(), false, false), ("c*".into(), false, true), (" d".into(), false, false)]
         );
+    }
+
+    #[test]
+    fn a_named_section_is_taken_out_and_its_name_is_not_shown() {
+        let md = "# T\n\n## One\n\na\n\n## Two <!-- two -->\n\n- b\n- c\n\n## Three\n\nd\n";
+        assert_eq!(section(md, "two").as_deref(), Some("## Two <!-- two -->\n\n- b\n- c\n"));
+        assert_eq!(parse(&section(md, "two").unwrap())[0], Block::Heading("Two".into()));
+        assert!(parse(md).contains(&Block::Heading("Two".into())));
+        assert_eq!(section(md, "four"), None);
+    }
+
+    /// Help → Drag and drop on Wayland shows this part of the help.
+    #[test]
+    fn every_language_explains_dragging_on_wayland() {
+        for (code, _) in rolid_i18n::LANGUAGES {
+            let (_, md) = PAGES.iter().find(|(l, _)| *l == code).unwrap();
+            let s = section(md, WAYLAND).unwrap_or_else(|| panic!("help/{code}.md has no <!-- {WAYLAND} --> section"));
+            assert!(s.contains("WAYLAND_DISPLAY= rolidscp"), "{code}: the command");
+            assert!(s.contains("WAYLAND_DISPLAY= ./RolidSCP"), "{code}: the AppImage command");
+            assert!(parse(&s).len() >= 5, "{code}");
+        }
     }
 
     #[test]

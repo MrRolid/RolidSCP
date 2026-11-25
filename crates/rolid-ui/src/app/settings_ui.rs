@@ -32,6 +32,7 @@ pub enum Sec {
     Thumbs,
     Copying,
     Archives,
+    Dragging,
     Viewer,
     Editor,
     Servers,
@@ -39,7 +40,7 @@ pub enum Sec {
 }
 
 impl Sec {
-    pub const ALL: [Sec; 11] = [
+    pub const ALL: [Sec; 12] = [
         Sec::Language,
         Sec::Font,
         Sec::Panels,
@@ -47,6 +48,7 @@ impl Sec {
         Sec::Thumbs,
         Sec::Copying,
         Sec::Archives,
+        Sec::Dragging,
         Sec::Viewer,
         Sec::Editor,
         Sec::Servers,
@@ -63,6 +65,7 @@ impl Sec {
             Sec::Thumbs => nc!("settings", "Thumbnails"),
             Sec::Copying => n!("Copying and moving"),
             Sec::Archives => nc!("settings", "Archives"),
+            Sec::Dragging => nc!("settings", "Drag and drop"),
             Sec::Viewer => n!("Viewer (F3)"),
             Sec::Editor => n!("External editor (F4)"),
             Sec::Servers => n!("Server connections"),
@@ -71,7 +74,7 @@ impl Sec {
     }
 
     fn ctx(self) -> Option<&'static str> {
-        matches!(self, Sec::Font | Sec::Panels | Sec::Thumbs | Sec::Archives).then_some("settings")
+        matches!(self, Sec::Font | Sec::Panels | Sec::Thumbs | Sec::Archives | Sec::Dragging).then_some("settings")
     }
 
     pub fn label(self) -> String {
@@ -85,7 +88,7 @@ impl Sec {
 /// The branches of the tree.
 const GROUPS: &[(&str, &[Sec])] = &[
     (n!("Appearance"), &[Sec::Language, Sec::Font, Sec::Panels, Sec::Colors, Sec::Thumbs]),
-    (n!("Files"), &[Sec::Copying, Sec::Archives]),
+    (n!("Files"), &[Sec::Copying, Sec::Archives, Sec::Dragging]),
     (n!("Tools"), &[Sec::Viewer, Sec::Editor]),
     (n!("Servers and security"), &[Sec::Servers, Sec::Passwords]),
 ];
@@ -121,6 +124,7 @@ pub enum RowId {
     EditorCmd,
     ClockWarning,
     VaultLock,
+    X11OnWayland,
 }
 
 /// Every setting: (section, row, English label, more words to search in).
@@ -153,6 +157,7 @@ const ROWS: &[(Sec, RowId, &str, &str)] = &[
     (Sec::Archives, RowId::Arch(2), n!("Ask at a compression ratio above"), ""),
     (Sec::Archives, RowId::Arch(3), n!("Download and open a remote archive up to"), ""),
     (Sec::Archives, RowId::Arch(4), n!("Number of compression threads"), ""),
+    (Sec::Dragging, RowId::X11OnWayland, n!("On Wayland, use X11 (XWayland)"), n!("Dragging files to and from other programs. Takes effect after the program is restarted.")),
     (Sec::Viewer, RowId::Highlight, n!("Syntax highlighting"), ""),
     (Sec::Viewer, RowId::ViewerMax(0), n!("Highlight files up to"), ""),
     (Sec::Viewer, RowId::ViewerMax(1), n!("Download images from a server up to"), ""),
@@ -200,6 +205,7 @@ pub struct SettingsForm {
     pub editor_cmd: String,
     pub clock_warning: bool,
     pub vault_lock: Option<u32>,
+    pub x11_on_wayland: bool,
 }
 
 impl SettingsForm {
@@ -246,6 +252,7 @@ impl SettingsForm {
             editor_cmd: s.editor_command.clone().unwrap_or_default(),
             clock_warning: !s.clock_warning_off,
             vault_lock: s.vault_lock_after(),
+            x11_on_wayland: s.x11_on_wayland,
         }
     }
 
@@ -351,6 +358,7 @@ impl SettingsForm {
             s.editor_command = (!cmd.is_empty()).then_some(cmd);
         }
         s.clock_warning_off = !self.clock_warning;
+        s.x11_on_wayland = self.x11_on_wayland;
         if before.vault_lock != self.vault_lock {
             s.set_vault_lock_after(self.vault_lock);
         }
@@ -962,6 +970,32 @@ fn draw_row(ui: &mut egui::Ui, r: RowId, w: &mut SettingsWin, env: &Env) {
                 );
             });
         }
+        RowId::X11OnWayland => {
+            ui.label("");
+            ui.vertical(|ui| {
+                ui.horizontal(|ui| {
+                    ui.checkbox(&mut f.x11_on_wayland, label);
+                    dialog::help(
+                        ui,
+                        tr!(
+                            "On Wayland the window library of the program cannot drag files to and from other \
+                             programs yet. Through XWayland the window is an X11 one, and dragging works where \
+                             the desktop passes it on between X11 and Wayland programs (GNOME does)."
+                        ),
+                    );
+                });
+                dialog::note(ui, tr!("Dragging files to and from other programs. Takes effect after the program is restarted."));
+                dialog::warn(
+                    ui,
+                    tr!(
+                        "What you lose: text is less sharp with fractional scaling (for example 125 % or 150 %), \
+                         and other X11 programs can read what you type in this window, the master password too. \
+                         A Wayland window keeps programs apart."
+                    ),
+                    false,
+                );
+            });
+        }
         RowId::VaultLock => {
             ui.label(label);
             egui::ComboBox::from_id_salt("settings-vault-lock").selected_text(super::vault_ui::lock_label(f.vault_lock)).show_ui(ui, |ui| {
@@ -973,11 +1007,35 @@ fn draw_row(ui: &mut egui::Ui, r: RowId, w: &mut SettingsWin, env: &Env) {
     }
 }
 
+/// What the window runs on now, and whether the setting `chosen` differs.
+fn dragging_now(chosen: bool) -> String {
+    use super::x11_drag::{self, Backend};
+    let now = x11_drag::backend();
+    if !x11_drag::x11_can_be_chosen() {
+        return match now {
+            Backend::Wayland => tr!("No X11 display (XWayland) is available here: the window stays a Wayland one."),
+            _ => tr!("This is an X11 session: dragging works, the setting matters only on Wayland."),
+        };
+    }
+    let running = now == Backend::XWayland;
+    let mut out = if running {
+        tr!("Now: X11 through XWayland.")
+    } else {
+        tr!("Now: Wayland.")
+    };
+    if chosen != running {
+        out.push(' ');
+        out.push_str(&tr!("The change takes effect after the program is restarted."));
+    }
+    out
+}
+
 /// What a section shows under its settings (not searched).
 fn section_footer(ui: &mut egui::Ui, s: Sec, w: &SettingsWin, env: &Env) {
     match s {
         Sec::Font => dialog::note(ui, tr!("Now: {font}", font = env.font_desc.as_str())),
         Sec::Thumbs => dialog::note(ui, tr!("Previews in memory: {size} (at most 48 MB).", size = rolid_i18n::size(env.thumb_mem as u64))),
+        Sec::Dragging => dialog::note(ui, dragging_now(w.form.x11_on_wayland)),
         Sec::Passwords => dialog::note(
             ui,
             tr!("Creating, unlocking and changing the master password: Settings → Master password (saved passwords) in the menu bar."),
@@ -1024,6 +1082,7 @@ mod tests {
             copy_conflict: Some(ConflictPreset::ALL[2]),
             editor_command: Some("gedit {file}".into()),
             clock_warning_off: true,
+            x11_on_wayland: true,
             ..Default::default()
         };
         s.type_colors.insert("image".into(), "#112233".into());
@@ -1111,6 +1170,10 @@ mod tests {
         // The section name matches all its rows.
         assert_eq!(matching("archives").len(), 5);
         assert!(matching("no such setting at all").is_empty());
+        // The X11 choice is found by what it is for.
+        assert_eq!(matching("wayland"), vec![(Sec::Dragging, RowId::X11OnWayland)]);
+        assert_eq!(matching("xwayland restart"), vec![(Sec::Dragging, RowId::X11OnWayland)]);
+        assert_eq!(matching("drag other programs"), vec![(Sec::Dragging, RowId::X11OnWayland)]);
         // Every row is in a section of the tree, and every section has rows.
         for (s, _, _, _) in ROWS {
             assert!(GROUPS.iter().any(|(_, secs)| secs.contains(s)));
