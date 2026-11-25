@@ -1,13 +1,13 @@
 # Roadmap
 
 RolidSCP moves your files, often on servers that matter. So reliability comes first and new features
-second: the 0.8 series gets no new features, only fixes and stress tests of what is already there.
-Small new features come in 0.9, large ones from 1.0 alpha.
+second: the 0.8 series (closed with 0.8.20) got no new features, only fixes and stress tests of
+what was already there. Small new features come in 0.9, large ones from 1.0 alpha.
 
 This is a plan, not a promise. There are no dates, and the order within a section can change.
 Releases are listed on the [Releases](https://github.com/MrRolid/RolidSCP/releases) page.
 
-## 0.8.x: hardening
+## 0.8.x: hardening (done)
 
 No new features. Each release tests one area under load, fixes what breaks and adds tests that would
 catch it again.
@@ -124,44 +124,60 @@ catch it again.
 
 ## 0.9.x: small new features
 
-- Settings in a window of their own, with a tree of sections and a filter.
-- Ignored files by masks.
-- Dark theme and color themes built on one palette.
-- Display density: icon size, row height, font.
-- Layout: show or hide parts of the window (hiding the toolbar and the bar above the panels already
-  works).
-- Your own viewer, file comparison tool and terminal (your own editor already works).
-- Mouse and keyboard behavior.
-- `~/.ssh/config`.
-- Connecting through a jump host (ProxyJump): a connection can go through another saved
-  connection, with its own key or password; the keys of both servers are checked, the connection
-  is restored after a drop-out, and the terminal (Ctrl+P) goes the same way.
-- Several ways to one server: a connection can have more than one address, for example one in the
-  local network and one through a jump host. They are tried in the order you set, the local network
-  first; when one does not work, the next is used. After a drop-out the program starts again from
-  the first one, and it shows which way you are connected.
-- SOCKS5 and HTTP CONNECT proxies and `ProxyCommand`, also when they come from `~/.ssh/config`.
-- Server keys checked against `~/.ssh/known_hosts` too, next to the program's own file. The program
-  never writes to `~/.ssh/known_hosts`: keys you accept go only to its own file. When the two files
-  disagree about a server, the program does not connect and tells you why.
-- Duplicating a connection in the site manager: a copy with all settings; you choose whether the
-  saved password is copied too.
-- Trash for local deleting.
-- Custom keyboard shortcuts.
-- Custom columns: which columns, in which order.
-- A command line under the panels: on the left the current folder, then a field for a command. In
-  a local panel the command runs in the current folder, in a server panel over SSH in the current
-  remote folder. The output appears in a window. On a production server the command needs a
-  confirmation first. A history of commands, never with passwords in it.
-- A log of operations you can browse.
-- Import of saved sites from WinSCP and FileZilla.
-- Keeping ACLs and extended attributes when copying between disks (a choice, off by default). SFTP
-  cannot carry them, so to and from a server it stays as it is.
-- Context menus by keyboard (the Menu key and Shift+F10), for files and for tabs: the tab color and
-  "Close other tabs" can only be reached with the mouse now (everything else has a key or is in
-  the menu bar, F10).
-- A warning when a server's clock is off by more than a minute (it matters for "Overwrite only
-  older" with files changed on that server).
+Each release brings three to five of them. Cheap features and the ones others build on come first.
+Every new feature comes with tests of its error cases, help and translations in all eight languages,
+and takes over the settings of older versions; before each release the kill, bad-line and two-copies
+tests are run again.
+
+- **0.9.0 Settings window:**
+  - Settings in a window of their own, with a tree of sections and a filter. The settings now
+    spread over the Settings menu (speed limit, conflict choices, editor, locking of saved
+    passwords, automatic refresh) are there too. The later settings of 0.9 go into it.
+  - Duplicating a connection in the site manager: a copy with all settings; you choose whether the
+    saved password is copied too.
+  - Context menus by keyboard (the Menu key and Shift+F10), for files and for tabs: the tab color and
+    "Close other tabs" can only be reached with the mouse now (everything else has a key or is in
+    the menu bar, F10).
+  - A warning when a server's clock is off by more than a minute (it matters for "Overwrite only
+    older" with files changed on that server).
+- **0.9.1 Jump host:**
+  - Server keys checked against `~/.ssh/known_hosts` too, next to the program's own file. The program
+    never writes to `~/.ssh/known_hosts`: keys you accept go only to its own file. When the two files
+    disagree about a server, the program does not connect and tells you why. (Comes first: the jump
+    host checks the keys of two servers.)
+  - Connecting through a jump host (ProxyJump): a connection can go through another saved
+    connection, with its own key or password; the keys of both servers are checked, the connection
+    is restored after a drop-out, and the terminal (Ctrl+P) goes the same way.
+  - Trash for local deleting.
+- **0.9.2 SSH config and proxies:**
+  - `~/.ssh/config`.
+  - SOCKS5 and HTTP CONNECT proxies and `ProxyCommand`, also when they come from `~/.ssh/config`.
+  - Several ways to one server: a connection can have more than one address, for example one in the
+    local network and one through a jump host. They are tried in the order you set, the local network
+    first; when one does not work, the next is used. After a drop-out the program starts again from
+    the first one, and it shows which way you are connected.
+- **0.9.3 Looks:**
+  - Dark theme and color themes built on one palette.
+  - Display density: icon size, row height, font.
+  - Layout: show or hide parts of the window (hiding the toolbar and the bar above the panels already
+    works).
+  - Custom columns: which columns, in which order.
+- **0.9.4 Control:**
+  - Mouse and keyboard behavior.
+  - Custom keyboard shortcuts.
+  - Ignored files by masks.
+  - Your own viewer, file comparison tool and terminal (your own editor already works).
+- **0.9.5 Command line and records:**
+  - A command line under the panels: on the left the current folder, then a field for a command. In
+    a local panel the command runs in the current folder, in a server panel over SSH in the current
+    remote folder. The output appears in a window. On a production server the command needs a
+    confirmation first. A history of commands, never with passwords in it.
+  - A log of operations you can browse.
+  - Import of saved sites from WinSCP and FileZilla.
+  - Keeping ACLs and extended attributes when copying between disks (a choice, off by default). SFTP
+    cannot carry them, so to and from a server it stays as it is.
+
+What turns out to be hard or risky moves to 1.0, with the reason written here.
 
 Already available: ssh-agent and passphrase-protected keys, colors by file type, an external editor,
 and "Open with" associations per file type.
