@@ -118,8 +118,13 @@ om det er merket), knappene og dialogene sine navn.
   nytt og sammenlignes først; en forskjell meldes, og kilden blir.
 - **F2** eller **Shift+F6** gir nytt navn direkte i listen: navnet uten filendelse er merket,
   **Enter** bekrefter, **Esc** avbryter.
-- **F7** oppretter en mappe, **F8** sletter (med bekreftelse). Slettingen går i overføringskøen med
-  antall slettede elementer; **Avbryt** stopper den (det som allerede er slettet, forblir slettet).
+- **F7** oppretter en mappe. **F8** flytter filer på denne datamaskinens disker til skrivebordets
+  papirkurv (med bekreftelse): filbehandlere viser den og kan legge filene tilbake; en fil på en annen
+  disk havner i den diskens egen papirkurv, og der det ikke finnes noen (en skrivebeskyttet disk),
+  slettes ingenting og programmet sier fra. **Shift+F8** sletter permanent; filer på en server slettes
+  alltid permanent (spørsmålet sier PÅ SERVEREN). Papirkurven kan slås av under **Innstillinger →
+  Kopiering og flytting**. Slettingen går i overføringskøen med antall slettede elementer; **Avbryt** stopper den
+  (det som allerede er slettet, forblir slettet).
 - Pipes (FIFO), sockets, enheter og symbolske lenker som ikke fører noe sted (målet mangler eller er
   en løkke), kopieres ikke: de hoppes over og vises i rapporten til slutt, resten av kopieringen
   fortsetter.

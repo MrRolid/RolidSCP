@@ -135,6 +135,9 @@ impl App {
                 if keyed(ui, tr!("Delete"), "F8") {
                     set(Box::new(|a| a.ask_delete()));
                 }
+                if keyed(ui, tr!("Delete permanently"), "Shift+F8") {
+                    set(Box::new(|a| a.ask_delete_permanently()));
+                }
                 if keyed(ui, tr!("Permissions…"), "Ctrl+Shift+A") {
                     set(Box::new(|a| a.ask_perms(a.active_ref())));
                 }
@@ -602,7 +605,8 @@ const SHORTCUTS: &[(&str, &[(&str, &str)])] = &[
             ("Ctrl+Shift+N / P / S", n!("to clipboard: name / full path / sftp:// address (without password)")),
             (nc!("keys", "drag from a file manager"), n!("upload / copy into the panel (onto a folder row = into it)")),
             ("F7", n!("new folder")),
-            ("F8 / Delete", n!("delete")),
+            ("F8 / Delete", n!("delete (local files to the trash)")),
+            ("Shift+F8 / Shift+Delete", n!("delete permanently")),
             ("Ctrl+F7 / Ctrl+F", n!("find files")),
         ],
     ),

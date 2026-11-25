@@ -130,9 +130,14 @@ tamaño, y si está seleccionado), y los botones y diálogos sus nombres.
   queda.
 - **F2** o **Shift+F6** renombra directamente en la lista: se selecciona el nombre sin la extensión,
   **Enter** confirma, **Esc** cancela.
-- **F7** crea una carpeta, **F8** elimina (con confirmación). La eliminación se ejecuta en la cola
-  de transferencias con el número de elementos eliminados; **Cancelar** la detiene (lo ya eliminado
-  sigue eliminado).
+- **F7** crea una carpeta. **F8** mueve los archivos de los discos de este ordenador a la papelera
+  del escritorio (con confirmación): los gestores de archivos la muestran y pueden restaurar los
+  archivos; un archivo en otro disco va a la papelera propia de ese disco, y donde no la hay (un disco
+  de solo lectura) no se elimina nada y el programa lo dice. **Shift+F8** elimina definitivamente; los
+  archivos en un servidor siempre se eliminan definitivamente (la pregunta dice EN EL SERVIDOR). La
+  papelera se puede desactivar en **Configuración → Copiar y mover**. La eliminación se ejecuta en la cola de
+  transferencias con el número de elementos eliminados; **Cancelar** la detiene (lo ya eliminado sigue
+  eliminado).
 - Las tuberías (FIFO), sockets, dispositivos y enlaces simbólicos que no llevan a ninguna parte
   (falta el destino o es un bucle) no se copian: se omiten y se listan en el informe final, el resto
   de la copia continúa.

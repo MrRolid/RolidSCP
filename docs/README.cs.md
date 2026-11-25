@@ -126,7 +126,12 @@ o beta verzi.
   soubor. Přesun nechá odkazy na místě. Souhrn po přenosu přeskočené odkazy zatím neuvádí.
 
 **Mazání (F8)**
-- Mazání je nevratné, lokálně i na serveru. Není koš ani zpět.
+- F8 přesune soubory na discích tohoto počítače do koše prostředí (koš podle FreeDesktop.org, který
+  ukazují a obnovují Soubory, Dolphin, Thunar i Caja). Soubor na jiném disku jde do vlastního koše
+  toho disku (`.Trash/<uid>` nebo `.Trash-<uid>`); mezi disky se nikdy nekopíruje, a kde žádný koš
+  použít nejde (disk jen pro čtení), nic se nesmaže a program to řekne. Koš jde vypnout v Nastavení →
+  Kopírování a přesun.
+- Shift+F8 maže natrvalo. Soubory na serveru se mažou vždy natrvalo, bez možnosti vrátit.
 - Symbolický odkaz se maže jako odkaz; do složky, na kterou ukazuje, se nevstupuje.
 - Mazání skončí u první chyby; co se smazalo předtím, zůstane smazané.
 
@@ -274,7 +279,8 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
 | Alt+F9 | rozbalit označené archivy |
 | Alt+Shift+F9 | otestovat archiv |
 | F7 | nová složka |
-| F8 / Delete | smazat nevratně (s potvrzením; bez koše) |
+| F8 / Delete | smazat s potvrzením: místní soubory do koše, na serveru natrvalo |
+| Shift+F8 / Shift+Delete | smazat natrvalo (s potvrzením) |
 | Ctrl+G / klik na cestu | zadat cestu (`~`, relativní i absolutní) |
 | Ctrl+← / Ctrl+→ | otevřít adresář v levém / pravém panelu |
 | Ctrl+R | obnovit (ve výsledcích hledání: hledat znovu) |
@@ -862,7 +868,7 @@ docs/          česká příručka, snímek obrazovky, texty vydání (docs/rele
 - Hledání na serveru: hodnoty se nikdy nevkládají do příkazu bez apostrofů (test se skutečným `sh`), záznamy jsou oddělené NUL, takže názvy souborů s novými řádky nemohou podvrhnout výsledek.
 - Mazání ani kopírování nesleduje symlinky na adresáře (ochrana proti smyčkám a mazání mimo cíl).
   Kopírování ale symlinky na soubory následuje a zkopíruje jejich cíl jako obyčejný soubor.
-- Mazání je nevratné (žádný koš).
+- Mazání na serveru a přes Shift+F8 je nevratné; F8 přesouvá místní soubory do koše.
 
 ## Licence
 

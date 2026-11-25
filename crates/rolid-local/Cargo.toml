@@ -12,9 +12,10 @@ rolid-text = { path = "../rolid-text" }
 async-trait = "0.1.92"
 rolid-core = { path = "../rolid-core" }
 tokio = { version = "1.54.1", features = ["fs", "io-util", "rt"] }
+chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
 
 [target.'cfg(unix)'.dependencies]
-rustix = { version = "1.1.6", features = ["fs"] }
+rustix = { version = "1.1.6", features = ["fs", "process"] }
 
 [dev-dependencies]
 tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread"] }

@@ -179,57 +179,57 @@ msgctxt "thumbnail"
 msgid "large"
 msgstr "velké"
 
-#: crates/rolid-config/src/lib.rs:673
+#: crates/rolid-config/src/lib.rs:677
 msgctxt "hinting"
 msgid "Strong"
 msgstr "Silný"
 
-#: crates/rolid-config/src/lib.rs:674
+#: crates/rolid-config/src/lib.rs:678
 msgctxt "hinting"
 msgid "Medium"
 msgstr "Střední"
 
-#: crates/rolid-config/src/lib.rs:675
+#: crates/rolid-config/src/lib.rs:679
 msgctxt "hinting"
 msgid "Off"
 msgstr "Vypnutý"
 
-#: crates/rolid-config/src/lib.rs:700
+#: crates/rolid-config/src/lib.rs:704
 msgctxt "contrast"
 msgid "Normal"
 msgstr "Běžný"
 
-#: crates/rolid-config/src/lib.rs:701
+#: crates/rolid-config/src/lib.rs:705
 msgctxt "contrast"
 msgid "Higher"
 msgstr "Vyšší"
 
-#: crates/rolid-config/src/lib.rs:702
+#: crates/rolid-config/src/lib.rs:706
 msgctxt "contrast"
 msgid "Highest"
 msgstr "Nejvyšší"
 
-#: crates/rolid-config/src/lib.rs:730
+#: crates/rolid-config/src/lib.rs:734
 #: crates/rolid-ui/src/app/unpack_ui.rs:541
-#: crates/rolid-ui/src/app.rs:3066
+#: crates/rolid-ui/src/app.rs:3126
 msgid "Skip existing"
 msgstr "Přeskočit existující"
 
-#: crates/rolid-config/src/lib.rs:731
-#: crates/rolid-ui/src/app/settings_ui.rs:165
+#: crates/rolid-config/src/lib.rs:735
+#: crates/rolid-ui/src/app/settings_ui.rs:167
 msgid "Overwrite only older"
 msgstr "Přepsat jen starší"
 
-#: crates/rolid-config/src/lib.rs:732
+#: crates/rolid-config/src/lib.rs:736
 #: crates/rolid-ui/src/app/archive_ui.rs:348
 #: crates/rolid-ui/src/app/checksum_ui.rs:289
 #: crates/rolid-ui/src/app/rename_ui.rs:226
 #: crates/rolid-ui/src/app/unpack_ui.rs:543
-#: crates/rolid-ui/src/app.rs:3068
+#: crates/rolid-ui/src/app.rs:3128
 msgid "Overwrite"
 msgstr "Přepsat"
 
-#: crates/rolid-config/src/lib.rs:733
+#: crates/rolid-config/src/lib.rs:737
 msgid "No preset (choose manually)"
 msgstr "Bez předvolby (vybrat ručně)"
 
@@ -467,7 +467,7 @@ msgid "Pearl"
 msgstr "Perlová"
 
 #: crates/rolid-core/src/copy.rs:164
-#: crates/rolid-ui/src/app.rs:3021
+#: crates/rolid-ui/src/app.rs:3081
 #: crates/rolid-ui/src/pane.rs:1984
 msgid "{n} file"
 msgid_plural "{n} files"
@@ -736,8 +736,8 @@ msgid "kB"
 msgstr "kB"
 
 #: crates/rolid-i18n/src/lib.rs:335
-#: crates/rolid-ui/src/app/settings_ui.rs:924
-#: crates/rolid-ui/src/app/settings_ui.rs:936
+#: crates/rolid-ui/src/app/settings_ui.rs:929
+#: crates/rolid-ui/src/app/settings_ui.rs:941
 msgctxt "unit"
 msgid "MB"
 msgstr "MB"
@@ -757,7 +757,7 @@ msgctxt "unit"
 msgid "PB"
 msgstr "PB"
 
-#: crates/rolid-local/src/lib.rs:144
+#: crates/rolid-local/src/lib.rs:147
 #: crates/rolid-ui/src/pane.rs:1834
 msgid "Computer"
 msgstr "Počítač"
@@ -1274,7 +1274,7 @@ msgstr "„{text}“"
 #: crates/rolid-ui/src/app/archive_ui.rs:640
 #: crates/rolid-ui/src/app/ctx_ui.rs:215
 #: crates/rolid-ui/src/app/drag_ui.rs:243
-#: crates/rolid-ui/src/app.rs:1709
+#: crates/rolid-ui/src/app.rs:1711
 msgid "{n} item"
 msgid_plural "{n} items"
 msgstr[0] "{n} položka"
@@ -1333,7 +1333,7 @@ msgstr[1] "{done} z {n} souborů"
 msgstr[2] "{done} z {n} souborů"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:194
-#: crates/rolid-ui/src/app.rs:2507
+#: crates/rolid-ui/src/app.rs:2542
 msgid "{done} of {total}"
 msgstr "{done} z {total}"
 
@@ -1364,7 +1364,7 @@ msgstr[1] "… a další {n} vynechané"
 msgstr[2] "… a dalších {n} vynechaných"
 
 #: crates/rolid-ui/src/app/checksum_ui.rs:242
-#: crates/rolid-ui/src/app/menu.rs:162
+#: crates/rolid-ui/src/app/menu.rs:165
 #: crates/rolid-ui/src/pane/views.rs:345
 msgid "Copy to clipboard"
 msgstr "Kopírovat do schránky"
@@ -1377,7 +1377,7 @@ msgstr "Uložit do souboru"
 #: crates/rolid-ui/src/app/checksum_ui.rs:248
 #: crates/rolid-ui/src/app/newfile_ui.rs:78
 #: crates/rolid-ui/src/app/session.rs:1099
-#: crates/rolid-ui/src/app.rs:2887
+#: crates/rolid-ui/src/app.rs:2922
 msgid "Name:"
 msgstr "Název:"
 
@@ -1536,9 +1536,9 @@ msgstr[2] "Přeskočí se {n} položek (budou v souhrnu na konci):"
 #: crates/rolid-ui/src/app/ctx_ui.rs:427
 #: crates/rolid-ui/src/app/drop_ui.rs:581
 #: crates/rolid-ui/src/app/rename_ui.rs:372
-#: crates/rolid-ui/src/app.rs:2837
-#: crates/rolid-ui/src/app.rs:2896
-#: crates/rolid-ui/src/app.rs:2936
+#: crates/rolid-ui/src/app.rs:2872
+#: crates/rolid-ui/src/app.rs:2931
+#: crates/rolid-ui/src/app.rs:2996
 msgid "⚠ PRODUCTION SERVER: Enter is disabled, confirm with the button."
 msgstr "⚠ PRODUKČNÍ SERVER – Enter je vypnutý, potvrď tlačítkem."
 
@@ -2246,8 +2246,8 @@ msgid "Upload"
 msgstr "Nahrát"
 
 #: crates/rolid-ui/src/app/drop_ui.rs:571
-#: crates/rolid-ui/src/app.rs:2819
-#: crates/rolid-ui/src/app.rs:2868
+#: crates/rolid-ui/src/app.rs:2854
+#: crates/rolid-ui/src/app.rs:2903
 msgctxt "verb"
 msgid "Copy"
 msgstr "Kopírovat"
@@ -2277,7 +2277,7 @@ msgstr "Velký přenos (víc než {files} souborů nebo {size})."
 #: crates/rolid-ui/src/app/drop_ui.rs:594
 #: crates/rolid-ui/src/app/rename_ui.rs:387
 #: crates/rolid-ui/src/app/unpack_ui.rs:527
-#: crates/rolid-ui/src/app.rs:2839
+#: crates/rolid-ui/src/app.rs:2874
 msgid "Existing files"
 msgstr "Existující soubory"
 
@@ -2301,7 +2301,7 @@ msgid "Upload to production"
 msgstr "Nahrát na produkci"
 
 #: crates/rolid-ui/src/app/drop_ui.rs:615
-#: crates/rolid-ui/src/app.rs:2868
+#: crates/rolid-ui/src/app.rs:2903
 msgid "Copy to production"
 msgstr "Kopírovat na produkci"
 
@@ -2687,7 +2687,7 @@ msgid "Discard changes"
 msgstr "Zahodit změny"
 
 #: crates/rolid-ui/src/app/edit_ui.rs:1656
-#: crates/rolid-ui/src/app/menu.rs:293
+#: crates/rolid-ui/src/app/menu.rs:296
 #: crates/rolid-ui/src/app/places.rs:150
 #: crates/rolid-ui/src/app/places.rs:166
 #: crates/rolid-ui/src/app/vault_ui.rs:777
@@ -2782,7 +2782,7 @@ msgid "Connect now"
 msgstr "Připojit teď"
 
 #: crates/rolid-ui/src/app/link_ui.rs:405
-#: crates/rolid-ui/src/app/menu.rs:247
+#: crates/rolid-ui/src/app/menu.rs:250
 msgid "Unlock…"
 msgstr "Odemknout…"
 
@@ -2798,7 +2798,7 @@ msgstr "Zadat údaje…"
 #: crates/rolid-ui/src/app/session.rs:1075
 #: crates/rolid-ui/src/app/viewer/text/find.rs:241
 #: crates/rolid-ui/src/app/viewer/text.rs:479
-#: crates/rolid-ui/src/app.rs:2536
+#: crates/rolid-ui/src/app.rs:2571
 #: crates/rolid-ui/src/dialog.rs:340
 msgid "Cancel"
 msgstr "Zrušit"
@@ -2913,7 +2913,7 @@ msgid "Rename"
 msgstr "Přejmenovat"
 
 #: crates/rolid-ui/src/app/menu.rs:130
-#: crates/rolid-ui/src/app.rs:2885
+#: crates/rolid-ui/src/app.rs:2920
 #: crates/rolid-ui/src/pane/views.rs:388
 msgid "New folder"
 msgstr "Nová složka"
@@ -2925,968 +2925,976 @@ msgid "Delete"
 msgstr "Smazat"
 
 #: crates/rolid-ui/src/app/menu.rs:138
+msgid "Delete permanently"
+msgstr "Smazat natrvalo"
+
+#: crates/rolid-ui/src/app/menu.rs:141
 #: crates/rolid-ui/src/pane/views.rs:336
 msgid "Permissions…"
 msgstr "Práva…"
 
-#: crates/rolid-ui/src/app/menu.rs:142
+#: crates/rolid-ui/src/app/menu.rs:145
 #: crates/rolid-ui/src/pane/views.rs:338
 msgid "Pack…"
 msgstr "Zabalit…"
 
-#: crates/rolid-ui/src/app/menu.rs:145
+#: crates/rolid-ui/src/app/menu.rs:148
 #: crates/rolid-ui/src/pane/views.rs:339
 msgid "Extract…"
 msgstr "Rozbalit…"
 
-#: crates/rolid-ui/src/app/menu.rs:148
+#: crates/rolid-ui/src/app/menu.rs:151
 #: crates/rolid-ui/src/app/unpack_ui.rs:837
 #: crates/rolid-ui/src/app/unpack_ui.rs:860
 #: crates/rolid-ui/src/pane/views.rs:340
 msgid "Test archive"
 msgstr "Test archivu"
 
-#: crates/rolid-ui/src/app/menu.rs:152
+#: crates/rolid-ui/src/app/menu.rs:155
 #: crates/rolid-ui/src/pane/views.rs:343
 msgid "Calculate size of all folders"
 msgstr "Spočítat velikost všech složek"
 
-#: crates/rolid-ui/src/app/menu.rs:155
+#: crates/rolid-ui/src/app/menu.rs:158
 #: crates/rolid-ui/src/pane/views.rs:342
 msgid "Calculate size of selected folders"
 msgstr "Spočítat velikost vybraných složek"
 
-#: crates/rolid-ui/src/app/menu.rs:158
+#: crates/rolid-ui/src/app/menu.rs:161
 #: crates/rolid-ui/src/pane/views.rs:344
 msgid "Calculate checksums…"
 msgstr "Spočítat kontrolní součty…"
 
-#: crates/rolid-ui/src/app/menu.rs:165
+#: crates/rolid-ui/src/app/menu.rs:168
 #: crates/rolid-ui/src/pane/views.rs:346
 msgid "Copy name"
 msgstr "Kopírovat název"
 
-#: crates/rolid-ui/src/app/menu.rs:166
+#: crates/rolid-ui/src/app/menu.rs:169
 #: crates/rolid-ui/src/pane/views.rs:347
 msgid "Copy full path"
 msgstr "Kopírovat celou cestu"
 
-#: crates/rolid-ui/src/app/menu.rs:167
+#: crates/rolid-ui/src/app/menu.rs:170
 #: crates/rolid-ui/src/pane/views.rs:348
 msgid "Copy as sftp://…"
 msgstr "Kopírovat jako sftp://…"
 
-#: crates/rolid-ui/src/app/menu.rs:176
+#: crates/rolid-ui/src/app/menu.rs:179
 msgid "Quit"
 msgstr "Konec"
 
-#: crates/rolid-ui/src/app/menu.rs:181
+#: crates/rolid-ui/src/app/menu.rs:184
 msgctxt "menu"
 msgid "Settings"
 msgstr "Nastavení"
 
-#: crates/rolid-ui/src/app/menu.rs:182
-#: crates/rolid-ui/src/app/menu.rs:725
+#: crates/rolid-ui/src/app/menu.rs:185
+#: crates/rolid-ui/src/app/menu.rs:729
 msgid "Settings…"
 msgstr "Nastavení…"
 
-#: crates/rolid-ui/src/app/menu.rs:185
+#: crates/rolid-ui/src/app/menu.rs:188
 msgid "Server manager…"
 msgstr "Správce serverů…"
 
-#: crates/rolid-ui/src/app/menu.rs:188
+#: crates/rolid-ui/src/app/menu.rs:191
 #: crates/rolid-ui/src/app/places.rs:765
 msgid "Rename tab"
 msgstr "Přejmenovat záložku"
 
-#: crates/rolid-ui/src/app/menu.rs:188
+#: crates/rolid-ui/src/app/menu.rs:191
 msgid "double-click the tab"
 msgstr "dvojklik na záložku"
 
-#: crates/rolid-ui/src/app/menu.rs:191
+#: crates/rolid-ui/src/app/menu.rs:194
 msgid "Tab menu (color, close other tabs)…"
 msgstr "Menu záložky (barva, zavřít ostatní)…"
 
-#: crates/rolid-ui/src/app/menu.rs:195
+#: crates/rolid-ui/src/app/menu.rs:198
 msgid "Open settings folder"
 msgstr "Otevřít složku s nastavením"
 
-#: crates/rolid-ui/src/app/menu.rs:204
+#: crates/rolid-ui/src/app/menu.rs:207
 msgid "Clear search history"
 msgstr "Vymazat historii hledání"
 
-#: crates/rolid-ui/src/app/menu.rs:208
+#: crates/rolid-ui/src/app/menu.rs:211
 msgid "Transfer speed limit: {speed}"
 msgstr "Omezení rychlosti přenosů: {speed}"
 
-#: crates/rolid-ui/src/app/menu.rs:215
+#: crates/rolid-ui/src/app/menu.rs:218
 msgid "Default choice on conflict"
 msgstr "Výchozí volba při konfliktu"
 
-#: crates/rolid-ui/src/app/menu.rs:216
-#: crates/rolid-ui/src/app/settings_ui.rs:153
+#: crates/rolid-ui/src/app/menu.rs:219
 #: crates/rolid-ui/src/app/settings_ui.rs:154
-#: crates/rolid-ui/src/app/settings_ui.rs:914
+#: crates/rolid-ui/src/app/settings_ui.rs:155
+#: crates/rolid-ui/src/app/settings_ui.rs:919
 msgid "What is preselected (Enter) when the file already exists in the target."
 msgstr "Co je předvolené (Enter), když soubor v cíli už existuje."
 
-#: crates/rolid-ui/src/app/menu.rs:217
+#: crates/rolid-ui/src/app/menu.rs:220
 msgid "Dragging from a system window: {choice}"
 msgstr "U tažení z okna systému: {choice}"
 
-#: crates/rolid-ui/src/app/menu.rs:224
+#: crates/rolid-ui/src/app/menu.rs:227
 msgid "Copying with F5: {choice}"
 msgstr "U kopírování F5: {choice}"
 
-#: crates/rolid-ui/src/app/menu.rs:233
+#: crates/rolid-ui/src/app/menu.rs:236
 msgid "External editor (F4)…"
 msgstr "Externí editor (F4)…"
 
-#: crates/rolid-ui/src/app/menu.rs:236
-#: crates/rolid-ui/src/app/settings_ui.rs:166
+#: crates/rolid-ui/src/app/menu.rs:239
+#: crates/rolid-ui/src/app/settings_ui.rs:168
 msgid "Master password (saved passwords)"
 msgstr "Hlavní heslo (uložená hesla)"
 
-#: crates/rolid-ui/src/app/menu.rs:238
+#: crates/rolid-ui/src/app/menu.rs:241
 msgid "Status: master password not created yet"
 msgstr "Stav: hlavní heslo zatím nevytvořeno"
 
-#: crates/rolid-ui/src/app/menu.rs:239
+#: crates/rolid-ui/src/app/menu.rs:242
 msgid "Status: 🔒 locked"
 msgstr "Stav: 🔒 zamčeno"
 
-#: crates/rolid-ui/src/app/menu.rs:240
+#: crates/rolid-ui/src/app/menu.rs:243
 msgid "Status: 🔓 unlocked ({n} saved password)"
 msgid_plural "Status: 🔓 unlocked ({n} saved passwords)"
 msgstr[0] "Stav: 🔓 odemčeno ({n} uložené heslo)"
 msgstr[1] "Stav: 🔓 odemčeno ({n} uložená hesla)"
 msgstr[2] "Stav: 🔓 odemčeno ({n} uložených hesel)"
 
-#: crates/rolid-ui/src/app/menu.rs:244
+#: crates/rolid-ui/src/app/menu.rs:247
 msgid "Create master password…"
 msgstr "Vytvořit hlavní heslo…"
 
-#: crates/rolid-ui/src/app/menu.rs:251
+#: crates/rolid-ui/src/app/menu.rs:254
 msgid "Lock now"
 msgstr "Zamknout teď"
 
-#: crates/rolid-ui/src/app/menu.rs:256
+#: crates/rolid-ui/src/app/menu.rs:259
 msgid "Change master password…"
 msgstr "Změnit hlavní heslo…"
 
-#: crates/rolid-ui/src/app/menu.rs:259
+#: crates/rolid-ui/src/app/menu.rs:262
 msgid "Lock automatically: {when}"
 msgstr "Zamknout automaticky: {when}"
 
-#: crates/rolid-ui/src/app/menu.rs:266
+#: crates/rolid-ui/src/app/menu.rs:269
 msgid "Move passwords from the system keyring ({count})…"
 msgstr "Přesunout hesla ze systémové klíčenky ({count})…"
 
-#: crates/rolid-ui/src/app/menu.rs:271
+#: crates/rolid-ui/src/app/menu.rs:274
 msgid "Delete saved passwords and start over…"
 msgstr "Smazat uložená hesla a začít znovu…"
 
-#: crates/rolid-ui/src/app/menu.rs:279
+#: crates/rolid-ui/src/app/menu.rs:282
 #: crates/rolid-ui/src/app/viewer/mod.rs:501
 msgctxt "menu"
 msgid "View"
 msgstr "Zobrazit"
 
-#: crates/rolid-ui/src/app/menu.rs:280
+#: crates/rolid-ui/src/app/menu.rs:283
 #: crates/rolid-ui/src/app/view_ui.rs:266
 #: crates/rolid-ui/src/pane/views.rs:390
 msgid "Refresh"
 msgstr "Obnovit"
 
-#: crates/rolid-ui/src/app/menu.rs:296
+#: crates/rolid-ui/src/app/menu.rs:299
 #: crates/rolid-ui/src/app/view_ui.rs:282
 msgid "Forward"
 msgstr "Vpřed"
 
-#: crates/rolid-ui/src/app/menu.rs:299
+#: crates/rolid-ui/src/app/menu.rs:302
 msgid "Folders on the path and disks…"
 msgstr "Složky na cestě a disky…"
 
-#: crates/rolid-ui/src/app/menu.rs:302
+#: crates/rolid-ui/src/app/menu.rs:305
 msgid "Root folder"
 msgstr "Kořenová složka"
 
-#: crates/rolid-ui/src/app/menu.rs:305
+#: crates/rolid-ui/src/app/menu.rs:308
 #: crates/rolid-ui/src/app/places.rs:313
 #: crates/rolid-ui/src/pane.rs:1414
 msgid "Home folder"
 msgstr "Domovská složka"
 
-#: crates/rolid-ui/src/app/menu.rs:310
+#: crates/rolid-ui/src/app/menu.rs:313
 msgid "Toolbar"
 msgstr "Nástrojová lišta"
 
-#: crates/rolid-ui/src/app/menu.rs:315
-#: crates/rolid-ui/src/app/settings_ui.rs:141
+#: crates/rolid-ui/src/app/menu.rs:318
+#: crates/rolid-ui/src/app/settings_ui.rs:142
 msgid "Bar above the panels (path tree, navigation)"
 msgstr "Lišta nad panely (strom cesty, navigace)"
 
-#: crates/rolid-ui/src/app/menu.rs:320
-#: crates/rolid-ui/src/app/settings_ui.rs:143
+#: crates/rolid-ui/src/app/menu.rs:323
+#: crates/rolid-ui/src/app/settings_ui.rs:144
 msgid "Extension column"
 msgstr "Sloupec Přípona"
 
-#: crates/rolid-ui/src/app/menu.rs:325
+#: crates/rolid-ui/src/app/menu.rs:328
 msgid "Folders in [square brackets]"
 msgstr "Složky v [hranatých závorkách]"
 
-#: crates/rolid-ui/src/app/menu.rs:330
-#: crates/rolid-ui/src/app/settings_ui.rs:144
+#: crates/rolid-ui/src/app/menu.rs:333
+#: crates/rolid-ui/src/app/settings_ui.rs:145
 msgid "Modified time with seconds"
 msgstr "Čas změny se sekundami"
 
-#: crates/rolid-ui/src/app/menu.rs:336
+#: crates/rolid-ui/src/app/menu.rs:339
 msgid "Reset column widths"
 msgstr "Výchozí šířky sloupců"
 
-#: crates/rolid-ui/src/app/menu.rs:337
-#: crates/rolid-ui/src/app/menu.rs:338
+#: crates/rolid-ui/src/app/menu.rs:340
+#: crates/rolid-ui/src/app/menu.rs:341
 msgid "Column widths are set by dragging the lines between the column titles; a double click fits the column to its content."
 msgstr "Šířku sloupců změníte tažením čar mezi nadpisy sloupců; dvojklik přizpůsobí sloupec obsahu."
 
-#: crates/rolid-ui/src/app/menu.rs:345
+#: crates/rolid-ui/src/app/menu.rs:348
 msgid "Automatic refresh"
 msgstr "Automatické obnovování"
 
-#: crates/rolid-ui/src/app/menu.rs:347
-#: crates/rolid-ui/src/app/settings_ui.rs:146
-#: crates/rolid-ui/src/app/settings_ui.rs:837
+#: crates/rolid-ui/src/app/menu.rs:350
+#: crates/rolid-ui/src/app/settings_ui.rs:147
+#: crates/rolid-ui/src/app/settings_ui.rs:842
 msgid "Server folders while the window is active; local folders follow changes at once."
 msgstr "Složky na serveru, dokud je okno aktivní; místní složky sledují změny okamžitě."
 
-#: crates/rolid-ui/src/app/menu.rs:350
-#: crates/rolid-ui/src/app/settings_ui.rs:830
+#: crates/rolid-ui/src/app/menu.rs:353
+#: crates/rolid-ui/src/app/settings_ui.rs:835
 msgctxt "refresh"
 msgid "Off"
 msgstr "Vypnuto"
 
-#: crates/rolid-ui/src/app/menu.rs:351
-#: crates/rolid-ui/src/app/settings_ui.rs:831
+#: crates/rolid-ui/src/app/menu.rs:354
+#: crates/rolid-ui/src/app/settings_ui.rs:836
 msgid "Every {n} s"
 msgstr "Každých {n} s"
 
-#: crates/rolid-ui/src/app/menu.rs:352
-#: crates/rolid-ui/src/app/settings_ui.rs:832
+#: crates/rolid-ui/src/app/menu.rs:355
+#: crates/rolid-ui/src/app/settings_ui.rs:837
 msgid "Every {n} min"
 msgstr "Každých {n} min"
 
-#: crates/rolid-ui/src/app/menu.rs:361
+#: crates/rolid-ui/src/app/menu.rs:364
 msgid "click the column header"
 msgstr "klik na sloupec"
 
-#: crates/rolid-ui/src/app/menu.rs:363
+#: crates/rolid-ui/src/app/menu.rs:366
 msgid "Sort by name"
 msgstr "Řadit podle názvu"
 
-#: crates/rolid-ui/src/app/menu.rs:364
+#: crates/rolid-ui/src/app/menu.rs:367
 msgid "Sort by size"
 msgstr "Řadit podle velikosti"
 
-#: crates/rolid-ui/src/app/menu.rs:365
+#: crates/rolid-ui/src/app/menu.rs:368
 msgid "Sort by modified date"
 msgstr "Řadit podle data změny"
 
-#: crates/rolid-ui/src/app/menu.rs:366
+#: crates/rolid-ui/src/app/menu.rs:369
 msgid "Sort by extension"
 msgstr "Řadit podle přípony"
 
-#: crates/rolid-ui/src/app/menu.rs:378
+#: crates/rolid-ui/src/app/menu.rs:381
 msgid "Switch left / right panel"
 msgstr "Přepnout levý / pravý panel"
 
-#: crates/rolid-ui/src/app/menu.rs:381
+#: crates/rolid-ui/src/app/menu.rs:384
 msgid "Next tab"
 msgstr "Další záložka"
 
-#: crates/rolid-ui/src/app/menu.rs:384
+#: crates/rolid-ui/src/app/menu.rs:387
 msgid "Previous tab"
 msgstr "Předchozí záložka"
 
-#: crates/rolid-ui/src/app/menu.rs:387
+#: crates/rolid-ui/src/app/menu.rs:390
 msgid "Tab and server switcher…"
 msgstr "Přepínač záložek a serverů…"
 
-#: crates/rolid-ui/src/app/menu.rs:392
+#: crates/rolid-ui/src/app/menu.rs:395
 msgctxt "menu"
 msgid "Tools"
 msgstr "Nástroje"
 
-#: crates/rolid-ui/src/app/menu.rs:393
+#: crates/rolid-ui/src/app/menu.rs:396
 msgid "Find files…"
 msgstr "Hledat soubory…"
 
-#: crates/rolid-ui/src/app/menu.rs:397
+#: crates/rolid-ui/src/app/menu.rs:400
 msgid "Search again"
 msgstr "Hledat znovu"
 
-#: crates/rolid-ui/src/app/menu.rs:403
+#: crates/rolid-ui/src/app/menu.rs:406
 msgid "Files being edited ({count})…"
 msgstr "Upravované soubory ({count})…"
 
-#: crates/rolid-ui/src/app/menu.rs:407
+#: crates/rolid-ui/src/app/menu.rs:410
 #: crates/rolid-ui/src/pane/views.rs:392
 msgid "Open terminal here"
 msgstr "Otevřít terminál zde"
 
-#: crates/rolid-ui/src/app/menu.rs:410
+#: crates/rolid-ui/src/app/menu.rs:413
 msgid "Go to path…"
 msgstr "Přejít na cestu…"
 
-#: crates/rolid-ui/src/app/menu.rs:418
+#: crates/rolid-ui/src/app/menu.rs:421
 msgid "Open folder in left panel"
 msgstr "Otevřít složku v levém panelu"
 
-#: crates/rolid-ui/src/app/menu.rs:421
+#: crates/rolid-ui/src/app/menu.rs:424
 msgid "Open folder in right panel"
 msgstr "Otevřít složku v pravém panelu"
 
-#: crates/rolid-ui/src/app/menu.rs:424
+#: crates/rolid-ui/src/app/menu.rs:427
 #: crates/rolid-ui/src/app/view_ui.rs:286
 msgid "Select group…"
 msgstr "Označit skupinu…"
 
-#: crates/rolid-ui/src/app/menu.rs:427
+#: crates/rolid-ui/src/app/menu.rs:430
 msgid "Deselect group…"
 msgstr "Odznačit skupinu…"
 
-#: crates/rolid-ui/src/app/menu.rs:430
+#: crates/rolid-ui/src/app/menu.rs:433
 #: crates/rolid-ui/src/app/view_ui.rs:292
 msgid "Invert selection"
 msgstr "Invertovat výběr"
 
-#: crates/rolid-ui/src/app/menu.rs:433
+#: crates/rolid-ui/src/app/menu.rs:436
 msgid "Select all / none"
 msgstr "Označit vše / zrušit"
 
-#: crates/rolid-ui/src/app/menu.rs:441
+#: crates/rolid-ui/src/app/menu.rs:444
 msgid "Select to the top"
 msgstr "Označit k začátku"
 
-#: crates/rolid-ui/src/app/menu.rs:449
+#: crates/rolid-ui/src/app/menu.rs:452
 msgid "Select to the bottom"
 msgstr "Označit ke konci"
 
-#: crates/rolid-ui/src/app/menu.rs:459
+#: crates/rolid-ui/src/app/menu.rs:462
 msgctxt "menu"
 msgid "Help"
 msgstr "Nápověda"
 
-#: crates/rolid-ui/src/app/menu.rs:460
-#: crates/rolid-ui/src/app/menu.rs:664
-#: crates/rolid-ui/src/app/menu.rs:666
+#: crates/rolid-ui/src/app/menu.rs:463
+#: crates/rolid-ui/src/app/menu.rs:668
+#: crates/rolid-ui/src/app/menu.rs:670
 msgid "Help"
 msgstr "Nápověda"
 
-#: crates/rolid-ui/src/app/menu.rs:463
-#: crates/rolid-ui/src/app/menu.rs:667
+#: crates/rolid-ui/src/app/menu.rs:466
+#: crates/rolid-ui/src/app/menu.rs:671
 msgid "Keyboard shortcuts"
 msgstr "Klávesové zkratky"
 
-#: crates/rolid-ui/src/app/menu.rs:466
+#: crates/rolid-ui/src/app/menu.rs:469
 msgid "Drag and drop on Wayland…"
 msgstr "Přetahování pod Waylandem…"
 
-#: crates/rolid-ui/src/app/menu.rs:469
+#: crates/rolid-ui/src/app/menu.rs:472
 msgid "Open log (login diagnostics)"
 msgstr "Otevřít log (diagnostika přihlášení)"
 
-#: crates/rolid-ui/src/app/menu.rs:477
+#: crates/rolid-ui/src/app/menu.rs:480
 msgid "About RolidSCP"
 msgstr "O aplikaci RolidSCP"
 
-#: crates/rolid-ui/src/app/menu.rs:552
+#: crates/rolid-ui/src/app/menu.rs:555
 msgid "Panels"
 msgstr "Panely"
 
-#: crates/rolid-ui/src/app/menu.rs:554
+#: crates/rolid-ui/src/app/menu.rs:557
 msgid "move the cursor"
 msgstr "pohyb"
 
-#: crates/rolid-ui/src/app/menu.rs:555
+#: crates/rolid-ui/src/app/menu.rs:558
 msgid "by column (brief view) / by tile (thumbnails)"
 msgstr "o sloupec (stručný výpis) / o dlaždici (miniatury)"
 
-#: crates/rolid-ui/src/app/menu.rs:556
+#: crates/rolid-ui/src/app/menu.rs:559
 msgid "brief / detailed view / thumbnails (separately for each tab)"
 msgstr "stručný / podrobný výpis / miniatury (pro každou záložku zvlášť)"
 
-#: crates/rolid-ui/src/app/menu.rs:557
+#: crates/rolid-ui/src/app/menu.rs:560
 msgid "back / forward in the tab's folder history"
 msgstr "zpět / vpřed v historii složek záložky"
 
-#: crates/rolid-ui/src/app/menu.rs:558
+#: crates/rolid-ui/src/app/menu.rs:561
 msgid "folders on the path and disks (the drop-down of the bar above the panel; arrows, Enter, Esc)"
 msgstr "složky na cestě a disky (rozbalovací pole lišty nad panelem; šipky, Enter, Esc)"
 
-#: crates/rolid-ui/src/app/menu.rs:559
+#: crates/rolid-ui/src/app/menu.rs:562
 msgid "root folder"
 msgstr "kořenová složka"
 
-#: crates/rolid-ui/src/app/menu.rs:560
+#: crates/rolid-ui/src/app/menu.rs:563
 msgid "home folder"
 msgstr "domovská složka"
 
-#: crates/rolid-ui/src/app/menu.rs:561
+#: crates/rolid-ui/src/app/menu.rs:564
 msgctxt "keys"
 msgid "Enter / double-click"
 msgstr "Enter / dvojklik"
 
-#: crates/rolid-ui/src/app/menu.rs:561
+#: crates/rolid-ui/src/app/menu.rs:564
 msgid "open: a folder, an archive as a folder, a file with the default (or remembered) application; a program or script asks first"
 msgstr "otevřít: složku, archiv jako složku, soubor výchozí (nebo zapamatovanou) aplikací; program nebo skript se zeptá"
 
-#: crates/rolid-ui/src/app/menu.rs:562
+#: crates/rolid-ui/src/app/menu.rs:565
 msgid "one level up"
 msgstr "o úroveň výš"
 
-#: crates/rolid-ui/src/app/menu.rs:563
+#: crates/rolid-ui/src/app/menu.rs:566
 msgid "switch left / right panel"
 msgstr "přepnout levý / pravý panel"
 
-#: crates/rolid-ui/src/app/menu.rs:564
+#: crates/rolid-ui/src/app/menu.rs:567
 msgctxt "keys"
 msgid "typing"
 msgstr "psaní znaků"
 
-#: crates/rolid-ui/src/app/menu.rs:564
+#: crates/rolid-ui/src/app/menu.rs:567
 msgid "quick filter (Esc clears it)"
 msgstr "rychlý filtr (Esc zruší)"
 
-#: crates/rolid-ui/src/app/menu.rs:565
+#: crates/rolid-ui/src/app/menu.rs:568
 msgctxt "keys"
 msgid "Insert / Space / Ctrl+click"
 msgstr "Insert / Mezerník / Ctrl+klik"
 
-#: crates/rolid-ui/src/app/menu.rs:565
+#: crates/rolid-ui/src/app/menu.rs:568
 msgid "select an item (Space only selects; folder size is Alt+Space)"
 msgstr "označit položku (mezerník jen označuje, velikost složky je Alt+Space)"
 
-#: crates/rolid-ui/src/app/menu.rs:566
+#: crates/rolid-ui/src/app/menu.rs:569
 msgid "select all / none"
 msgstr "označit vše / zrušit"
 
-#: crates/rolid-ui/src/app/menu.rs:568
+#: crates/rolid-ui/src/app/menu.rs:571
 msgctxt "keys"
 msgid "Shift+click / Shift+↑ ↓ PgUp PgDn Home End"
 msgstr "Shift+klik / Shift+↑ ↓ PgUp PgDn Home End"
 
-#: crates/rolid-ui/src/app/menu.rs:569
+#: crates/rolid-ui/src/app/menu.rs:572
 msgid "select a range from the last clicked or selected item; going back deselects only what the range selected"
 msgstr "označí rozsah od naposledy kliknuté nebo označené položky; návrat zpět odznačí jen to, co rozsah označil"
 
-#: crates/rolid-ui/src/app/menu.rs:571
+#: crates/rolid-ui/src/app/menu.rs:574
 msgid "select a group by mask (*.jpg;*.png)"
 msgstr "označit skupinu podle masky (*.jpg;*.png)"
 
-#: crates/rolid-ui/src/app/menu.rs:572
+#: crates/rolid-ui/src/app/menu.rs:575
 msgid "deselect a group (Num− and Num* cannot be told apart from the regular keys)"
 msgstr "odznačit skupinu (Num− a Num* nejdou odlišit od běžných kláves)"
 
-#: crates/rolid-ui/src/app/menu.rs:573
+#: crates/rolid-ui/src/app/menu.rs:576
 msgid "invert the file selection (folders too, depending on Settings)"
 msgstr "invertovat výběr souborů (i složek podle Nastavení)"
 
-#: crates/rolid-ui/src/app/menu.rs:574
+#: crates/rolid-ui/src/app/menu.rs:577
 msgctxt "keys"
 msgid "Ctrl+G / click the path"
 msgstr "Ctrl+G / klik na cestu"
 
-#: crates/rolid-ui/src/app/menu.rs:574
+#: crates/rolid-ui/src/app/menu.rs:577
 msgid "enter a path"
 msgstr "zadat cestu"
 
-#: crates/rolid-ui/src/app/menu.rs:575
+#: crates/rolid-ui/src/app/menu.rs:578
 msgctxt "keys"
 msgid "/  ..  ~  * at the right of the path bar"
 msgstr "/  ..  ~  * vpravo v řádku cesty"
 
-#: crates/rolid-ui/src/app/menu.rs:575
+#: crates/rolid-ui/src/app/menu.rs:578
 msgid "root, one level up, home, recent folders"
 msgstr "kořen, o úroveň výš, domů, nedávné složky"
 
-#: crates/rolid-ui/src/app/menu.rs:576
+#: crates/rolid-ui/src/app/menu.rs:579
 msgid "open folder in the left / right panel"
 msgstr "otevřít složku v levém / pravém panelu"
 
-#: crates/rolid-ui/src/app/menu.rs:577
+#: crates/rolid-ui/src/app/menu.rs:580
 msgid "refresh"
 msgstr "obnovit"
 
-#: crates/rolid-ui/src/app/menu.rs:578
+#: crates/rolid-ui/src/app/menu.rs:581
 msgctxt "keys"
 msgid "right-click a file"
 msgstr "pravý klik na soubor"
 
-#: crates/rolid-ui/src/app/menu.rs:578
+#: crates/rolid-ui/src/app/menu.rs:581
 msgid "context menu"
 msgstr "kontextové menu"
 
-#: crates/rolid-ui/src/app/menu.rs:579
+#: crates/rolid-ui/src/app/menu.rs:582
 msgid "context menu of the item under the cursor (↑ ↓ items, Enter picks, Esc closes)"
 msgstr "kontextové menu položky pod kurzorem (↑ ↓ položky, Enter vybere, Esc zavře)"
 
-#: crates/rolid-ui/src/app/menu.rs:580
+#: crates/rolid-ui/src/app/menu.rs:583
 msgid "the menu bar: ← → menus, ↑ ↓ items, → submenu, Enter picks, Esc closes"
 msgstr "lišta menu: ← → menu, ↑ ↓ položky, → podnabídka, Enter vybere, Esc zavře"
 
-#: crates/rolid-ui/src/app/menu.rs:581
+#: crates/rolid-ui/src/app/menu.rs:584
 msgid "settings (a window of their own; Ctrl+F finds a setting)"
 msgstr "nastavení (ve vlastním okně; Ctrl+F najde nastavení)"
 
-#: crates/rolid-ui/src/app/menu.rs:585
+#: crates/rolid-ui/src/app/menu.rs:588
 #: crates/rolid-ui/src/app/settings_ui.rs:91
 msgid "Files"
 msgstr "Soubory"
 
-#: crates/rolid-ui/src/app/menu.rs:587
+#: crates/rolid-ui/src/app/menu.rs:590
 msgid "view the file: text, hex or image; a server file is not downloaded whole"
 msgstr "zobrazit soubor: text, šestnáctkově nebo obrázek; soubor ze serveru se nestahuje celý"
 
-#: crates/rolid-ui/src/app/menu.rs:588
+#: crates/rolid-ui/src/app/menu.rs:591
 msgid "edit in an external editor (a server file is uploaded back after saving)"
 msgstr "upravit v externím editoru (ze serveru se po uložení nahraje zpět)"
 
-#: crates/rolid-ui/src/app/menu.rs:589
+#: crates/rolid-ui/src/app/menu.rs:592
 msgid "new file in the external editor (on a server it is created by the first save)"
 msgstr "nový soubor v externím editoru (na serveru vznikne až prvním uložením)"
 
-#: crates/rolid-ui/src/app/menu.rs:590
+#: crates/rolid-ui/src/app/menu.rs:593
 msgid "rename right in the list (Enter confirms, Esc or a click elsewhere cancels)"
 msgstr "přejmenovat přímo v seznamu (Enter potvrdí, Esc nebo klik jinam zruší)"
 
-#: crates/rolid-ui/src/app/menu.rs:591
+#: crates/rolid-ui/src/app/menu.rs:594
 msgid "copy to the other panel"
 msgstr "kopírovat do druhého panelu"
 
-#: crates/rolid-ui/src/app/menu.rs:592
+#: crates/rolid-ui/src/app/menu.rs:595
 msgid "move to the other panel (the target and the new name can be edited)"
 msgstr "přesunout do druhého panelu (cíl i nový název jde upravit)"
 
-#: crates/rolid-ui/src/app/menu.rs:593
+#: crates/rolid-ui/src/app/menu.rs:596
 msgid "pack the selection (zip, 7z, tar.gz, tar.zst)"
 msgstr "zabalit vybrané (zip, 7z, tar.gz, tar.zst)"
 
-#: crates/rolid-ui/src/app/menu.rs:594
+#: crates/rolid-ui/src/app/menu.rs:597
 msgid "extract the selected archives"
 msgstr "rozbalit vybrané archivy"
 
-#: crates/rolid-ui/src/app/menu.rs:595
+#: crates/rolid-ui/src/app/menu.rs:598
 msgid "test an archive (writes nothing)"
 msgstr "otestovat archiv (nic nezapisuje)"
 
-#: crates/rolid-ui/src/app/menu.rs:596
+#: crates/rolid-ui/src/app/menu.rs:599
 msgctxt "keys"
 msgid "Enter on an archive"
 msgstr "Enter na archivu"
 
-#: crates/rolid-ui/src/app/menu.rs:596
+#: crates/rolid-ui/src/app/menu.rs:599
 msgid "open the archive as a read-only folder (.. at its root = back); F5 copies out, an archive on a server is downloaded first"
 msgstr "otevřít archiv jako složku jen pro čtení (.. v kořeni = zpět); F5 kopíruje ven, ze serveru se archiv nejdřív stáhne"
 
-#: crates/rolid-ui/src/app/menu.rs:597
+#: crates/rolid-ui/src/app/menu.rs:600
 msgid "Open with… (choose an application or a custom command)"
 msgstr "Otevřít s… (vybrat aplikaci nebo vlastní příkaz)"
 
-#: crates/rolid-ui/src/app/menu.rs:598
+#: crates/rolid-ui/src/app/menu.rs:601
 msgid "calculate the size of all folders (valid until Ctrl+R or leaving the folder)"
 msgstr "spočítat velikost všech složek (platí do Ctrl+R nebo odchodu ze složky)"
 
-#: crates/rolid-ui/src/app/menu.rs:599
+#: crates/rolid-ui/src/app/menu.rs:602
 msgid "calculate the size of the folder under the cursor, or of all selected ones (Shift+Space when the desktop takes Alt+Space, e.g. Cinnamon)"
 msgstr "spočítat velikost složky pod kurzorem, nebo všech označených (Shift+Space, když Alt+Space zabere prostředí, např. Cinnamon)"
 
-#: crates/rolid-ui/src/app/menu.rs:600
+#: crates/rolid-ui/src/app/menu.rs:603
 msgctxt "keys"
 msgid "right-click → Open with"
 msgstr "pravý klik → Otevřít s"
 
-#: crates/rolid-ui/src/app/menu.rs:600
+#: crates/rolid-ui/src/app/menu.rs:603
 msgid "choose an application; Other application… = a custom command, remembered for the extension"
 msgstr "vybrat aplikaci; Jiná aplikace… = vlastní příkaz a zapamatování pro příponu"
 
-#: crates/rolid-ui/src/app/menu.rs:601
+#: crates/rolid-ui/src/app/menu.rs:604
 msgid "permissions (rwx, octal, also recursive)"
 msgstr "práva (rwx, osmičkově, i rekurzivně)"
 
-#: crates/rolid-ui/src/app/menu.rs:602
+#: crates/rolid-ui/src/app/menu.rs:605
 msgid "to clipboard: name / full path / sftp:// address (without password)"
 msgstr "do schránky: název / celá cesta / sftp:// adresa (bez hesla)"
 
-#: crates/rolid-ui/src/app/menu.rs:603
+#: crates/rolid-ui/src/app/menu.rs:606
 msgctxt "keys"
 msgid "drag from a file manager"
 msgstr "táhnout ze správce souborů"
 
-#: crates/rolid-ui/src/app/menu.rs:603
+#: crates/rolid-ui/src/app/menu.rs:606
 msgid "upload / copy into the panel (onto a folder row = into it)"
 msgstr "nahrát / zkopírovat do panelu (na řádek složky = do ní)"
 
-#: crates/rolid-ui/src/app/menu.rs:604
+#: crates/rolid-ui/src/app/menu.rs:607
 msgid "new folder"
 msgstr "nová složka"
 
-#: crates/rolid-ui/src/app/menu.rs:605
-msgid "delete"
-msgstr "smazat"
+#: crates/rolid-ui/src/app/menu.rs:608
+msgid "delete (local files to the trash)"
+msgstr "smazat (místní soubory do koše)"
 
-#: crates/rolid-ui/src/app/menu.rs:606
+#: crates/rolid-ui/src/app/menu.rs:609
+msgid "delete permanently"
+msgstr "smazat natrvalo"
+
+#: crates/rolid-ui/src/app/menu.rs:610
 msgid "find files"
 msgstr "hledat soubory"
 
-#: crates/rolid-ui/src/app/menu.rs:610
+#: crates/rolid-ui/src/app/menu.rs:614
 msgid "Tabs and servers"
 msgstr "Záložky a servery"
 
-#: crates/rolid-ui/src/app/menu.rs:612
+#: crates/rolid-ui/src/app/menu.rs:616
 msgid "server manager"
 msgstr "správce serverů"
 
-#: crates/rolid-ui/src/app/menu.rs:613
+#: crates/rolid-ui/src/app/menu.rs:617
 msgid "local disk in the panel"
 msgstr "lokální disk v panelu"
 
-#: crates/rolid-ui/src/app/menu.rs:614
+#: crates/rolid-ui/src/app/menu.rs:618
 msgid "new tab: home folder, favorites, servers, recent places"
 msgstr "nová záložka: domovská složka, oblíbené, servery, nedávná místa"
 
-#: crates/rolid-ui/src/app/menu.rs:615
+#: crates/rolid-ui/src/app/menu.rs:619
 msgid "close the tab"
 msgstr "zavřít záložku"
 
-#: crates/rolid-ui/src/app/menu.rs:616
+#: crates/rolid-ui/src/app/menu.rs:620
 msgid "add the folder to the favorites or remove it"
 msgstr "přidat složku do oblíbených nebo ji odebrat"
 
-#: crates/rolid-ui/src/app/menu.rs:617
+#: crates/rolid-ui/src/app/menu.rs:621
 msgid "tabs of the active panel by last use"
 msgstr "záložky aktivního panelu podle posledního použití"
 
-#: crates/rolid-ui/src/app/menu.rs:618
+#: crates/rolid-ui/src/app/menu.rs:622
 msgid "previous / next tab"
 msgstr "předchozí / další záložka"
 
-#: crates/rolid-ui/src/app/menu.rs:619
+#: crates/rolid-ui/src/app/menu.rs:623
 msgid "jump to a tab in the active panel"
 msgstr "skok na záložku v aktivním panelu"
 
-#: crates/rolid-ui/src/app/menu.rs:620
+#: crates/rolid-ui/src/app/menu.rs:624
 msgid "find a tab (in both panels) or a server"
 msgstr "hledat záložku (v obou panelech) nebo server"
 
-#: crates/rolid-ui/src/app/menu.rs:621
+#: crates/rolid-ui/src/app/menu.rs:625
 msgid "terminal in the current folder (on a server: ssh into it, with the saved password)"
 msgstr "terminál v aktuální složce (na serveru: ssh do ní, s uloženým heslem)"
 
-#: crates/rolid-ui/src/app/menu.rs:622
+#: crates/rolid-ui/src/app/menu.rs:626
 msgctxt "keys"
 msgid "double-click a tab"
 msgstr "dvojklik na záložku"
 
-#: crates/rolid-ui/src/app/menu.rs:622
+#: crates/rolid-ui/src/app/menu.rs:626
 msgid "rename the tab"
 msgstr "přejmenovat záložku"
 
-#: crates/rolid-ui/src/app/menu.rs:623
+#: crates/rolid-ui/src/app/menu.rs:627
 msgctxt "keys"
 msgid "right-click a tab"
 msgstr "pravý klik na záložku"
 
-#: crates/rolid-ui/src/app/menu.rs:623
+#: crates/rolid-ui/src/app/menu.rs:627
 msgid "tab color, Rename tab"
 msgstr "barva záložky, Přejmenovat záložku"
 
-#: crates/rolid-ui/src/app/menu.rs:624
+#: crates/rolid-ui/src/app/menu.rs:628
 msgid "menu of the active tab: color, rename, close other tabs"
 msgstr "menu aktivní záložky: barva, přejmenování, zavření ostatních"
 
-#: crates/rolid-ui/src/app/menu.rs:628
+#: crates/rolid-ui/src/app/menu.rs:632
 #: crates/rolid-ui/src/app/settings_ui.rs:69
 msgid "Viewer (F3)"
 msgstr "Prohlížeč (F3)"
 
-#: crates/rolid-ui/src/app/menu.rs:630
+#: crates/rolid-ui/src/app/menu.rs:634
 msgid "close the viewer"
 msgstr "zavřít prohlížeč"
 
-#: crates/rolid-ui/src/app/menu.rs:631
+#: crates/rolid-ui/src/app/menu.rs:635
 msgid "text / hexadecimal / image"
 msgstr "text / šestnáctkově / obrázek"
 
-#: crates/rolid-ui/src/app/menu.rs:632
+#: crates/rolid-ui/src/app/menu.rs:636
 msgid "find in the file (text, case, whole words, regular expression)"
 msgstr "hledat v souboru (text, velikost písmen, celá slova, regulární výraz)"
 
-#: crates/rolid-ui/src/app/menu.rs:633
+#: crates/rolid-ui/src/app/menu.rs:637
 msgid "next / previous hit"
 msgstr "další / předchozí výskyt"
 
-#: crates/rolid-ui/src/app/menu.rs:634
+#: crates/rolid-ui/src/app/menu.rs:638
 msgid "go to a line, a percentage (50 %) or an offset (0x1F00)"
 msgstr "přejít na řádek, procento (50 %) nebo pozici (0x1F00)"
 
-#: crates/rolid-ui/src/app/menu.rs:635
+#: crates/rolid-ui/src/app/menu.rs:639
 msgid "beginning / end of the file"
 msgstr "začátek / konec souboru"
 
-#: crates/rolid-ui/src/app/menu.rs:636
+#: crates/rolid-ui/src/app/menu.rs:640
 msgid "wrap lines / line numbers / follow the end of the file"
 msgstr "zalamovat řádky / čísla řádků / sledovat konec souboru"
 
-#: crates/rolid-ui/src/app/menu.rs:637
+#: crates/rolid-ui/src/app/menu.rs:641
 msgid "copy the selection (Shift+arrows or the mouse select)"
 msgstr "zkopírovat výběr (vybírá se Shiftem a šipkami nebo myší)"
 
-#: crates/rolid-ui/src/app/menu.rs:638
+#: crates/rolid-ui/src/app/menu.rs:642
 msgid "larger / smaller text"
 msgstr "větší / menší písmo"
 
-#: crates/rolid-ui/src/app/menu.rs:639
+#: crates/rolid-ui/src/app/menu.rs:643
 msgid "reload the file"
 msgstr "načíst soubor znovu"
 
-#: crates/rolid-ui/src/app/menu.rs:640
+#: crates/rolid-ui/src/app/menu.rs:644
 msgid "edit the file (as F4 in the panel)"
 msgstr "upravit soubor (jako F4 v panelu)"
 
-#: crates/rolid-ui/src/app/menu.rs:641
+#: crates/rolid-ui/src/app/menu.rs:645
 msgid "image: previous / next image in the folder"
 msgstr "obrázek: předchozí / další obrázek ve složce"
 
-#: crates/rolid-ui/src/app/menu.rs:642
+#: crates/rolid-ui/src/app/menu.rs:646
 msgid "image: fit to window / 100 % / zoom in / zoom out (also the wheel; drag moves)"
 msgstr "obrázek: přizpůsobit oknu / 100 % / přiblížit / oddálit (i kolečkem; tažení posouvá)"
 
-#: crates/rolid-ui/src/app/menu.rs:643
+#: crates/rolid-ui/src/app/menu.rs:647
 msgid "image: rotate right / left (only the view)"
 msgstr "obrázek: otočit doprava / doleva (jen zobrazení)"
 
-#: crates/rolid-ui/src/app/menu.rs:647
+#: crates/rolid-ui/src/app/menu.rs:651
 msgid "In search results"
 msgstr "Ve výsledcích hledání"
 
-#: crates/rolid-ui/src/app/menu.rs:649
+#: crates/rolid-ui/src/app/menu.rs:653
 msgid "open the folder of the result"
 msgstr "otevřít složku s výsledkem"
 
-#: crates/rolid-ui/src/app/menu.rs:650
+#: crates/rolid-ui/src/app/menu.rs:654
 msgid "stop the search / back to the folder"
 msgstr "zastavit hledání / zpět do složky"
 
-#: crates/rolid-ui/src/app/menu.rs:651
+#: crates/rolid-ui/src/app/menu.rs:655
 msgid "search again"
 msgstr "hledat znovu"
 
-#: crates/rolid-ui/src/app/menu.rs:698
+#: crates/rolid-ui/src/app/menu.rs:702
 msgid "This window now runs on Wayland: dragging to and from other programs does not work."
 msgstr "Toto okno teď běží na Waylandu: přetahování do jiných programů a z nich nefunguje."
 
-#: crates/rolid-ui/src/app/menu.rs:699
+#: crates/rolid-ui/src/app/menu.rs:703
 msgid "This window now runs on X11 through XWayland (chosen in the settings): dragging works."
 msgstr "Toto okno teď běží na X11 přes XWayland (zvoleno v nastavení): přetahování funguje."
 
-#: crates/rolid-ui/src/app/menu.rs:700
+#: crates/rolid-ui/src/app/menu.rs:704
 msgid "This window now runs on X11: dragging works."
 msgstr "Toto okno teď běží na X11: přetahování funguje."
 
-#: crates/rolid-ui/src/app/menu.rs:714
+#: crates/rolid-ui/src/app/menu.rs:718
 msgid "Drag and drop on Wayland"
 msgstr "Přetahování pod Waylandem"
 
-#: crates/rolid-ui/src/app/menu.rs:804
+#: crates/rolid-ui/src/app/menu.rs:808
 msgid "Dual-panel file manager for the local disk and SSH/SFTP."
 msgstr "Dvoupanelový správce souborů pro lokální disk a SSH/SFTP."
 
-#: crates/rolid-ui/src/app/menu.rs:805
+#: crates/rolid-ui/src/app/menu.rs:809
 msgid "Built for {os} / {arch}"
 msgstr "Sestaveno pro {os} / {arch}"
 
-#: crates/rolid-ui/src/app/menu.rs:806
+#: crates/rolid-ui/src/app/menu.rs:810
 msgid "Configuration: {path}"
 msgstr "Konfigurace: {path}"
 
-#: crates/rolid-ui/src/app/menu.rs:807
+#: crates/rolid-ui/src/app/menu.rs:811
 msgid "Saved passwords: {path} (encrypted with the master password, Argon2id + XChaCha20-Poly1305)"
 msgstr "Uložená hesla: {path} (šifrováno hlavním heslem, Argon2id + XChaCha20-Poly1305)"
 
-#: crates/rolid-ui/src/app/menu.rs:813
+#: crates/rolid-ui/src/app/menu.rs:817
 msgid "Log: {path}"
 msgstr "Log: {path}"
 
-#: crates/rolid-ui/src/app/menu.rs:814
+#: crates/rolid-ui/src/app/menu.rs:818
 msgid "Copy the log path"
 msgstr "Zkopírovat cestu k logu"
 
 #. followed by the link "license text" and "; in the package …".
-#: crates/rolid-ui/src/app/menu.rs:821
+#: crates/rolid-ui/src/app/menu.rs:825
 msgid "© 2026 Martin Vorel (martin@vorel.eu). License: GNU GPL version 3 or later (GPL-3.0-or-later), "
 msgstr "© 2026 Martin Vorel (martin@vorel.eu). Licence: GNU GPL verze 3 nebo novější (GPL-3.0-or-later), "
 
 #. a link to the GPL text, between "…(GPL-3.0-or-later), " and "; in the package …".
-#: crates/rolid-ui/src/app/menu.rs:823
+#: crates/rolid-ui/src/app/menu.rs:827
 msgid "license text"
 msgstr "text licence"
 
 #. follows the link "license text".
-#: crates/rolid-ui/src/app/menu.rs:825
+#: crates/rolid-ui/src/app/menu.rs:829
 msgid "; in the package /usr/share/doc/rolidscp/copyright. No warranty of any kind."
 msgstr "; v balíčku /usr/share/doc/rolidscp/copyright. Bez jakékoli záruky."
 
-#: crates/rolid-ui/src/app/menu.rs:828
+#: crates/rolid-ui/src/app/menu.rs:832
 msgid "Source code:"
 msgstr "Zdrojový kód:"
 
-#: crates/rolid-ui/src/app/menu.rs:831
+#: crates/rolid-ui/src/app/menu.rs:835
 msgid "Icons: {set} – phosphoricons.com, built into the program"
 msgstr "Ikony: {set} – phosphoricons.com, vestavěné v programu"
 
-#: crates/rolid-ui/src/app/menu.rs:832
+#: crates/rolid-ui/src/app/menu.rs:836
 msgid "Font: {font} (© 2015 Google LLC, {license}) and the monospace Hack 3.003 (MIT and Bitstream Vera), built into the program; in use now: {current}"
 msgstr "Písmo: {font} (© 2015 Google LLC, {license}) a neproporcionální Hack 3.003 (MIT a Bitstream Vera), vestavěné v programu; právě použité: {current}"
 
-#: crates/rolid-ui/src/app/menu.rs:841
+#: crates/rolid-ui/src/app/menu.rs:845
 msgid "What's new"
 msgstr "Novinky"
 
-#: crates/rolid-ui/src/app/menu.rs:843
+#: crates/rolid-ui/src/app/menu.rs:847
 msgctxt "news"
 msgid "0.9.0 settings window: the settings in a window of their own (Ctrl+,) with a tree of sections and a field that finds a setting, and saving changes only what was changed in the window; a saved server can be duplicated, with or without its saved password; context menus by keyboard (Shift+F10 or the Menu key for the item under the cursor, Ctrl+Shift+F10 for the tab, the tab colors too); a warning when the clock of a server is off by more than a minute, because “Overwrite only older” compares the times of files"
 msgstr "0.9.0 okno nastavení: nastavení ve vlastním okně (Ctrl+,) se stromem oddílů a polem, které nastavení najde, a uložení změní jen to, co se v okně změnilo; uložený server jde duplikovat, s uloženým heslem i bez něj; kontextová menu z klávesnice (Shift+F10 nebo klávesa Menu pro položku pod kurzorem, Ctrl+Shift+F10 pro záložku, i barvy záložek); varování, když se hodiny serveru liší o víc než minutu, protože „Přepsat jen starší“ porovnává časy souborů"
 
-#: crates/rolid-ui/src/app/menu.rs:852
+#: crates/rolid-ui/src/app/menu.rs:856
 msgctxt "news"
 msgid "0.8.20 polish: a calm remaining time that does not jump; the menu bar by keyboard (F10); screen readers hear the folder list, buttons and dialogs; long translations fit; zip times right in every time zone; two copies of the program at once keep each other's changes; a damaged settings file costs only what is damaged (a copy is kept), and going back to an older version keeps the settings; fuzz tests, a licence check and a load test on every build; signed checksums and reproducible packages"
 msgstr "0.8.20 doladění: klidný odhad zbývajícího času, který neskáče; lišta menu z klávesnice (F10); čtečky obrazovky slyší seznam složky, tlačítka a dialogy; dlouhé překlady se vejdou; časy v zipu správně v každém časovém pásmu; dvě spuštěné kopie programu si navzájem nepřepíšou změny; poškozený soubor nastavení stojí jen to, co je poškozené (kopie zůstane), a návrat ke starší verzi nastavení zachová; testy s poškozenými vstupy, kontrola licencí a zátěžový test při každém sestavení; podepsané kontrolní součty a reprodukovatelné balíčky"
 
-#: crates/rolid-ui/src/app/menu.rs:861
+#: crates/rolid-ui/src/app/menu.rs:865
 msgctxt "news"
 msgid "0.8.19 updates and real hardware: the AppImage carries update information, so AppImageUpdate finds a new release on GitHub and downloads only what changed (a .zsync file comes with every release); tested on a separate computer: a file of 110 GiB up and down over the network, canceled and killed at half and continued, a transfer through the night for 7 hours with its memory constant, the network cable pulled out for 30 s and for 5 minutes and the server put to sleep during transfers: each time the program connected again by itself and the copy came out whole"
 msgstr "0.8.19 aktualizace a skutečný hardware: AppImage nese informace o aktualizaci, takže AppImageUpdate najde nové vydání na GitHubu a stáhne jen to, co se změnilo (ke každému vydání patří soubor .zsync); vyzkoušeno na samostatném počítači: soubor 110 GiB nahoru i dolů po síti, v polovině zrušený i ukončený a pak dokončený, přenos přes noc po 7 hodin se stálou pamětí, síťový kabel vytažený na 30 s i na 5 minut a server uspaný během přenosu: program se pokaždé sám znovu připojil a kopie byla celá"
 
-#: crates/rolid-ui/src/app/menu.rs:871
+#: crates/rolid-ui/src/app/menu.rs:875
 msgctxt "news"
 msgid "0.8.18 servers and distributions: a connection on which nothing comes from the server for 15 s is made again at once, and in the first minutes after a drop-out it is tried every few seconds, so a line that keeps going down for 30 s is survived; an upload continues from the part the server confirmed; downloads over a distant line about twice as fast; a faulty or hostile server cannot make the program write outside the target folder, and an endless listing or a file sent far past its size is stopped; tested with OpenSSH 7.6 to 10.0, Dropbear, BusyBox, SFTP-only and chroot servers, and the packages on Debian, Ubuntu, Linux Mint, Fedora, openSUSE and Arch; the AppImage brings the libraries a minimal system lacks, and a start that fails shows its error in a window"
 msgstr "0.8.18 servery a distribuce: spojení, kterým ze serveru 15 s nic nepřijde, se hned naváže znovu a v prvních minutách po výpadku se to zkouší každých pár sekund, takže linka, která opakovaně na 30 s vypadává, se přežije; nahrávání pokračuje od části, kterou server potvrdil; stahování přes vzdálenou linku zhruba dvakrát rychlejší; vadný nebo zlomyslný server nemůže program přimět zapsat mimo cílovou složku a nekonečný výpis nebo soubor posílaný daleko za jeho velikost se zastaví; vyzkoušeno s OpenSSH 7.6 až 10.0, Dropbearem, BusyBoxem, servery jen se SFTP a s chrootem a balíčky na Debianu, Ubuntu, Linux Mintu, Fedoře, openSUSE a Archu; AppImage přináší knihovny, které minimálnímu systému chybí, a neúspěšný start ukáže chybu v okně"
 
-#: crates/rolid-ui/src/app/menu.rs:882
+#: crates/rolid-ui/src/app/menu.rs:886
 msgctxt "news"
 msgid "0.8.17 bad connections: every part of the path above a panel is a button (a click opens that folder, the middle button opens it in a new tab) and the path is edited by a double click on the empty part of the row, the pencil or Ctrl+G; bigger colored icons in the bar above the panels; the mask dialogs remember the mask and Include folders (never on a production server); a pack or extract killed in the middle no longer leaves a .filepart file behind; the first key of the quick filter in a folder of a million files takes under 0.1 s; transfers tested over a line with latency, jitter, packet loss, a changing speed, outages and a frozen connection, every file checked by checksum: a slow line no longer drops a working connection, a transfer goes on as long as it gets further and a file continued several times is counted once; the news translated into all languages"
 msgstr "0.8.17 špatná spojení: každá část cesty nad panelem je tlačítko (kliknutí otevře tu složku, prostřední tlačítko ji otevře v nové záložce) a cesta se upravuje dvojklikem na prázdné místo řádku, tužkou nebo Ctrl+G; větší barevné ikony v liště nad panely; dialogy masky si pamatují masku a volbu Včetně složek (na produkčním serveru nikdy); balení nebo rozbalování zabité uprostřed už nenechá soubor .filepart; první klávesa rychlého filtru ve složce s milionem souborů trvá pod 0,1 s; přenosy vyzkoušené na lince se zpožděním, kolísáním, ztrátou paketů, měnící se rychlostí, výpadky a zamrzlým spojením, každý soubor ověřený kontrolním součtem: pomalá linka už neshodí funkční spojení, přenos pokračuje, dokud postupuje, a soubor navázaný vícekrát se započítá jednou; novinky přeložené do všech jazyků"
 
-#: crates/rolid-ui/src/app/menu.rs:895
+#: crates/rolid-ui/src/app/menu.rs:899
 msgctxt "news"
 msgid "0.8.16 big files and marking: Shift+click and Shift with the arrows, PgUp, PgDn, Home and End mark a range from the last clicked item and going back unmarks only that range, a click without a key keeps the marks, Ctrl+A marks all and a second press unmarks (Tools → Select to the top / to the bottom); marking stays fast in a folder of a million files and survives a refresh, sorting and the filter; a full disk or a used-up quota is named and “Try again” continues where the transfer stopped; a move continued after the program was killed finishes and leaves no helper files; after a lost connection the progress no longer counts the resumed part twice; the remaining time shows days; sizes of petabytes and more are added up without overflowing; the journal of replaced files and the records of F4 copies are flushed to the disk."
 msgstr "0.8.16 velké soubory a označování: Shift+klik a Shift se šipkami, PgUp, PgDn, Home a End označí rozsah od naposledy kliknuté položky a návrat zpět odznačí jen tento rozsah, klik bez klávesy označení ponechá, Ctrl+A označí vše a druhé stisknutí označení zruší (Nástroje → Označit k začátku / ke konci); označování zůstává rychlé i ve složce s milionem souborů a přežije obnovení, seřazení i filtr; plný disk nebo vyčerpaná kvóta se pojmenuje a „Zkusit znovu“ pokračuje tam, kde přenos skončil; přesun navázaný po zabití programu se dokončí a nenechá pomocné soubory; po ztrátě spojení už průběh nepočítá navázanou část dvakrát; zbývající čas ukazuje dny; velikosti v petabajtech a víc se sčítají bez přetečení; deník vyměňovaných souborů a záznamy kopií F4 se zapisují až na disk."
 
-#: crates/rolid-ui/src/app/menu.rs:908
+#: crates/rolid-ui/src/app/menu.rs:912
 msgctxt "news"
 msgid "0.8.15 many files: copying many small files to and from a server is several times faster (the target folder is listed once, several files go at a time), deleting is a job in the queue with progress and Cancel, big folders are listed, sorted and filtered several times faster and refresh without stalling the window, folder listings over SFTP are much faster; pipes, sockets, devices and broken links are skipped with a message instead of hanging or stopping the copy; names with invalid UTF-8, backslashes, line breaks or 255 bytes are copied exactly and shown readably; very deep folder trees no longer crash the program; search, folder sizes and checksums use commands on the server again instead of the slow walk over SFTP."
 msgstr "0.8.15 mnoho souborů: kopírování mnoha malých souborů na server a ze serveru je několikrát rychlejší (cílová složka se vypíše jednou, několik souborů jde najednou), mazání je úloha ve frontě s průběhem a tlačítkem Zrušit, velké složky se vypíšou, seřadí a vyfiltrují několikrát rychleji a obnovují se bez zamrznutí okna, výpisy složek přes SFTP jsou mnohem rychlejší; roury, sockety, zařízení a rozbité odkazy se přeskočí s hláškou, místo aby kopírování viselo nebo se zastavilo; názvy s neplatným UTF-8, zpětným lomítkem, koncem řádku nebo 255 bajty se zkopírují přesně a zobrazí čitelně; velmi hluboké stromy složek už program neshodí; hledání, velikosti složek a kontrolní součty používají opět příkazy na serveru místo pomalého procházení přes SFTP."
 
-#: crates/rolid-ui/src/app/menu.rs:919
+#: crates/rolid-ui/src/app/menu.rs:923
 msgctxt "news"
 msgid "0.8.14 data protection: on a production server copying, uploading, moving and a new folder never start with Overwrite and Enter does not confirm them; a move deletes the source only when it did not change meanwhile, and to a server only after the checksums match; an interrupted transfer is resumed only from a part file of the same source; a file replaced on a server without atomic rename is repaired at the next connection after a cut-off; F4 copies are kept on disk, a failed upload is tried again, the time of the upload has seconds; starts without system fonts; slow server shells no longer hold up search and checksums."
 msgstr "0.8.14 ochrana dat: na produkčním serveru kopírování, nahrávání, přesun ani nová složka nezačínají volbou Přepsat a Enter je nepotvrdí; přesun smaže zdroj, jen když se mezitím nezměnil, a na server až po shodě kontrolních součtů; přerušený přenos se navazuje jen z rozpracovaného souboru téhož zdroje; soubor vyměňovaný na serveru bez atomického přejmenování se po přerušení opraví při dalším připojení; kopie F4 jsou na disku, neúspěšné nahrání se zopakuje, čas nahrání má sekundy; spustí se i bez systémových písem; pomalý shell serveru už nezdržuje hledání a kontrolní součty."
 
-#: crates/rolid-ui/src/app/menu.rs:929
+#: crates/rolid-ui/src/app/menu.rs:933
 msgctxt "news"
 msgid "0.8.13 listings refresh by themselves: local folders at once, server folders when you come back to them and every 30 s while the window is active (View → Automatic refresh), the cursor and the marks stay; thin lines between the columns, drag them to change the width (a double click fits the content), kept for each panel; names that do not fit end with “…”; the disk health badge shows the reason; dragging files into Thunar works; hovering changes only colors."
 msgstr "0.8.13 výpisy se obnovují samy: místní složky hned, složky na serveru při návratu k nim a každých 30 s, dokud je okno aktivní (Zobrazit → Automatické obnovování), kurzor i označení zůstanou; tenké čáry mezi sloupci, jejich tažením se mění šířka (dvojklik přizpůsobí obsahu), pamatuje se pro každý panel; názvy, které se nevejdou, končí „…“; odznak stavu disku ukazuje důvod; tažení souborů do Thunaru funguje; najetí myší mění jen barvy."
 
-#: crates/rolid-ui/src/app/menu.rs:937
+#: crates/rolid-ui/src/app/menu.rs:941
 msgctxt "news"
 msgid "0.8.12 a bar above each panel: the folders on the path and the disks in a drop-down (Alt+↓), back, forward, up, root, home, refresh and favorites; the free space, file system and disk health moved into the path row; a right click on the empty space of a panel offers a new file, a new folder, a terminal and the disk properties."
 msgstr "0.8.12 lišta nad každým panelem: složky na cestě a disky v rozbalovacím poli (Alt+↓), zpět, vpřed, výš, kořen, domů, obnovit a oblíbené; volné místo, souborový systém a stav disku se přesunuly do řádku s cestou; pravé tlačítko na prázdném místě panelu nabídne nový soubor, novou složku, terminál a vlastnosti disku."
 
-#: crates/rolid-ui/src/app/menu.rs:944
+#: crates/rolid-ui/src/app/menu.rs:948
 msgctxt "news"
 msgid "0.8.11 files and folders can be dragged out of the window to other applications (X11), from a server or an archive they are downloaded first; Shift+F4 creates a new file in the external editor; favorite folders can be added, renamed and removed in the new tab menu; stricter disk temperature and wear limits, the temperature is checked every 5 minutes."
 msgstr "0.8.11 soubory a složky jde vytáhnout z okna do jiných aplikací (X11), ze serveru nebo z archivu se nejdřív stáhnou; Shift+F4 vytvoří nový soubor v externím editoru; oblíbené složky jde v nabídce nové záložky přidat, přejmenovat a odebrat; přísnější limity teploty a opotřebení disků, teplota se kontroluje každých 5 minut."
 
-#: crates/rolid-ui/src/app/menu.rs:951
+#: crates/rolid-ui/src/app/menu.rs:955
 msgctxt "news"
 msgid "0.8.10 the free-space row shows the file system type and the disk health (SMART) with a detail in plain language; Ctrl+P opens a terminal in the panel's folder, on a server ssh with the saved password; the tab and server switcher moved to Ctrl+K."
 msgstr "0.8.10 řádek s volným místem ukazuje typ souborového systému a stav disku (SMART) se srozumitelným detailem; Ctrl+P otevře terminál ve složce panelu, na serveru ssh s uloženým heslem; hledání záložek a serverů se přesunulo na Ctrl+K."
 
-#: crates/rolid-ui/src/app/menu.rs:957
+#: crates/rolid-ui/src/app/menu.rs:961
 msgctxt "news"
 msgid "0.8.9 built-in viewer (F3) in a window of its own: files of any size, also on a server without downloading them whole, syntax highlighting, encodings, hex, following a growing log, searching with the ripgrep engine (on a server with grep over SSH) and images (JPEG, PNG, animated GIF, WebP, BMP) with zoom, rotation and next / previous image."
 msgstr "0.8.9 vestavěný prohlížeč (F3) ve vlastním okně: soubory libovolné velikosti, i na serveru bez stahování celého souboru, zvýraznění syntaxe, kódování, šestnáctkový výpis, sledování rostoucího logu, hledání jádrem ripgrepu (na serveru přes grep po SSH) a obrázky (JPEG, PNG, animovaný GIF, WebP, BMP) se zoomem, otáčením a dalším / předchozím obrázkem."
 
-#: crates/rolid-ui/src/app/menu.rs:964
+#: crates/rolid-ui/src/app/menu.rs:968
 msgctxt "news"
 msgid "0.8.8 new tab menu (Ctrl+T: home folder, favorites, servers, recent places), favorite folders (Ctrl+D), tab menu (duplicate, color, close others), dragging files inside the app (Shift moves, Esc cancels), saved passwords lock again after a set time, one look for all dialogs and a target history with Browse… when copying and moving."
 msgstr "0.8.8 nabídka nové záložky (Ctrl+T: domovská složka, oblíbené, servery, poslední místa), oblíbené složky (Ctrl+D), nabídka záložky (duplikovat, barva, zavřít ostatní), tažení souborů myší uvnitř aplikace (Shift přesouvá, Esc ruší), uložená hesla se po nastavené době znovu zamknou, jednotný vzhled všech dialogů a historie cílů s tlačítkem Procházet… při kopírování a přesunu."
 
-#: crates/rolid-ui/src/app/menu.rs:971
+#: crates/rolid-ui/src/app/menu.rs:975
 msgctxt "news"
 msgid "0.8.7 in eight languages: English, Czech, German, French, Polish, Spanish, Norwegian and Danish (by the system or in Settings, switches at once; your own translation in ~/.config/rolidscp/lang), numbers and dates written as the language does (or ISO), help on F1."
 msgstr "0.8.7 v osmi jazycích: angličtina, čeština, němčina, francouzština, polština, španělština, norština a dánština (podle systému nebo v Nastavení, přepne se hned; vlastní překlad v ~/.config/rolidscp/lang), čísla a data podle jazyka (nebo ISO), nápověda na F1."
 
-#: crates/rolid-ui/src/app/menu.rs:977
+#: crates/rolid-ui/src/app/menu.rs:981
 msgctxt "news"
 msgid "0.8.6 sharper text: strong hinting puts the vertical strokes of letters on whole pixels (the default, together with higher contrast); table lines stay sharp at 125% and 150% scaling too."
 msgstr "0.8.6 ostřejší písmo: silný hinting dá svislé tahy písmen na celé pixely (výchozí spolu s vyšším kontrastem), čáry tabulky ostré i při měřítku 125 % a 150 %."
 
-#: crates/rolid-ui/src/app/menu.rs:982
+#: crates/rolid-ui/src/app/menu.rs:986
 msgctxt "news"
 msgid "0.8.5 rename right in the list (F2, Shift+F6), move to the other panel (F6), also between disks and servers, rename a tab by double-clicking it, font size in whole points (default 14), font Hinting and Contrast options in Settings, the bottom bar adapts to the window width."
 msgstr "0.8.5 přejmenování přímo v seznamu (F2, Shift+F6), přesun do druhého panelu (F6) i mezi disky a servery, přejmenování záložky dvojklikem, velikost písma v celých bodech (výchozí 14), volby Hinting a Kontrast písma v Nastavení, spodní lišta podle šířky okna."
 
-#: crates/rolid-ui/src/app/menu.rs:988
+#: crates/rolid-ui/src/app/menu.rs:992
 msgctxt "news"
 msgid "0.8.4 GPL-3.0-or-later license and source code on GitHub, sharper Noto Sans font (system font and text size can be chosen in Settings), size of the folder under the cursor (Alt+Space or Shift+Space), more readable colors on the cursor row."
 msgstr "0.8.4 licence GPL-3.0-or-later a zdrojový kód na GitHubu, ostřejší písmo Noto Sans (volba systémového písma a velikosti textu v Nastavení), velikost složky pod kurzorem (Alt+Space nebo Shift+Space), čitelnější barvy na řádku kurzoru."
 
-#: crates/rolid-ui/src/app/menu.rs:994
+#: crates/rolid-ui/src/app/menu.rs:998
 msgctxt "news"
 msgid "0.8.3 Enter opens a file in the default application (for a program or script it asks: editor / Run), more precise drop target when dragging, compression on all cores (a No compression level; already compressed files are only stored), estimated time remaining, folders in [square brackets], selecting by mask also for folders, folder sizes (Alt+Shift+Enter, on a server via du), MD5/SHA/BLAKE3/CRC32 checksums saved in a format compatible with sha256sum -c."
 msgstr "0.8.3 Enter otevře soubor výchozí aplikací (u programu a skriptu se zeptá: editor / Spustit), přesnější cíl při tažení, komprese na všech jádrech (úroveň Bez komprese, už komprimované soubory se jen uloží), odhad zbývajícího času, složky v [hranatých závorkách], označení maskou i pro složky, velikost složek (Alt+Shift+Enter, na serveru přes du), kontrolní součty MD5/SHA/BLAKE3/CRC32 s uložením kompatibilním se sha256sum -c."
 
-#: crates/rolid-ui/src/app/menu.rs:1002
+#: crates/rolid-ui/src/app/menu.rs:1006
 msgctxt "news"
 msgid "0.8.2 archives: pack (Alt+F5: zip, 7z, tar, tar.gz, tar.zst, AES-256 password for zip and 7z), extract (Alt+F9) with protection against zip-slip and zip bombs, archive test (Alt+Shift+F9), Enter opens an archive as a read-only folder (F5 copies out, also from a server)."
 msgstr "0.8.2 archivy: zabalit (Alt+F5: zip, 7z, tar, tar.gz, tar.zst, heslo AES-256 u zip a 7z), rozbalit (Alt+F9) s ochranou proti zip-slip a zip bombám, test archivu (Alt+Shift+F9), Enter otevře archiv jako složku jen pro čtení (F5 kopíruje ven, i ze serveru)."
 
-#: crates/rolid-ui/src/app/menu.rs:1008
+#: crates/rolid-ui/src/app/menu.rs:1012
 msgctxt "news"
 msgid "0.8.1 toolbar, brief view and image thumbnails, folder history (Alt+←/→), selecting a group by mask, a distinct header for the active panel, free space, selection summary, file type icons and colors, exact drop target highlighting while dragging on X11."
 msgstr "0.8.1 nástrojová lišta, stručný výpis a miniatury obrázků, historie složek (Alt+←/→), označení skupiny maskou, výrazná hlavička aktivního panelu, volné místo, souhrn výběru, ikony a barvy typů souborů, na X11 přesné zvýraznění cíle při tažení."
 
-#: crates/rolid-ui/src/app/menu.rs:1014
+#: crates/rolid-ui/src/app/menu.rs:1018
 msgctxt "news"
 msgid "0.8.0 context menu (Open with, permissions, copying the path to the clipboard), default choice on conflict, consistent dialog look with icons, the queue shows “file 3 of 120”."
 msgstr "0.8.0 kontextová nabídka (Otevřít s, práva, kopírování cesty do schránky), výchozí volba při konfliktu, jednotný vzhled dialogů s ikonami, fronta ukazuje „soubor 3 z 120“."
 
-#: crates/rolid-ui/src/app/menu.rs:1024
+#: crates/rolid-ui/src/app/menu.rs:1028
 msgid "❤ Support development"
 msgstr "❤ Podpořte vývoj"
 
-#: crates/rolid-ui/src/app/menu.rs:1025
+#: crates/rolid-ui/src/app/menu.rs:1029
 msgid "RolidSCP is free and has no ads. If it saves you time, you can support its further development with a bitcoin donation of any amount. Thank you!"
 msgstr "RolidSCP je zdarma a bez reklam. Pokud vám šetří čas, můžete jeho další vývoj podpořit libovolným příspěvkem v bitcoinech. Děkuji!"
 
-#: crates/rolid-ui/src/app/menu.rs:1034
+#: crates/rolid-ui/src/app/menu.rs:1038
 msgid "Bitcoin (BTC):"
 msgstr "Bitcoin (BTC):"
 
-#: crates/rolid-ui/src/app/menu.rs:1037
+#: crates/rolid-ui/src/app/menu.rs:1041
 msgid "Copy address"
 msgstr "Zkopírovat adresu"
 
-#: crates/rolid-ui/src/app/menu.rs:1040
+#: crates/rolid-ui/src/app/menu.rs:1044
 msgid "₿ Open in wallet"
 msgstr "₿ Otevřít v peněžence"
 
-#: crates/rolid-ui/src/app/menu.rs:1042
+#: crates/rolid-ui/src/app/menu.rs:1046
 msgid "🔎 Address on mempool.space"
 msgstr "🔎 Adresa na mempool.space"
 
-#: crates/rolid-ui/src/app/menu.rs:1046
+#: crates/rolid-ui/src/app/menu.rs:1050
 msgid "Scan the QR code with a mobile wallet."
 msgstr "Naskenujte QR kód mobilní peněženkou."
 
@@ -3945,7 +3953,7 @@ msgid "(name)"
 msgstr "(jméno)"
 
 #: crates/rolid-ui/src/app/places.rs:147
-#: crates/rolid-ui/src/app/settings_ui.rs:636
+#: crates/rolid-ui/src/app/settings_ui.rs:641
 msgid "Save"
 msgstr "Uložit"
 
@@ -4174,7 +4182,7 @@ msgid "Cannot move out of an archive (it is read-only), only copy out of it: ope
 msgstr "Z archivu nejde přesouvat (je jen pro čtení), jde jen kopírovat ven: otevírám kopírování (F5)."
 
 #: crates/rolid-ui/src/app/rename_ui.rs:275
-#: crates/rolid-ui/src/app.rs:1375
+#: crates/rolid-ui/src/app.rs:1377
 msgid "The target panel shows search results: open a folder in it first."
 msgstr "Cílový panel ukazuje výsledky hledání – nejdřív v něm otevři složku."
 
@@ -4204,7 +4212,7 @@ msgid "On the same disk or server the items are only renamed. Otherwise they are
 msgstr "Na stejném disku nebo serveru se položky jen přejmenují. Jinak se zkopírují přes frontu přenosů a zdroj se smaže až po úspěšném dokončení (soubor, který v cíli nemá stejnou velikost, zůstane)."
 
 #: crates/rolid-ui/src/app/rename_ui.rs:351
-#: crates/rolid-ui/src/app.rs:2831
+#: crates/rolid-ui/src/app.rs:2866
 msgid "Browse…"
 msgstr "Procházet…"
 
@@ -4226,7 +4234,7 @@ msgstr "⚠ Cíl je PRODUKČNÍ server."
 
 #: crates/rolid-ui/src/app/rename_ui.rs:392
 #: crates/rolid-ui/src/app/unpack_ui.rs:532
-#: crates/rolid-ui/src/app.rs:2844
+#: crates/rolid-ui/src/app.rs:2879
 msgid "⚠ {n} item already exists in the target. What to do with existing files?"
 msgid_plural "⚠ {n} items already exist in the target. What to do with existing files?"
 msgstr[0] "⚠ {n} položka v cíli již existuje. Co s existujícími soubory?"
@@ -4805,294 +4813,310 @@ msgstr "Nástroje"
 msgid "Servers and security"
 msgstr "Servery a zabezpečení"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:133
+#: crates/rolid-ui/src/app/settings_ui.rs:134
 msgid "Language:"
 msgstr "Jazyk:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:134
+#: crates/rolid-ui/src/app/settings_ui.rs:135
 msgid "Date format:"
 msgstr "Formát data:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:134
-#: crates/rolid-ui/src/app/settings_ui.rs:750
+#: crates/rolid-ui/src/app/settings_ui.rs:135
+#: crates/rolid-ui/src/app/settings_ui.rs:755
 msgid "ISO (2026-11-08 21:08)"
 msgstr "ISO (2026-11-08 21:08)"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:135
+#: crates/rolid-ui/src/app/settings_ui.rs:136
 msgid "Font:"
 msgstr "Písmo:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:135
-#: crates/rolid-ui/src/app/settings_ui.rs:757
+#: crates/rolid-ui/src/app/settings_ui.rs:136
+#: crates/rolid-ui/src/app/settings_ui.rs:762
 msgid "System (fontconfig)"
 msgstr "Systémové (fontconfig)"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:136
+#: crates/rolid-ui/src/app/settings_ui.rs:137
 msgid "Font name:"
 msgstr "Název písma:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:137
+#: crates/rolid-ui/src/app/settings_ui.rs:138
 msgid "Text size in the list:"
 msgstr "Velikost textu v seznamu:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:138
+#: crates/rolid-ui/src/app/settings_ui.rs:139
 msgid "Hinting (sharpness):"
 msgstr "Hinting (ostrost):"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:139
+#: crates/rolid-ui/src/app/settings_ui.rs:140
 msgid "Font contrast:"
 msgstr "Kontrast písma:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:140
+#: crates/rolid-ui/src/app/settings_ui.rs:141
 msgid "Toolbar under the menu"
 msgstr "Nástrojová lišta pod menu"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:142
+#: crates/rolid-ui/src/app/settings_ui.rs:143
 msgid "Folders in [square brackets] (full and brief listing)"
 msgstr "Složky v [hranatých závorkách] (podrobný a stručný výpis)"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:145
+#: crates/rolid-ui/src/app/settings_ui.rs:146
 msgid "Selecting by mask includes folders too (also Invert selection)"
 msgstr "Označení maskou zahrnuje i složky (také Invertovat výběr)"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:146
+#: crates/rolid-ui/src/app/settings_ui.rs:147
 msgid "Automatic refresh:"
 msgstr "Automatické obnovování:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:147
+#: crates/rolid-ui/src/app/settings_ui.rs:148
 msgid "Name colors by file type"
 msgstr "Barvy názvů podle typu souboru"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:148
+#: crates/rolid-ui/src/app/settings_ui.rs:149
 msgid "Thumbnail size:"
 msgstr "Velikost miniatur:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:149
+#: crates/rolid-ui/src/app/settings_ui.rs:150
 msgid "Image previews on servers too"
 msgstr "Náhledy obrázků i na serverech"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:150
+#: crates/rolid-ui/src/app/settings_ui.rs:151
 msgid "Download only files up to"
 msgstr "Stahovat jen soubory do"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:151
+#: crates/rolid-ui/src/app/settings_ui.rs:152
 msgid "Also on production servers"
 msgstr "Také na produkčních serverech"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:152
+#: crates/rolid-ui/src/app/settings_ui.rs:153
 msgid "Transfer speed limit:"
 msgstr "Omezení rychlosti přenosů:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:153
+#: crates/rolid-ui/src/app/settings_ui.rs:154
 msgid "Dragging from a system window:"
 msgstr "Přetažení ze systémového okna:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:154
+#: crates/rolid-ui/src/app/settings_ui.rs:155
 msgid "Copying with F5:"
 msgstr "Kopírování klávesou F5:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:155
+#: crates/rolid-ui/src/app/settings_ui.rs:156
+msgid "F8 moves local files to the trash"
+msgstr "F8 přesouvá místní soubory do koše"
+
+#: crates/rolid-ui/src/app/settings_ui.rs:156
+msgid "Deleting. Shift+F8 deletes permanently. Files on a server are always deleted permanently."
+msgstr "Mazání. Shift+F8 maže natrvalo. Soubory na serveru se mažou vždy natrvalo."
+
+#: crates/rolid-ui/src/app/settings_ui.rs:157
 msgid "Extract at most"
 msgstr "Rozbalit nejvýš"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:156
+#: crates/rolid-ui/src/app/settings_ui.rs:158
 msgid "At most items in an archive"
 msgstr "Nejvýš položek v archivu"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:157
+#: crates/rolid-ui/src/app/settings_ui.rs:159
 msgid "Ask at a compression ratio above"
 msgstr "Ptát se při kompresním poměru nad"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:158
+#: crates/rolid-ui/src/app/settings_ui.rs:160
 msgid "Download and open a remote archive up to"
 msgstr "Stáhnout a otevřít vzdálený archiv do"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:159
+#: crates/rolid-ui/src/app/settings_ui.rs:161
 msgid "Number of compression threads"
 msgstr "Počet vláken pro kompresi"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:160
+#: crates/rolid-ui/src/app/settings_ui.rs:162
 msgid "On Wayland, use X11 (XWayland)"
 msgstr "Pod Waylandem používat X11 (XWayland)"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:160
-#: crates/rolid-ui/src/app/settings_ui.rs:987
+#: crates/rolid-ui/src/app/settings_ui.rs:162
+#: crates/rolid-ui/src/app/settings_ui.rs:1009
 msgid "Dragging files to and from other programs. Takes effect after the program is restarted."
 msgstr "Přetahování souborů do jiných programů a z nich. Platí po novém spuštění programu."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:161
+#: crates/rolid-ui/src/app/settings_ui.rs:163
 msgid "Syntax highlighting"
 msgstr "Zvýraznění syntaxe"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:162
+#: crates/rolid-ui/src/app/settings_ui.rs:164
 msgid "Highlight files up to"
 msgstr "Zvýrazňovat soubory do"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:163
+#: crates/rolid-ui/src/app/settings_ui.rs:165
 msgid "Download images from a server up to"
 msgstr "Stahovat obrázky ze serveru do"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:164
+#: crates/rolid-ui/src/app/settings_ui.rs:166
 msgid "Editor command:"
 msgstr "Příkaz editoru:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:164
-#: crates/rolid-ui/src/app/settings_ui.rs:952
+#: crates/rolid-ui/src/app/settings_ui.rs:166
+#: crates/rolid-ui/src/app/settings_ui.rs:957
 msgid "The command that opens the file. {{file}} is replaced by the path to the file."
 msgstr "Příkaz, kterým se soubor otevře. {{file}} se nahradí cestou k souboru."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:165
+#: crates/rolid-ui/src/app/settings_ui.rs:167
 msgid "Warn when a server's clock is off by more than a minute"
 msgstr "Upozornit, když se hodiny serveru liší o víc než minutu"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:166
+#: crates/rolid-ui/src/app/settings_ui.rs:168
 msgid "Lock automatically:"
 msgstr "Automaticky zamknout:"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:545
+#: crates/rolid-ui/src/app/settings_ui.rs:550
 #: crates/rolid-ui/src/app/view_ui.rs:269
 msgid "Settings"
 msgstr "Nastavení"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:598
-#: crates/rolid-ui/src/app/settings_ui.rs:601
+#: crates/rolid-ui/src/app/settings_ui.rs:603
+#: crates/rolid-ui/src/app/settings_ui.rs:606
 msgid "Find a setting (Ctrl+F)"
 msgstr "Najít nastavení (Ctrl+F)"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:609
+#: crates/rolid-ui/src/app/settings_ui.rs:614
 msgid "Clear"
 msgstr "Vymazat"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:622
+#: crates/rolid-ui/src/app/settings_ui.rs:627
 msgid "Some values are out of range (marked in red)."
 msgstr "Některé hodnoty jsou mimo rozsah (označené červeně)."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:624
+#: crates/rolid-ui/src/app/settings_ui.rs:629
 msgid "Changes are not saved yet."
 msgstr "Změny ještě nejsou uložené."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:626
+#: crates/rolid-ui/src/app/settings_ui.rs:631
 msgid "Saved."
 msgstr "Uloženo."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:637
+#: crates/rolid-ui/src/app/settings_ui.rs:642
 msgid "Apply"
 msgstr "Použít"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:675
+#: crates/rolid-ui/src/app/settings_ui.rs:680
 msgid "No setting matches the filter."
 msgstr "Filtru neodpovídá žádné nastavení."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:722
+#: crates/rolid-ui/src/app/settings_ui.rs:727
 msgid "number {lo} to {hi}"
 msgstr "číslo {lo} až {hi}"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:734
+#: crates/rolid-ui/src/app/settings_ui.rs:739
 msgid "Automatic (from the system)"
 msgstr "Automaticky podle systému"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:743
+#: crates/rolid-ui/src/app/settings_ui.rs:748
 msgid "The language changes at once. Your own translations: {dir}/<language>.po"
 msgstr "Jazyk se přepne hned. Vlastní překlady: {dir}/<jazyk>.po"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:749
+#: crates/rolid-ui/src/app/settings_ui.rs:754
 msgid "By language"
 msgstr "Podle jazyka"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:756
+#: crates/rolid-ui/src/app/settings_ui.rs:761
 msgid "Built-in ({font})"
 msgstr "Vestavěné ({font})"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:762
+#: crates/rolid-ui/src/app/settings_ui.rs:767
 msgid "empty = default sans-serif"
 msgstr "prázdné = výchozí sans-serif"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:772
+#: crates/rolid-ui/src/app/settings_ui.rs:777
 msgid "points (default {size})"
 msgstr "bodů (výchozí {size})"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:783
+#: crates/rolid-ui/src/app/settings_ui.rs:788
 msgid "How strongly the letter shapes snap to the pixel grid. Strong (default) = vertical strokes on whole pixels, the sharpest; medium = following the font's instructions (vertical only); off = shapes exactly as the font was designed, but softer."
 msgstr "Jak silně se tvary písmen přichytí k pixelové mřížce. Silný (výchozí) = svislé tahy na celých pixelech, nejostřejší; střední = podle instrukcí písma (jen svisle); vypnutý = tvary přesně podle návrhu písma, ale měkčí."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:799
+#: crates/rolid-ui/src/app/settings_ui.rs:804
 msgid "How dark the edges of the letters are drawn (how light in the dark theme). Higher (default) balances the thinner strokes of strong hinting; highest = the font looks bolder."
 msgstr "Jak tmavě se kreslí okraje písmen (v tmavém vzhledu jak světle). Vyšší (výchozí) vyrovná tenčí tahy silného hintingu; nejvyšší = písmo vypadá tučněji."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:845
+#: crates/rolid-ui/src/app/settings_ui.rs:850
 msgid "The colors apply to the light theme; the dark theme uses lighter shades."
 msgstr "Barvy platí pro světlý vzhled; tmavý používá světlejší odstíny."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:860
+#: crates/rolid-ui/src/app/settings_ui.rs:865
 msgid "Default colors"
 msgstr "Výchozí barvy"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:884
+#: crates/rolid-ui/src/app/settings_ui.rs:889
 msgid "At most 2 previews are downloaded from a server at the same time; images larger than {px} px are not processed."
 msgstr "Ze serveru se stahují nejvýš 2 náhledy současně; obrázky větší než {px} px se nezpracují."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:892
+#: crates/rolid-ui/src/app/settings_ui.rs:897
 msgctxt "unit"
 msgid "KiB"
 msgstr "KiB"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:919
+#: crates/rolid-ui/src/app/settings_ui.rs:924
 msgid "(default {threads} = number of cores − 1)"
 msgstr "(výchozí {threads} = počet jader − 1)"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:921
+#: crates/rolid-ui/src/app/settings_ui.rs:926
 msgid "GB (and always leave 1 GB free)"
 msgstr "GB (a vždy nechat 1 GB volný)"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:947
+#: crates/rolid-ui/src/app/settings_ui.rs:952
 msgid "Empty = automatic (now: {command})."
 msgstr "Prázdné = automaticky (teď: {command})."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:948
+#: crates/rolid-ui/src/app/settings_ui.rs:953
 msgid "A terminal editor only through a terminal, e.g.: x-terminal-emulator -e nano {{file}}"
 msgstr "Terminálový editor jen přes terminál, např.: x-terminal-emulator -e nano {{file}}"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:964
+#: crates/rolid-ui/src/app/settings_ui.rs:969
 msgid "After connecting, the program asks the server for its time (with the date command, only where the server has a shell). When it is off by more than a minute, the line at the bottom of the window says so: \"Overwrite only older\" compares the times of files, and a file changed on that server gets a wrong time."
 msgstr "Po připojení se program zeptá serveru na jeho čas (příkazem date, jen tam, kde má server shell). Když se liší o víc než minutu, řekne to řádek dole v okně: „Přepsat jen starší“ porovnává časy souborů a soubor změněný na takovém serveru dostane špatný čas."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:980
+#: crates/rolid-ui/src/app/settings_ui.rs:985
+msgid "The trash of the desktop: file managers show what is in it and put it back. A file on another disk goes to that disk's own trash. Where there is none (a read-only disk), the program says so and nothing is deleted."
+msgstr "Koš prostředí: správci souborů ukazují, co v něm je, a vrátí to zpět. Soubor na jiném disku jde do vlastního koše toho disku. Kde žádný není (disk jen pro čtení), program to řekne a nic nesmaže."
+
+#: crates/rolid-ui/src/app/settings_ui.rs:992
+msgid "Shift+F8 deletes permanently. Files on a server are always deleted permanently."
+msgstr "Shift+F8 maže natrvalo. Soubory na serveru se mažou vždy natrvalo."
+
+#: crates/rolid-ui/src/app/settings_ui.rs:1002
 msgid "On Wayland the window library of the program cannot drag files to and from other programs yet. Through XWayland the window is an X11 one, and dragging works where the desktop passes it on between X11 and Wayland programs (GNOME does)."
 msgstr "Pod Waylandem knihovna oken programu zatím neumí přetahovat soubory do jiných programů a z nich. Přes XWayland je okno oknem X11 a přetahování funguje tam, kde ho prostředí předává mezi programy pro X11 a pro Wayland (GNOME ano)."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:990
+#: crates/rolid-ui/src/app/settings_ui.rs:1012
 msgid "What you lose: text is less sharp with fractional scaling (for example 125 % or 150 %), and other X11 programs can read what you type in this window, the master password too. A Wayland window keeps programs apart."
 msgstr "Co tím ztratíte: písmo je méně ostré při zlomkovém škálování (například 125 % nebo 150 %) a jiné programy pro X11 mohou číst, co do tohoto okna píšete, i hlavní heslo. Okno pro Wayland programy od sebe odděluje."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:1016
+#: crates/rolid-ui/src/app/settings_ui.rs:1038
 msgid "No X11 display (XWayland) is available here: the window stays a Wayland one."
 msgstr "Displej X11 (XWayland) tu není k dispozici: okno zůstane oknem pro Wayland."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:1017
+#: crates/rolid-ui/src/app/settings_ui.rs:1039
 msgid "This is an X11 session: dragging works, the setting matters only on Wayland."
 msgstr "Toto je relace X11: přetahování funguje, volba má význam jen pod Waylandem."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:1022
+#: crates/rolid-ui/src/app/settings_ui.rs:1044
 msgid "Now: X11 through XWayland."
 msgstr "Teď: X11 přes XWayland."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:1024
+#: crates/rolid-ui/src/app/settings_ui.rs:1046
 msgid "Now: Wayland."
 msgstr "Teď: Wayland."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:1028
+#: crates/rolid-ui/src/app/settings_ui.rs:1050
 msgid "The change takes effect after the program is restarted."
 msgstr "Změna platí po novém spuštění programu."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:1036
+#: crates/rolid-ui/src/app/settings_ui.rs:1058
 msgid "Now: {font}"
 msgstr "Teď: {font}"
 
-#: crates/rolid-ui/src/app/settings_ui.rs:1037
+#: crates/rolid-ui/src/app/settings_ui.rs:1059
 msgid "Previews in memory: {size} (at most 48 MB)."
 msgstr "Náhledy v paměti: {size} (nejvýš 48 MB)."
 
-#: crates/rolid-ui/src/app/settings_ui.rs:1041
+#: crates/rolid-ui/src/app/settings_ui.rs:1063
 msgid "Creating, unlocking and changing the master password: Settings → Master password (saved passwords) in the menu bar."
 msgstr "Vytvoření, odemčení a změna hlavního hesla: Nastavení → Hlavní heslo (uložená hesla) v liště menu."
 
@@ -5239,7 +5263,7 @@ msgid "Each archive into its own subfolder"
 msgstr "Každý archiv do vlastní podsložky"
 
 #: crates/rolid-ui/src/app/unpack_ui.rs:542
-#: crates/rolid-ui/src/app.rs:3067
+#: crates/rolid-ui/src/app.rs:3127
 msgid "Overwrite only older (by modification date)"
 msgstr "Přepsat jen starší (podle data změny)"
 
@@ -5451,7 +5475,7 @@ msgid "Creating…"
 msgstr "Vytvářím…"
 
 #: crates/rolid-ui/src/app/vault_ui.rs:656
-#: crates/rolid-ui/src/app.rs:2898
+#: crates/rolid-ui/src/app.rs:2933
 msgid "Create"
 msgstr "Vytvořit"
 
@@ -5782,7 +5806,7 @@ msgid "The file cannot be read: {error}"
 msgstr "Soubor nelze přečíst: {error}"
 
 #: crates/rolid-ui/src/app/viewer/mod.rs:661
-#: crates/rolid-ui/src/app.rs:2549
+#: crates/rolid-ui/src/app.rs:2584
 msgid "Try again"
 msgstr "Zkusit znovu"
 
@@ -5986,328 +6010,352 @@ msgstr "Přejít"
 msgid "Enter a line number, a percentage or an offset."
 msgstr "Zadejte číslo řádku, procenta nebo pozici."
 
-#: crates/rolid-ui/src/app.rs:586
+#: crates/rolid-ui/src/app.rs:588
 msgid "Cannot load the profiles: {error}"
 msgstr "Profily nelze načíst: {error}"
 
-#: crates/rolid-ui/src/app.rs:593
+#: crates/rolid-ui/src/app.rs:595
 msgid "Cannot load the workspace: {error}"
 msgstr "Pracovní prostor nelze načíst: {error}"
 
-#: crates/rolid-ui/src/app.rs:655
-#: crates/rolid-ui/src/app.rs:707
+#: crates/rolid-ui/src/app.rs:657
+#: crates/rolid-ui/src/app.rs:709
 msgid "Settings: {error}"
 msgstr "Nastavení: {error}"
 
-#: crates/rolid-ui/src/app.rs:689
+#: crates/rolid-ui/src/app.rs:691
 msgid "System font: {error}. The built-in {font} is used."
 msgstr "Systémové písmo: {error}. Používá se vestavěné {font}."
 
-#: crates/rolid-ui/src/app.rs:1133
+#: crates/rolid-ui/src/app.rs:1135
 msgid "{error}. On a production server overwriting is not repeated by itself after an outage: check the state and press “Try again”."
 msgstr "{error}. Na produkčním serveru se přepis po výpadku sám neopakuje – zkontroluj stav a dej „Zkusit znovu“."
 
-#: crates/rolid-ui/src/app.rs:1149
+#: crates/rolid-ui/src/app.rs:1151
 msgid "{title}: {error}. The source stayed where it was."
 msgstr "{title}: {error}. Zdroj zůstal, kde byl."
 
-#: crates/rolid-ui/src/app.rs:1151
+#: crates/rolid-ui/src/app.rs:1153
 msgid "Copying: {error}"
 msgstr "Kopírování: {error}"
 
-#: crates/rolid-ui/src/app.rs:1378
+#: crates/rolid-ui/src/app.rs:1380
 msgid "Cannot copy into an archive"
 msgstr "Do archivu nelze kopírovat"
 
-#: crates/rolid-ui/src/app.rs:1453
+#: crates/rolid-ui/src/app.rs:1455
 msgid "{n} item → {target}"
 msgid_plural "{n} items → {target}"
 msgstr[0] "{n} položka → {target}"
 msgstr[1] "{n} položky → {target}"
 msgstr[2] "{n} položek → {target}"
 
-#: crates/rolid-ui/src/app.rs:1555
+#: crates/rolid-ui/src/app.rs:1557
 msgid "canceled in the queue"
 msgstr "zrušeno ve frontě"
 
-#: crates/rolid-ui/src/app.rs:1590
+#: crates/rolid-ui/src/app.rs:1592
 msgid "⚡ waiting for the connection to come back (attempt {n}/{max})"
 msgstr "⚡ čeká na obnovení spojení (pokus {n}/{max})"
 
-#: crates/rolid-ui/src/app.rs:1628
+#: crates/rolid-ui/src/app.rs:1630
 msgid "{n} unfinished transfer (.filepart) in the target was not resumed: it cannot be confirmed that it belongs to the same source file (path, size, time). It was left untouched. To start over, copy again with “Overwrite”."
 msgid_plural "{n} unfinished transfers (.filepart) in the target were not resumed: it cannot be confirmed that they belong to the same source files (path, size, time). They were left untouched. To start over, copy again with “Overwrite”."
 msgstr[0] "{n} nedokončený přenos (.filepart) v cíli nebyl navázán: nelze potvrdit, že patří ke stejnému zdrojovému souboru (cesta, velikost, čas). Zůstal nedotčený. Pro nový začátek kopíruj znovu s volbou „Přepsat“."
 msgstr[1] "{n} nedokončené přenosy (.filepart) v cíli nebyly navázány: nelze potvrdit, že patří ke stejným zdrojovým souborům (cesta, velikost, čas). Zůstaly nedotčené. Pro nový začátek kopíruj znovu s volbou „Přepsat“."
 msgstr[2] "{n} nedokončených přenosů (.filepart) v cíli nebylo navázáno: nelze potvrdit, že patří ke stejným zdrojovým souborům (cesta, velikost, čas). Zůstaly nedotčené. Pro nový začátek kopíruj znovu s volbou „Přepsat“."
 
-#: crates/rolid-ui/src/app.rs:1634
-#: crates/rolid-ui/src/app.rs:3004
-#: crates/rolid-ui/src/app.rs:3014
-#: crates/rolid-ui/src/app.rs:3033
+#: crates/rolid-ui/src/app.rs:1636
+#: crates/rolid-ui/src/app.rs:3064
+#: crates/rolid-ui/src/app.rs:3074
+#: crates/rolid-ui/src/app.rs:3093
 msgid "E.g. {path}"
 msgstr "Např. {path}"
 
-#: crates/rolid-ui/src/app.rs:1713
+#: crates/rolid-ui/src/app.rs:1714
+msgid "Moving to the trash: {what}"
+msgstr "Přesun do koše: {what}"
+
+#: crates/rolid-ui/src/app.rs:1716
 msgid "Deleting: {what}"
 msgstr "Mazání: {what}"
 
-#: crates/rolid-ui/src/app.rs:1730
+#: crates/rolid-ui/src/app.rs:1737
 msgid "{n} item deleted"
 msgid_plural "{n} items deleted"
 msgstr[0] "{n} položka smazána"
 msgstr[1] "{n} položky smazány"
 msgstr[2] "{n} položek smazáno"
 
-#: crates/rolid-ui/src/app.rs:2076
+#: crates/rolid-ui/src/app.rs:2097
 msgid "Cannot create a folder in search results."
 msgstr "Ve výsledcích hledání nelze vytvořit složku."
 
-#: crates/rolid-ui/src/app.rs:2079
+#: crates/rolid-ui/src/app.rs:2100
 msgid "Cannot create a folder in an archive"
 msgstr "Složku v archivu nelze vytvořit"
 
-#: crates/rolid-ui/src/app.rs:2093
+#: crates/rolid-ui/src/app.rs:2125
 msgid "Cannot delete from an archive"
 msgstr "Z archivu nelze mazat"
 
-#: crates/rolid-ui/src/app.rs:2277
+#: crates/rolid-ui/src/app.rs:2312
 msgid "New tab: home folder, favorites, servers, recent places (Ctrl+T)"
 msgstr "Nová záložka: domovská složka, oblíbené, servery, nedávná místa (Ctrl+T)"
 
-#: crates/rolid-ui/src/app.rs:2439
+#: crates/rolid-ui/src/app.rs:2474
 msgid "F4 = edit another file · click = list of edits"
 msgstr "F4 = upravit další soubor · klik = seznam úprav"
 
-#: crates/rolid-ui/src/app.rs:2449
+#: crates/rolid-ui/src/app.rs:2484
 msgid "Transfers: {count}"
 msgstr "Přenosy: {count}"
 
-#: crates/rolid-ui/src/app.rs:2451
+#: crates/rolid-ui/src/app.rs:2486
 msgid "Max. speed:"
 msgstr "Max. rychlost:"
 
-#: crates/rolid-ui/src/app.rs:2500
+#: crates/rolid-ui/src/app.rs:2535
 msgid "{done} of {n} item"
 msgid_plural "{done} of {n} items"
 msgstr[0] "{done} z {n} položky"
 msgstr[1] "{done} z {n} položek"
 msgstr[2] "{done} z {n} položek"
 
-#: crates/rolid-ui/src/app.rs:2502
+#: crates/rolid-ui/src/app.rs:2537
 msgid "⏳ waiting in the queue"
 msgstr "⏳ čeká ve frontě"
 
-#: crates/rolid-ui/src/app.rs:2505
+#: crates/rolid-ui/src/app.rs:2540
 msgid "archive read {done} of {total}"
 msgstr "archiv přečten {done} z {total}"
 
-#: crates/rolid-ui/src/app.rs:2512
+#: crates/rolid-ui/src/app.rs:2547
 msgid "{size}/s"
 msgstr "{size}/s"
 
-#: crates/rolid-ui/src/app.rs:2513
+#: crates/rolid-ui/src/app.rs:2548
 msgid "speed: measuring"
 msgstr "rychlost: počítám"
 
-#: crates/rolid-ui/src/app.rs:2520
+#: crates/rolid-ui/src/app.rs:2555
 msgid "{n} skipped"
 msgid_plural "{n} skipped"
 msgstr[0] "{n} přeskočeno"
 msgstr[1] "{n} přeskočeno"
 msgstr[2] "{n} přeskočeno"
 
-#: crates/rolid-ui/src/app.rs:2547
+#: crates/rolid-ui/src/app.rs:2582
 msgid "⚠ Transfer {name} failed:"
 msgstr "⚠ Přenos {name} selhal:"
 
-#: crates/rolid-ui/src/app.rs:2549
+#: crates/rolid-ui/src/app.rs:2584
 msgid "Continues where the transfer stopped"
 msgstr "Pokračuje tam, kde přenos skončil"
 
-#: crates/rolid-ui/src/app.rs:2576
+#: crates/rolid-ui/src/app.rs:2611
 msgid "⚠ Dragging files to other programs does not work on Wayland yet."
 msgstr "⚠ Přetahování souborů do jiných programů pod Waylandem zatím nefunguje."
 
-#: crates/rolid-ui/src/app.rs:2578
+#: crates/rolid-ui/src/app.rs:2613
 msgid "What to do…"
 msgstr "Co dělat…"
 
-#: crates/rolid-ui/src/app.rs:2603
+#: crates/rolid-ui/src/app.rs:2638
 msgctxt "key bar"
 msgid "Help"
 msgstr "Nápověda"
 
-#: crates/rolid-ui/src/app.rs:2604
+#: crates/rolid-ui/src/app.rs:2639
 msgctxt "key bar"
 msgid "Rename"
 msgstr "Přejmenovat"
 
-#: crates/rolid-ui/src/app.rs:2605
+#: crates/rolid-ui/src/app.rs:2640
 msgctxt "key bar"
 msgid "View"
 msgstr "Zobrazit"
 
-#: crates/rolid-ui/src/app.rs:2606
+#: crates/rolid-ui/src/app.rs:2641
 msgctxt "key bar"
 msgid "Edit"
 msgstr "Upravit"
 
-#: crates/rolid-ui/src/app.rs:2607
+#: crates/rolid-ui/src/app.rs:2642
 msgctxt "key bar"
 msgid "Copy"
 msgstr "Kopírovat"
 
-#: crates/rolid-ui/src/app.rs:2608
+#: crates/rolid-ui/src/app.rs:2643
 msgctxt "key bar"
 msgid "Move"
 msgstr "Přesunout"
 
-#: crates/rolid-ui/src/app.rs:2609
+#: crates/rolid-ui/src/app.rs:2644
 msgctxt "key bar"
 msgid "New folder"
 msgstr "Nová složka"
 
-#: crates/rolid-ui/src/app.rs:2610
+#: crates/rolid-ui/src/app.rs:2645
 msgctxt "key bar"
 msgid "Delete"
 msgstr "Smazat"
 
-#: crates/rolid-ui/src/app.rs:2611
+#: crates/rolid-ui/src/app.rs:2646
 msgctxt "key bar"
 msgid "Search"
 msgstr "Hledat"
 
-#: crates/rolid-ui/src/app.rs:2612
+#: crates/rolid-ui/src/app.rs:2647
 msgctxt "key bar"
 msgid "Servers"
 msgstr "Servery"
 
-#: crates/rolid-ui/src/app.rs:2613
+#: crates/rolid-ui/src/app.rs:2648
 msgctxt "key bar"
 msgid "Local"
 msgstr "Lokální"
 
-#: crates/rolid-ui/src/app.rs:2614
+#: crates/rolid-ui/src/app.rs:2649
 msgctxt "key bar"
 msgid "Tab"
 msgstr "Záložka"
 
-#: crates/rolid-ui/src/app.rs:2615
+#: crates/rolid-ui/src/app.rs:2650
 msgctxt "key bar"
 msgid "Refresh"
 msgstr "Obnovit"
 
-#: crates/rolid-ui/src/app.rs:2633
+#: crates/rolid-ui/src/app.rs:2668
 msgid "🔓 Passwords unlocked · {time}"
 msgstr "🔓 Hesla odemčena · {time}"
 
-#: crates/rolid-ui/src/app.rs:2634
+#: crates/rolid-ui/src/app.rs:2669
 msgid "Saved passwords are unlocked; they lock in {time} unless used again. Click to lock them now."
 msgstr "Uložená hesla jsou odemčená; zamknou se za {time}, pokud se mezitím nepoužijí. Kliknutím je zamknete hned."
 
-#: crates/rolid-ui/src/app.rs:2637
+#: crates/rolid-ui/src/app.rs:2672
 msgid "🔓 Passwords unlocked"
 msgstr "🔓 Hesla odemčena"
 
-#: crates/rolid-ui/src/app.rs:2637
+#: crates/rolid-ui/src/app.rs:2672
 msgid "Saved passwords are unlocked. Click to lock them."
 msgstr "Uložená hesla jsou odemčená. Kliknutím zamkneš."
 
-#: crates/rolid-ui/src/app.rs:2640
+#: crates/rolid-ui/src/app.rs:2675
 msgid "🔒 Passwords locked"
 msgstr "🔒 Hesla zamčena"
 
-#: crates/rolid-ui/src/app.rs:2640
+#: crates/rolid-ui/src/app.rs:2675
 msgid "Saved passwords are locked. Click to unlock them."
 msgstr "Uložená hesla jsou zamčená. Kliknutím odemkneš."
 
-#: crates/rolid-ui/src/app.rs:2683
+#: crates/rolid-ui/src/app.rs:2718
 msgid "About and supporting the project"
 msgstr "O aplikaci a podpora projektu"
 
-#: crates/rolid-ui/src/app.rs:2821
+#: crates/rolid-ui/src/app.rs:2856
 msgid "Copy “{name}” to {disk}:"
 msgstr "Kopírovat „{name}“ na {disk}:"
 
-#: crates/rolid-ui/src/app.rs:2823
+#: crates/rolid-ui/src/app.rs:2858
 msgid "Copy {n} item to {disk}:"
 msgid_plural "Copy {n} items to {disk}:"
 msgstr[0] "Kopírovat {n} položku na {disk}:"
 msgstr[1] "Kopírovat {n} položky na {disk}:"
 msgstr[2] "Kopírovat {n} položek na {disk}:"
 
-#: crates/rolid-ui/src/app.rs:2854
+#: crates/rolid-ui/src/app.rs:2889
 msgid "Transfer"
 msgstr "Přenos"
 
-#: crates/rolid-ui/src/app.rs:2857
+#: crates/rolid-ui/src/app.rs:2892
 msgid "Max. speed (all transfers together):"
 msgstr "Max. rychlost (všechny přenosy dohromady):"
 
-#: crates/rolid-ui/src/app.rs:2861
+#: crates/rolid-ui/src/app.rs:2896
 msgid "Files are written through a temporary .filepart that is renamed when finished."
 msgstr "Soubory se zapisují přes dočasný .filepart, který se po dokončení přejmenuje."
 
-#: crates/rolid-ui/src/app.rs:2863
+#: crates/rolid-ui/src/app.rs:2898
 msgid "Tip: a speed limit keeps a slow line from being flooded (e.g. the server's outgoing line)."
 msgstr "Tip: omezení rychlosti zabrání zahlcení pomalé linky (např. odchozí linky serveru)."
 
-#: crates/rolid-ui/src/app.rs:2898
+#: crates/rolid-ui/src/app.rs:2933
 msgid "Create on production"
 msgstr "Vytvořit na produkci"
 
-#: crates/rolid-ui/src/app.rs:2919
-#: crates/rolid-ui/src/app.rs:2938
+#: crates/rolid-ui/src/app.rs:2954
+#: crates/rolid-ui/src/app.rs:2961
+msgid "Move to the trash"
+msgstr "Přesunout do koše"
+
+#: crates/rolid-ui/src/app.rs:2956
+msgid "Move “{name}” to the trash?"
+msgstr "Přesunout „{name}“ do koše?"
+
+#: crates/rolid-ui/src/app.rs:2957
+msgid "Move {n} item to the trash?"
+msgid_plural "Move {n} items to the trash?"
+msgstr[0] "Přesunout {n} položku do koše?"
+msgstr[1] "Přesunout {n} položky do koše?"
+msgstr[2] "Přesunout {n} položek do koše?"
+
+#: crates/rolid-ui/src/app.rs:2960
+msgid "File managers show the trash and can put the files back. Shift+F8 deletes permanently."
+msgstr "Správci souborů koš ukazují a soubory umí vrátit. Shift+F8 maže natrvalo."
+
+#: crates/rolid-ui/src/app.rs:2979
+#: crates/rolid-ui/src/app.rs:2998
 msgctxt "verb"
 msgid "Delete"
 msgstr "Smazat"
 
-#: crates/rolid-ui/src/app.rs:2921
+#: crates/rolid-ui/src/app.rs:2981
 msgid "Permanently delete “{name}”? Folders are deleted with their contents."
 msgstr "Opravdu trvale smazat „{name}“? Složky se smažou i s obsahem."
 
-#: crates/rolid-ui/src/app.rs:2922
+#: crates/rolid-ui/src/app.rs:2982
 msgid "Permanently delete “{name}” ON THE SERVER? Folders are deleted with their contents."
 msgstr "Opravdu trvale smazat „{name}“ NA SERVERU? Složky se smažou i s obsahem."
 
-#: crates/rolid-ui/src/app.rs:2923
+#: crates/rolid-ui/src/app.rs:2983
 msgid "Permanently delete {n} item? Folders are deleted with their contents."
 msgid_plural "Permanently delete {n} items? Folders are deleted with their contents."
 msgstr[0] "Opravdu trvale smazat {n} položku? Složky se smažou i s obsahem."
 msgstr[1] "Opravdu trvale smazat {n} položky? Složky se smažou i s obsahem."
 msgstr[2] "Opravdu trvale smazat {n} položek? Složky se smažou i s obsahem."
 
-#: crates/rolid-ui/src/app.rs:2928
+#: crates/rolid-ui/src/app.rs:2988
 msgid "Permanently delete {n} item ON THE SERVER? Folders are deleted with their contents."
 msgid_plural "Permanently delete {n} items ON THE SERVER? Folders are deleted with their contents."
 msgstr[0] "Opravdu trvale smazat {n} položku NA SERVERU? Složky se smažou i s obsahem."
 msgstr[1] "Opravdu trvale smazat {n} položky NA SERVERU? Složky se smažou i s obsahem."
 msgstr[2] "Opravdu trvale smazat {n} položek NA SERVERU? Složky se smažou i s obsahem."
 
-#: crates/rolid-ui/src/app.rs:2938
+#: crates/rolid-ui/src/app.rs:2998
 msgid "Delete on production"
 msgstr "Smazat na produkci"
 
-#: crates/rolid-ui/src/app.rs:2998
+#: crates/rolid-ui/src/app.rs:3058
 msgid "⚠ The copy of {n} file differs from the source (checksum): the source was NOT deleted. Check the copy in the target."
 msgid_plural "⚠ The copies of {n} files differ from the source (checksum): the sources were NOT deleted. Check the copies in the target."
 msgstr[0] "⚠ Kopie {n} souboru se liší od zdroje (kontrolní součet): zdroj NEBYL smazán. Zkontroluj kopii v cíli."
 msgstr[1] "⚠ Kopie {n} souborů se liší od zdrojů (kontrolní součet): zdroje NEBYLY smazány. Zkontroluj kopie v cíli."
 msgstr[2] "⚠ Kopie {n} souborů se liší od zdrojů (kontrolní součet): zdroje NEBYLY smazány. Zkontroluj kopie v cíli."
 
-#: crates/rolid-ui/src/app.rs:3008
+#: crates/rolid-ui/src/app.rs:3068
 msgid "{n} file changed in the source while it was being moved (size or modification time): it stayed in the source, the target may hold an older version."
 msgid_plural "{n} files changed in the source while they were being moved (size or modification time): they stayed in the source, the target may hold older versions."
 msgstr[0] "{n} soubor se ve zdroji během přesunu změnil (velikost nebo čas změny): zůstal ve zdroji, v cíli může být starší verze."
 msgstr[1] "{n} soubory se ve zdroji během přesunu změnily (velikost nebo čas změny): zůstaly ve zdroji, v cíli mohou být starší verze."
 msgstr[2] "{n} souborů se ve zdroji během přesunu změnilo (velikost nebo čas změny): zůstaly ve zdroji, v cíli mohou být starší verze."
 
-#: crates/rolid-ui/src/app.rs:3019
+#: crates/rolid-ui/src/app.rs:3079
 msgid "The move finished, but {files} and {dirs} stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgstr "Přesun dokončen, ale ve zdroji zůstalo {files} a {dirs} (přeskočené podle volby u existujících souborů, odkazy, nebo soubory změněné během přesunu)."
 
-#: crates/rolid-ui/src/app.rs:3022
+#: crates/rolid-ui/src/app.rs:3082
 #: crates/rolid-ui/src/pane.rs:1989
 msgid "{n} folder"
 msgid_plural "{n} folders"
@@ -6315,46 +6363,50 @@ msgstr[0] "{n} složka"
 msgstr[1] "{n} složky"
 msgstr[2] "{n} složek"
 
-#: crates/rolid-ui/src/app.rs:3025
+#: crates/rolid-ui/src/app.rs:3085
 msgid "The move finished, but {n} file stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgid_plural "The move finished, but {n} files stayed in the source (skipped by the choice for existing files, links, or files changed during the move)."
 msgstr[0] "Přesun dokončen, ale ve zdroji zůstal {n} soubor (přeskočený podle volby u existujících souborů, odkaz, nebo soubor změněný během přesunu)."
 msgstr[1] "Přesun dokončen, ale ve zdroji zůstaly {n} soubory (přeskočené podle volby u existujících souborů, odkazy, nebo soubory změněné během přesunu)."
 msgstr[2] "Přesun dokončen, ale ve zdroji zůstalo {n} souborů (přeskočené podle volby u existujících souborů, odkazy, nebo soubory změněné během přesunu)."
 
-#: crates/rolid-ui/src/app.rs:3069
+#: crates/rolid-ui/src/app.rs:3129
 msgid "Resume an interrupted transfer (.filepart of the same source file)"
 msgstr "Navázat přerušený přenos (.filepart téhož zdrojového souboru)"
 
-#: crates/rolid-ui/src/app.rs:3073
+#: crates/rolid-ui/src/app.rs:3133
 msgid "{choice}  ⚠ existing files will be overwritten"
 msgstr "{choice}  ⚠ existující soubory se přepíší"
 
-#: crates/rolid-ui/src/app.rs:3082
+#: crates/rolid-ui/src/app.rs:3142
 msgid "Choose what to do with existing files: nothing is preselected."
 msgstr "Vyber, co s existujícími soubory – nic není předvoleno."
 
-#: crates/rolid-ui/src/app.rs:3279
+#: crates/rolid-ui/src/app.rs:3181
+msgid "cannot be moved to the trash: the disk {disk} has no trash this program may use ({why}). Nothing was deleted; Shift+F8 deletes permanently."
+msgstr "nelze přesunout do koše: disk {disk} nemá koš, který by program směl použít ({why}). Nic nebylo smazáno; Shift+F8 maže natrvalo."
+
+#: crates/rolid-ui/src/app.rs:3362
 msgid "{file}: {error}"
 msgstr "{file}: {error}"
 
-#: crates/rolid-ui/src/app.rs:3280
+#: crates/rolid-ui/src/app.rs:3363
 msgid "{file} cannot be read ({error}). The defaults are used; the file is kept as {backup}."
 msgstr "{file} nelze přečíst ({error}). Použije se výchozí nastavení; soubor je zachován jako {backup}."
 
-#: crates/rolid-ui/src/app.rs:3286
+#: crates/rolid-ui/src/app.rs:3369
 msgid "{file} is partly damaged ({error}). What can be read is used, without: {items}. The file is kept as {backup}."
 msgstr "{file} je zčásti poškozený ({error}). Použije se, co jde přečíst, bez: {items}. Soubor je zachován jako {backup}."
 
-#: crates/rolid-ui/src/app.rs:3294
+#: crates/rolid-ui/src/app.rs:3377
 msgid "line {number}"
 msgstr "řádek {number}"
 
-#: crates/rolid-ui/src/app.rs:3307
+#: crates/rolid-ui/src/app.rs:3390
 msgid "unlimited"
 msgstr "neomezeno"
 
-#: crates/rolid-ui/src/app.rs:3346
+#: crates/rolid-ui/src/app.rs:3429
 msgid "Exact value (drag, or double-click and type)"
 msgstr "Přesná hodnota (táhni nebo dvojklik a napiš)"
 

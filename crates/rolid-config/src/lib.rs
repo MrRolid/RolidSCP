@@ -624,6 +624,10 @@ pub struct Settings {
     /// start of the program.
     #[serde(default, skip_serializing_if = "is_false")]
     pub x11_on_wayland: bool,
+    /// F8 deletes local files permanently instead of moving them to the
+    /// trash (0.9.1; the trash is the default).
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub delete_permanently: bool,
 }
 
 /// Widths of the listing columns set by dragging, in points at text size 1:1
@@ -1741,6 +1745,15 @@ path = "/srv"
         let t: RemoteTarget = toml::from_str("host = \"h\"\nport = 22\nuser = \"u\"\n").unwrap();
         assert!(t.jump.is_none());
         assert_eq!(t.key(), "u@h:22");
+    }
+
+    #[test]
+    fn older_settings_delete_to_the_trash() {
+        let old: Settings = toml::from_str("show_toolbar = true\n").unwrap();
+        assert!(!old.delete_permanently);
+        assert!(!toml::to_string(&old).unwrap().contains("delete_permanently"));
+        let off = Settings { delete_permanently: true, ..Default::default() };
+        assert!(toml::from_str::<Settings>(&toml::to_string(&off).unwrap()).unwrap().delete_permanently);
     }
 
     #[test]

@@ -136,9 +136,14 @@ taille, et s'il est sélectionné), les boutons et les dialogues leur nom.
   signalée et la source reste.
 - **F2** ou **Shift+F6** renomme directement dans la liste : le nom sans l'extension est sélectionné,
   **Enter** confirme, **Esc** annule.
-- **F7** crée un dossier, **F8** supprime (avec confirmation). La suppression s’exécute dans la file
-  des transferts avec le nombre d’éléments supprimés ; **Annuler** l’arrête (ce qui est déjà
-  supprimé le reste).
+- **F7** crée un dossier. **F8** met les fichiers des disques de cet ordinateur à la corbeille du
+  bureau (avec confirmation) : les gestionnaires de fichiers la montrent et peuvent restaurer les
+  fichiers ; un fichier sur un autre disque va dans la corbeille propre à ce disque, et là où il n'y en
+  a pas (disque en lecture seule), rien n'est supprimé et le programme le dit. **Shift+F8** supprime
+  définitivement ; les fichiers sur un serveur sont toujours supprimés définitivement (la question dit
+  SUR LE SERVEUR). La corbeille peut être désactivée dans **Paramètres → Copie et déplacement**. La suppression
+  s’exécute dans la file des transferts avec le nombre d’éléments supprimés ; **Annuler** l’arrête (ce
+  qui est déjà supprimé le reste).
 - Les tubes (FIFO), sockets, périphériques et liens symboliques qui ne mènent nulle part (cible
   absente ou boucle) ne sont pas copiés : ils sont ignorés et listés dans le rapport final, le reste
   de la copie continue.

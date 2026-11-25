@@ -125,6 +125,7 @@ pub enum RowId {
     ClockWarning,
     VaultLock,
     X11OnWayland,
+    Trash,
 }
 
 /// Every setting: (section, row, English label, more words to search in).
@@ -152,6 +153,7 @@ const ROWS: &[(Sec, RowId, &str, &str)] = &[
     (Sec::Copying, RowId::SpeedLimit, n!("Transfer speed limit:"), ""),
     (Sec::Copying, RowId::DropPreset, n!("Dragging from a system window:"), n!("What is preselected (Enter) when the file already exists in the target.")),
     (Sec::Copying, RowId::CopyPreset, n!("Copying with F5:"), n!("What is preselected (Enter) when the file already exists in the target.")),
+    (Sec::Copying, RowId::Trash, n!("F8 moves local files to the trash"), n!("Deleting. Shift+F8 deletes permanently. Files on a server are always deleted permanently.")),
     (Sec::Archives, RowId::Arch(0), n!("Extract at most"), ""),
     (Sec::Archives, RowId::Arch(1), n!("At most items in an archive"), ""),
     (Sec::Archives, RowId::Arch(2), n!("Ask at a compression ratio above"), ""),
@@ -206,6 +208,7 @@ pub struct SettingsForm {
     pub clock_warning: bool,
     pub vault_lock: Option<u32>,
     pub x11_on_wayland: bool,
+    pub trash: bool,
 }
 
 impl SettingsForm {
@@ -253,6 +256,7 @@ impl SettingsForm {
             clock_warning: !s.clock_warning_off,
             vault_lock: s.vault_lock_after(),
             x11_on_wayland: s.x11_on_wayland,
+            trash: !s.delete_permanently,
         }
     }
 
@@ -359,6 +363,7 @@ impl SettingsForm {
         }
         s.clock_warning_off = !self.clock_warning;
         s.x11_on_wayland = self.x11_on_wayland;
+        s.delete_permanently = !self.trash;
         if before.vault_lock != self.vault_lock {
             s.set_vault_lock_after(self.vault_lock);
         }
@@ -970,6 +975,23 @@ fn draw_row(ui: &mut egui::Ui, r: RowId, w: &mut SettingsWin, env: &Env) {
                 );
             });
         }
+        RowId::Trash => {
+            ui.label("");
+            ui.vertical(|ui| {
+                ui.horizontal(|ui| {
+                    ui.checkbox(&mut f.trash, label);
+                    dialog::help(
+                        ui,
+                        tr!(
+                            "The trash of the desktop: file managers show what is in it and put it back. A file on \
+                             another disk goes to that disk's own trash. Where there is none (a read-only disk), \
+                             the program says so and nothing is deleted."
+                        ),
+                    );
+                });
+                dialog::note(ui, tr!("Shift+F8 deletes permanently. Files on a server are always deleted permanently."));
+            });
+        }
         RowId::X11OnWayland => {
             ui.label("");
             ui.vertical(|ui| {
@@ -1083,6 +1105,7 @@ mod tests {
             editor_command: Some("gedit {file}".into()),
             clock_warning_off: true,
             x11_on_wayland: true,
+            delete_permanently: true,
             ..Default::default()
         };
         s.type_colors.insert("image".into(), "#112233".into());
@@ -1174,6 +1197,8 @@ mod tests {
         assert_eq!(matching("wayland"), vec![(Sec::Dragging, RowId::X11OnWayland)]);
         assert_eq!(matching("xwayland restart"), vec![(Sec::Dragging, RowId::X11OnWayland)]);
         assert_eq!(matching("drag other programs"), vec![(Sec::Dragging, RowId::X11OnWayland)]);
+        assert_eq!(matching("trash"), vec![(Sec::Copying, RowId::Trash)]);
+        assert_eq!(matching("delete permanently"), vec![(Sec::Copying, RowId::Trash)]);
         // Every row is in a section of the tree, and every section has rows.
         for (s, _, _, _) in ROWS {
             assert!(GROUPS.iter().any(|(_, secs)| secs.contains(s)));

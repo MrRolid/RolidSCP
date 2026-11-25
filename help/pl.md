@@ -122,8 +122,13 @@ jest zaznaczony), a przyciski i okna dialogowe swoje nazwy.
   najpierw ponownie odczytywane i porównywane; różnica jest zgłaszana, a źródło zostaje.
 - **F2** lub **Shift+F6** zmienia nazwę bezpośrednio na liście: nazwa bez rozszerzenia jest
   zaznaczona, **Enter** potwierdza, **Esc** anuluje.
-- **F7** tworzy folder, **F8** usuwa (z potwierdzeniem). Usuwanie działa w kolejce transferów
-  z liczbą usuniętych elementów; **Anuluj** je zatrzymuje (to, co już usunięto, pozostaje usunięte).
+- **F7** tworzy folder. **F8** przenosi pliki z dysków tego komputera do kosza środowiska
+  (z potwierdzeniem): menedżery plików go pokazują i mogą przywrócić pliki; plik na innym dysku trafia
+  do własnego kosza tego dysku, a gdzie go nie ma (dysk tylko do odczytu), nic nie jest usuwane
+  i program to mówi. **Shift+F8** usuwa trwale; pliki na serwerze są zawsze usuwane trwale (pytanie
+  mówi NA SERWERZE). Kosz można wyłączyć w **Ustawienia → Kopiowanie i przenoszenie**. Usuwanie działa w kolejce
+  transferów z liczbą usuniętych elementów; **Anuluj** je zatrzymuje (to, co już usunięto, pozostaje
+  usunięte).
 - Potoki (FIFO), gniazda, urządzenia i dowiązania symboliczne, które nigdzie nie prowadzą (brak celu
   lub pętla), nie są kopiowane: są pomijane i wymienione w raporcie na końcu, reszta kopii trwa dalej.
 - Nietypowe nazwy są kopiowane dokładnie: znaki nowego wiersza, ukośnik wsteczny, nazwy o długości

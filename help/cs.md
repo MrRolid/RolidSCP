@@ -114,8 +114,12 @@ označená), tlačítka a dialogy své názvy.
   rozdílu to program ohlásí a zdroj zůstane.
 - **F2** nebo **Shift+F6** přejmenuje přímo v seznamu: název bez přípony je vybraný, **Enter**
   potvrdí, **Esc** zruší.
-- **F7** vytvoří složku, **F8** maže (s potvrzením). Mazání běží ve frontě přenosů s počtem
-  smazaných položek; **Zrušit** ho zastaví (co už je smazané, zůstane smazané).
+- **F7** vytvoří složku. **F8** přesune soubory na discích tohoto počítače do koše prostředí
+  (s potvrzením): správci souborů ho ukazují a soubory umí vrátit; soubor na jiném disku jde do
+  vlastního koše toho disku, a kde žádný není (disk jen pro čtení), nic se nesmaže a program to řekne.
+  **Shift+F8** maže natrvalo; soubory na serveru se mažou vždy natrvalo (otázka říká NA SERVERU). Koš
+  jde vypnout v **Nastavení → Kopírování a přesun**. Mazání běží ve frontě přenosů s počtem smazaných položek;
+  **Zrušit** ho zastaví (co už je smazané, zůstane smazané).
 - Roury (FIFO), sockety, zařízení a symbolické odkazy, které nikam nevedou (cíl chybí nebo vede
   v kruhu), se nekopírují: přeskočí se a vypíšou ve zprávě na konci, zbytek kopie pokračuje.
 - Neobvyklé názvy se kopírují přesně: konce řádků, zpětné lomítko, názvy o 255 bajtech a na discích

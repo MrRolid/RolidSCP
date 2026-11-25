@@ -118,8 +118,13 @@ and whether it is selected), the buttons and dialogs their names.
   compared first; a difference is reported and the source stays.
 - **F2** or **Shift+F6** renames right in the list: the name without the extension is selected,
   **Enter** confirms, **Esc** cancels.
-- **F7** creates a folder, **F8** deletes (with a confirmation). Deleting runs in the transfer queue
-  with the number of deleted items; **Cancel** stops it (what is deleted by then stays deleted).
+- **F7** creates a folder. **F8** moves files on this computer's disks to the trash of the desktop
+  (with a confirmation): file managers show it and can put the files back; a file on another disk goes
+  to that disk's own trash, and where there is none (a read-only disk) nothing is deleted and the
+  program says so. **Shift+F8** deletes permanently; files on a server are always deleted permanently
+  (the question says ON THE SERVER). The trash can be turned off in **Settings → Copying and moving**. Deleting
+  runs in the transfer queue with the number of deleted items; **Cancel** stops it (what is deleted by
+  then stays deleted).
 - Pipes (FIFO), sockets, devices and symbolic links that lead nowhere (a missing target or a loop) are
   not copied: they are skipped and listed in the report at the end, the rest of the copy goes on.
 - Unusual names are copied exactly: line breaks, a backslash, names of 255 bytes, and on this

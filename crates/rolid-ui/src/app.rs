@@ -319,6 +319,8 @@ enum Dialog {
         at: PaneRef,
         items: Vec<Target>,
         production: bool,
+        /// Move to the trash (a local disk, F8) instead of deleting.
+        trash: bool,
     },
     Switcher {
         query: String,
@@ -1680,7 +1682,7 @@ impl App {
         });
     }
 
-    fn start_delete(&mut self, at: PaneRef, items: Vec<Target>) {
+    fn start_delete(&mut self, at: PaneRef, items: Vec<Target>, trash: bool) {
         let Some(p) = self.pane(at) else { return };
         let fs = p.fs.clone();
         let in_search = p.search.is_some();
@@ -1708,9 +1710,14 @@ impl App {
             [one] => one.label.clone(),
             many => trn!("{n} item", "{n} items", many.len()),
         };
+        let title = if trash {
+            tr!("Moving to the trash: {what}", what = what.as_str())
+        } else {
+            tr!("Deleting: {what}", what = what.as_str())
+        };
         self.jobs.push(Job {
             id,
-            title: tr!("Deleting: {what}", what = what.as_str()),
+            title,
             progress: Arc::new(Mutex::new(Progress { started: Some(Instant::now()), ..Default::default() })),
             total_bytes: 0,
             cancel: cancel.clone(),
@@ -1734,7 +1741,19 @@ impl App {
             let mut result = Ok(());
             let mut done = Vec::new();
             for t in &items {
-                if let Err(e) = remove_tree(fs.as_ref(), &fs.join(&t.dir, &t.name), &cancel, &removed).await {
+                let path = fs.join(&t.dir, &t.name);
+                let r = if trash {
+                    if cancel.load(Ordering::Relaxed) {
+                        Err(rolid_core::VfsError::canceled())
+                    } else {
+                        let r = to_trash(&path).await;
+                        removed();
+                        r
+                    }
+                } else {
+                    remove_tree(fs.as_ref(), &path, &cancel, &removed).await
+                };
+                if let Err(e) = r {
                     result = Err(e);
                     break;
                 }
@@ -1931,7 +1950,9 @@ impl App {
             on!(Modifiers::NONE, Key::F4, |a: &mut Self| a.start_edit_active());
             on!(Modifiers::NONE, Key::F5, |a: &mut Self| a.ask_copy());
             on!(Modifiers::NONE, Key::F7, |a: &mut Self| a.ask_mkdir());
+            // Shift first (egui ignores an extra Shift when matching).
             for k in [Key::F8, Key::Delete] {
+                on!(Modifiers::SHIFT, k, |a: &mut Self| a.ask_delete_permanently());
                 on!(Modifiers::NONE, k, |a: &mut Self| a.ask_delete());
             }
             on!(Modifiers::NONE, Key::Tab, |a: &mut Self| a.switch_pane());
@@ -2088,7 +2109,18 @@ impl App {
         }
     }
 
+    /// F8: local files to the trash (unless turned off), files on a server
+    /// deleted.
     fn ask_delete(&mut self) {
+        self.ask_delete_how(false);
+    }
+
+    /// Shift+F8: deleted permanently, also on a local disk.
+    fn ask_delete_permanently(&mut self) {
+        self.ask_delete_how(true);
+    }
+
+    fn ask_delete_how(&mut self, permanently: bool) {
         let at = self.active_ref();
         if self.refuse_read_only(at, &tr!("Cannot delete from an archive")) {
             return;
@@ -2098,11 +2130,14 @@ impl App {
             .pane(at)
             .and_then(|p| p.remote.as_ref())
             .is_some_and(|r| r.production);
+        let local = self.pane(at).is_some_and(|p| p.fs.is_local_disk());
+        let trash = cfg!(unix) && local && !permanently && !self.settings.delete_permanently;
         if !items.is_empty() {
             self.dialog = Dialog::Delete {
                 at,
                 items,
                 production,
+                trash,
             };
         }
     }
@@ -2913,7 +2948,32 @@ impl App {
             Dialog::Delete {
                 at,
                 items,
+                production: _,
+                trash: true,
+            } => {
+                dialog::window("delete", tr!("Move to the trash")).icon(Role::Delete).show(ctx, |ui| {
+                    let question = match items.len() {
+                        1 => tr!("Move “{name}” to the trash?", name = items[0].label.as_str()),
+                        n => trn!("Move {n} item to the trash?", "Move {n} items to the trash?", n),
+                    };
+                    dialog::lead(ui, question);
+                    dialog::note(ui, tr!("File managers show the trash and can put the files back. Shift+F8 deletes permanently."));
+                    let b = dialog::buttons(ui, [dialog::btn(Role::Delete, tr!("Move to the trash")).default(true), dialog::cancel()]);
+                    if b[0] {
+                        let (at, n) = (*at, std::mem::take(items));
+                        act = Some(Box::new(move |a: &mut Self| a.start_delete(at, n, true)));
+                        next = Some(Dialog::None);
+                    }
+                    if b[1] {
+                        next = Some(Dialog::None);
+                    }
+                });
+            }
+            Dialog::Delete {
+                at,
+                items,
                 production,
+                trash: false,
             } => {
                 let remote = find_pane(&self.sides, *at).is_some_and(|p| p.fs.is_remote());
                 dialog::window("delete", trc!("verb", "Delete")).icon(Role::Delete).danger(remote || *production).show(ctx, |ui| {
@@ -2939,7 +2999,7 @@ impl App {
                     let b = dialog::buttons(ui, [dialog::btn(Role::Delete, label).default(!*production), dialog::cancel()]);
                     if b[0] {
                         let (at, n) = (*at, std::mem::take(items));
-                        act = Some(Box::new(move |a: &mut Self| a.start_delete(at, n)));
+                        act = Some(Box::new(move |a: &mut Self| a.start_delete(at, n, false)));
                         next = Some(Dialog::None);
                     }
                     if b[1] {
@@ -3111,6 +3171,29 @@ pub(crate) async fn remove_recursive(fs: &dyn Vfs, path: &str) -> VfsResult<()> 
 
 /// [`remove_recursive`] that stops when `cancel` is set and calls `removed`
 /// after each deleted item.
+/// Move a local item to the desktop's trash (see `rolid_local::trash`).
+async fn to_trash(path: &str) -> VfsResult<()> {
+    #[cfg(unix)]
+    {
+        let p = rolid_core::names::to_os(path);
+        match tokio::task::spawn_blocking(move || rolid_local::trash::trash(&p)).await {
+            Ok(Ok(_)) => Ok(()),
+            Ok(Err(rolid_local::trash::TrashError::NoTrash { disk, why })) => Err(rolid_core::VfsError::Backend(rolid_i18n::rolid_text::txt!(
+                "cannot be moved to the trash: the disk {disk} has no trash this program may use ({why}). Nothing was deleted; Shift+F8 deletes permanently.",
+                disk = disk.display().to_string(),
+                why = why
+            ))),
+            Ok(Err(rolid_local::trash::TrashError::Io(e))) => Err(e.into()),
+            Err(e) => Err(rolid_core::VfsError::raw(e)),
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = path;
+        Err(rolid_core::VfsError::raw("no trash"))
+    }
+}
+
 pub(crate) async fn remove_tree(fs: &dyn Vfs, path: &str, cancel: &AtomicBool, removed: &(dyn Fn() + Send + Sync)) -> VfsResult<()> {
     let e = fs.stat(path).await?;
     remove_entry(fs, path, e.kind, cancel, removed).await

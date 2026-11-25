@@ -135,7 +135,12 @@ use it on data that matters: RolidSCP is beta software.
   file. A move leaves links where they are. The result summary does not list skipped links yet.
 
 **Deleting (F8)**
-- Deleting is permanent, locally and on servers. There is no trash and no undo.
+- F8 moves files on this computer's disks to the trash of the desktop (the FreeDesktop.org trash that
+  Files, Dolphin, Thunar and Caja show and restore from). A file on another disk goes to that disk's
+  own trash (`.Trash/<uid>` or `.Trash-<uid>`); it is never copied across disks, and where no trash can
+  be used (a read-only disk) nothing is deleted and the program says so. The trash can be turned off
+  in Settings → Copying and moving.
+- Shift+F8 deletes permanently. Files on servers are always deleted permanently; there is no undo.
 - A symbolic link is deleted as a link; the folder it points to is not entered.
 - Deleting stops at the first error; what was deleted before stays deleted.
 
@@ -389,7 +394,8 @@ hung network mount) waits until you cancel it.
 | Alt+F9 | extract |
 | Alt+Shift+F9 | test an archive |
 | F7 | new folder |
-| F8 / Delete | delete permanently (with confirmation; no trash) |
+| F8 / Delete | delete with confirmation: local files to the trash, on a server permanently |
+| Shift+F8 / Shift+Delete | delete permanently (with confirmation) |
 | Ctrl+Shift+A | permissions |
 | Ctrl+Shift+N / P / S | copy name / full path / `sftp://` URL to the clipboard |
 | Ctrl+G / click on the path | type a path |

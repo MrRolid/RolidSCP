@@ -130,9 +130,14 @@ die Größe und ob er markiert ist), Schaltflächen und Dialoge ihre Namen.
   und die Quelle bleibt.
 - **F2** oder **Shift+F6** benennt direkt in der Liste um: Der Name ohne Erweiterung ist markiert,
   **Enter** bestätigt, **Esc** bricht ab.
-- **F7** erstellt einen Ordner, **F8** löscht (mit Bestätigung). Das Löschen läuft in der
-  Übertragungswarteschlange mit der Zahl der gelöschten Einträge; **Abbrechen** hält es an (was bis
-  dahin gelöscht ist, bleibt gelöscht).
+- **F7** erstellt einen Ordner. **F8** verschiebt Dateien auf den Laufwerken dieses Computers in den
+  Papierkorb der Arbeitsumgebung (mit Bestätigung): Dateimanager zeigen ihn und können die Dateien
+  wiederherstellen; eine Datei auf einem anderen Laufwerk kommt in dessen eigenen Papierkorb, und wo
+  es keinen gibt (ein schreibgeschütztes Laufwerk), wird nichts gelöscht und das Programm sagt es.
+  **Shift+F8** löscht endgültig; Dateien auf einem Server werden immer endgültig gelöscht (die Frage
+  sagt AUF DEM SERVER). Der Papierkorb lässt sich unter **Einstellungen → Kopieren und Verschieben** abschalten. Das
+  Löschen läuft in der Übertragungswarteschlange mit der Zahl der gelöschten Einträge; **Abbrechen**
+  hält es an (was bis dahin gelöscht ist, bleibt gelöscht).
 - Pipes (FIFO), Sockets, Geräte und symbolische Links, die ins Leere führen (Ziel fehlt oder
   Schleife), werden nicht kopiert: Sie werden übersprungen und im Bericht am Ende aufgeführt, der
   Rest der Kopie läuft weiter.

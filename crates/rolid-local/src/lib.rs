@@ -5,6 +5,9 @@ use std::time::SystemTime;
 
 use tokio::io::AsyncSeekExt;
 
+#[cfg(unix)]
+pub mod trash;
+
 use async_trait::async_trait;
 use rolid_core::names::{from_os, to_os};
 use rolid_core::vfs::{Reader, Writer};
