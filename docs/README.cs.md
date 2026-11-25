@@ -229,6 +229,9 @@ Verze aplikace je vidět vpravo v menu, v titulku okna a v Nápověda → O apli
 | Tab | přepnout levý/pravý panel |
 | psaní znaků | rychlý filtr (prefix → podřetězec → fuzzy), Esc zruší |
 | Insert / Mezerník / Ctrl+klik | označit položku (mezerník jen označuje) |
+| Shift+F10 / klávesa Menu | kontextové menu položky pod kurzorem z klávesnice |
+| Ctrl+Shift+F10 / Ctrl+Menu | menu aktivní záložky (barva, přejmenování, zavřít ostatní) |
+| Ctrl+, | nastavení (ve vlastním okně; Ctrl+F v něm najde nastavení) |
 | pravý klik na soubor | kontextové menu (otevřít, otevřít s, upravit, kopírovat, smazat, práva, zabalit, rozbalit, test archivu, velikost složek, kontrolní součty, do schránky, označit) |
 | Shift+Enter | Otevřít s… (výběr aplikace nebo vlastní příkaz) |
 | Ctrl+Shift+A | práva (rwx / osmičkově, i rekurzivně) |

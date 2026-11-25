@@ -1562,6 +1562,19 @@ path = "/srv"
         assert_ne!(&a[a.len() - 8..], &b[b.len() - 8..], "{a} {b}");
     }
 
+    /// The clock warning of 0.9.0: settings of older versions have no key and
+    /// mean "warn"; the key is written only when the warning is turned off.
+    #[test]
+    fn the_clock_warning_is_on_in_older_settings() {
+        let old: Settings = toml::from_str("speed_limit_kib = 4096\nseconds = true\n").unwrap();
+        assert!(!old.clock_warning_off);
+        assert!(!toml::to_string(&old).unwrap().contains("clock_warning"));
+        let off = Settings { clock_warning_off: true, ..Default::default() };
+        let text = toml::to_string(&off).unwrap();
+        assert!(text.contains("clock_warning_off = true"), "{text}");
+        assert!(toml::from_str::<Settings>(&text).unwrap().clock_warning_off);
+    }
+
     #[test]
     fn roundtrip_files() {
         let dir = std::env::temp_dir().join(format!("rolid-cfg-{}", std::process::id()));

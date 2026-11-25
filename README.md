@@ -353,7 +353,9 @@ hung network mount) waits until you cancel it.
 | Alt+I | invert the selection |
 | Alt+Shift+Enter | size of all folders in the panel |
 | Alt+Space / Shift+Space | size of the folder under the cursor or of the marked folders (Shift+Space where the desktop takes Alt+Space, e.g. Cinnamon) |
-| right click | context menu |
+| right click / Shift+F10 / Menu key | context menu (of the item under the cursor) |
+| Ctrl+Shift+F10 / Ctrl+Menu | menu of the active tab (color, rename, close other tabs) |
+| Ctrl+, | settings (a window of their own; Ctrl+F in it finds a setting) |
 | F3 | view the file (text, hex, image) |
 | F4 | edit in an external editor |
 | Shift+F4 | new file in the external editor (on a server it is created by the first save) |

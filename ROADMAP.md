@@ -129,17 +129,19 @@ Every new feature comes with tests of its error cases, help and translations in 
 and takes over the settings of older versions; before each release the kill, bad-line and two-copies
 tests are run again.
 
-- **0.9.0 Settings window:**
-  - Settings in a window of their own, with a tree of sections and a filter. The settings now
+- **0.9.0 Settings window (done):**
+  - Settings in a window of their own (Ctrl+,), with a tree of sections and a filter. The settings
     spread over the Settings menu (speed limit, conflict choices, editor, locking of saved
-    passwords, automatic refresh) are there too. The later settings of 0.9 go into it.
+    passwords, automatic refresh) are there too; the menu keeps its quick items. Saving writes only
+    what was changed in the window. The later settings of 0.9 go into it.
   - Duplicating a connection in the site manager: a copy with all settings; you choose whether the
     saved password is copied too.
-  - Context menus by keyboard (the Menu key and Shift+F10), for files and for tabs: the tab color and
-    "Close other tabs" can only be reached with the mouse now (everything else has a key or is in
-    the menu bar, F10).
-  - A warning when a server's clock is off by more than a minute (it matters for "Overwrite only
-    older" with files changed on that server).
+  - Context menus by keyboard: Shift+F10 or the Menu key for the item under the cursor,
+    Ctrl+Shift+F10 or Ctrl+Menu for the tab (the tab colors too).
+  - A warning when a server's clock is off by more than a minute (in the line at the bottom, the
+    tab's tooltip and under "Overwrite only older"); it can be turned off.
+  - Found by the two-copies test: two copies of the program adding or duplicating a server at the
+    same moment could give both the same id, and the merge kept only one. Fixed.
 - **0.9.1 Jump host:**
   - Server keys checked against `~/.ssh/known_hosts` too, next to the program's own file. The program
     never writes to `~/.ssh/known_hosts`: keys you accept go only to its own file. When the two files
